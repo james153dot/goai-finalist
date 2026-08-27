@@ -150,7 +150,7 @@ swirl-coaxial σ, with like-on-like analog-unstable and swirl-coaxial
 analog-stable) survives every setting. Two g-slice unstable intervals
 survive N_bins ∈ {16, 24, 32} and V_crit = 0.055.
 
-**V_crit = 0.035 collapses the high-g interval to one.** A stricter mixing
+**V_crit = 0.035 removes the high-\(g\) unstable interval, leaving only the low-\(g\) interval.** A stricter mixing
 criterion moves x_m downstream, increases τ, and rotates the Rayleigh phase.
 That is disclosed, not hidden: the second interval is real on the declared
 definition (V_crit = 0.045, 24 bins) and is not an artifact of N_bins, but
@@ -159,7 +159,7 @@ it is not invariant to a 22% tighter variance threshold.
 Artifacts: `artifacts/tau_sensitivity.json`, `artifacts/figures/tau_sensitivity.png`.
 
 ## Environment contract
-
+                                
 **Fixed:** chamber L = 80 mm, H = 20 mm, laminar viscosity, closed-closed 1L
 mode, Rayleigh-from-mixing analog, threshold σ_analog = 0.
 
