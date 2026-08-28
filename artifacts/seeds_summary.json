@@ -1,0 +1,42 @@
+{
+  "n_openfoam_cases": 35,
+  "openfoam": "openfoam14_2d_laminar_dual_jet",
+  "seeds": [
+    {
+      "seed": 7,
+      "ai_acc": 0.755,
+      "lhs_acc": 0.9375,
+      "ai_first_boundary": 0,
+      "lhs_first_boundary": 0,
+      "ai_discoveries": 4,
+      "lhs_discoveries": 3,
+      "ai_swirl": "falsified",
+      "lhs_swirl": "not_falsified"
+    },
+    {
+      "seed": 11,
+      "ai_acc": 0.96625,
+      "lhs_acc": 0.9575,
+      "ai_first_boundary": 7,
+      "lhs_first_boundary": 0,
+      "ai_discoveries": 4,
+      "lhs_discoveries": 4,
+      "ai_swirl": "falsified",
+      "lhs_swirl": "falsified"
+    },
+    {
+      "seed": 19,
+      "ai_acc": 0.95625,
+      "lhs_acc": 0.94375,
+      "ai_first_boundary": 6,
+      "lhs_first_boundary": 3,
+      "ai_discoveries": 4,
+      "lhs_discoveries": 4,
+      "ai_swirl": "falsified",
+      "lhs_swirl": "falsified"
+    }
+  ],
+  "mean_ai_acc": 0.8925000000000001,
+  "mean_lhs_acc": 0.94625,
+  "note": "Seed 7 AI GP collapsed toward an all-stable classifier; seeds 11 and 19 reconstruct the CFD-informed map. Dashboard demo uses seed 11."
+}

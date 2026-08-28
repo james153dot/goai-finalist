@@ -140,31 +140,37 @@ def _assess_hypotheses(record: CampaignRecord) -> list[dict]:
         "status": "falsified" if counterexamples else "not_falsified",
         "evidence_count": len(counterexamples),
         "note": (
-            "Higher swirl shortens the mixing lag into an in-phase heat-release "
-            "band, so a common 'more swirl is always more stable' rule fails."
+            "Higher swirl analog changed mixing delay enough to cross the Rayleigh "
+            "phase condition, so 'more swirl is always more stable' fails on this CFD map."
             if counterexamples
             else "No clear counterexample in this budget."
         ),
     }
 
-    # H2: disconnected unstable region (pattern analog near like-on-like, high load).
-    island = [
-        r
-        for r in rows
-        if r["stable"] == 0
-        and r["g"] < 0.8
-        and r["o"] > 0.55
-        and 0.15 < r["a"] < 0.5
-        and r["S"] >= STABILITY_THRESHOLD
-    ]
+    # H2: disconnected unstable pocket — unstable points whose nearest
+    # neighbors in the campaign are mostly stable.
+    island = []
+    for r in rows:
+        if r["stable"] != 0:
+            continue
+        others = [q for q in rows if q is not r]
+        if not others:
+            continue
+        dist = [
+            abs(q["g"] - r["g"]) + abs(q["d"] - r["d"]) + abs(q["s"] - r["s"]) + abs(q["o"] - r["o"])
+            for q in others
+        ]
+        near = [others[i] for i in np.argsort(dist)[:6]]
+        if sum(q["stable"] == 1 for q in near) >= 4:
+            island.append(r)
     h2 = {
         "id": "H_connected_unstable",
         "statement": "Unstable conditions form a single connected region in the explored domain.",
         "status": "challenged" if len(island) >= 2 else "not_challenged",
         "evidence_count": len(island),
         "note": (
-            "A compact high-load pocket of like-on-like analog injectors is unstable "
-            "even when neighboring swirl/orifice settings are stable."
+            "At least two unstable evaluations sit among mostly stable neighbors, "
+            "which is consistent with a disconnected pocket in the CFD mixing map."
             if len(island) >= 2
             else "The campaign did not isolate a disconnected pocket."
         ),

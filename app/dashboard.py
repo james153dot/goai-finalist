@@ -92,9 +92,9 @@ def progress_curve(df: pd.DataFrame, name: str) -> go.Figure:
 
 st.title("AI-guided combustion-stability windows")
 st.caption(
-    "GOAI Track 3 · Type II open exploration · second-round environment. "
-    "The chamber, reaction model, acoustics, and stability criterion are frozen. "
-    "The agent only chooses the next injector / operating analog to evaluate."
+    "GOAI Track 3 · Type II · OpenFOAM 14 mixing + frozen n-τ acoustics. "
+    "Injector delay and unmixedness come from 35 laminar dual-jet CFD cases. "
+    "The chamber mode and stability criterion stay fixed. Demo campaign is seed 11."
 )
 
 tabs = st.tabs(
@@ -140,6 +140,21 @@ with tabs[0]:
 
         with st.expander("Raw exploration log"):
             st.dataframe(ai_df, use_container_width=True, hide_index=True)
+
+        summary_path = ROOT / "artifacts" / "seeds_summary.json"
+        if summary_path.exists():
+            st.subheader("Three-seed summary")
+            st.json(json.loads(summary_path.read_text()))
+            st.caption("Seed 7 is a negative: the AI Gaussian process collapsed. Seeds 11 and 19 reconstruct the CFD-informed map. That variability is part of the result.")
+
+        st.subheader("Classical injector analogs (OpenFOAM mixing → n-τ)")
+        from cswe.geometry import CLASSICAL_INJECTORS
+        from cswe.physics import simulate as _sim
+        cols = st.columns(3)
+        rng = np.random.default_rng(0)
+        for col, (name, x) in zip(cols, CLASSICAL_INJECTORS.items()):
+            r = _sim(x, rng=rng)
+            col.metric(name.replace("_", " "), "stable" if r.stable else "unstable", f"S={r.S:.2f}  τ={r.tau:.3f}s")
 
 with tabs[1]:
     st.write(
@@ -217,22 +232,23 @@ with tabs[3]:
     )
     fig.update_layout(template="plotly_dark", height=480, coloraxis_showscale=False)
     st.plotly_chart(fig, use_container_width=True)
-    st.caption("The compact red pocket at low swirl / moderate spread is the disconnected unstable island.")
+    st.caption("Red = unstable. Unlike the first toy model, this slice is interpolated from OpenFOAM mixing CFD, not a planted island.")
 
 with tabs[4]:
     st.markdown(
         """
 **Second-round package (Type II)**
 
-1. **Runnable environment** — this app plus `cswe run`.
-2. **Exploration logs** — `artifacts/demo/ai/exploration.jsonl` is one complete campaign.
-3. **Baseline** — budget-matched Latin hypercube in `artifacts/demo/baseline/`.
-4. **Reproduction** — `uv sync && cswe run --budget 48 --seed 7 --out artifacts/demo`.
+1. **OpenFOAM mixing** — 35 laminar 2-D dual-jet cases (`cswe atlas`, OpenFOAM 14).
+2. **Frozen acoustics** — Crocco n-τ using CFD τ and unmixedness only. No planted island.
+3. **Runnable loop** — `cswe run` plus this dashboard.
+4. **Baselines** — budget-matched Latin hypercube **and** three classical injector analogs.
+5. **Logs** — `artifacts/demo` (seed 11) plus seeds 7 and 19.
 
-**What is in scope.** Discover how injector analogs move the stable/unstable boundary of a frozen low-order n-τ chamber. Not thrust, not Isp, not a flight injector.
+**In scope.** How injector analogs move a frozen chamber's stable/unstable window. Not thrust, not a flight injector.
 
-**What counts as a discovery.** A reconstructed window, a window shift, a counterexample to “more swirl always helps,” a disconnected unstable pocket, or a stable negative result. Failed CFD-analog runs are logged and discarded.
+**What the CFD actually showed.** Like-on-like analog: unstable. Unlike-impinging and swirl-coaxial analogs: stable. Along a swirl sweep, more swirl analog *lengthened* mixing delay and moved the Rayleigh phase toward damping — the opposite of the first algebraic toy model.
 
-**Safety.** Outputs stay at abstract design principles. There are no dimensional orifice diameters, chamber drawings, or propellant flow rates.
+**Safety.** Abstract design principles only. No dimensional flight-injector packages.
         """
     )

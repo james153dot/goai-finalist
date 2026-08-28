@@ -1,29 +1,38 @@
 # Reproduction
 
-## Exact second-round command
+## Mixing atlas (OpenFOAM 14)
 
 ```bash
+source /opt/openfoam14/etc/bashrc
 uv sync
-uv run cswe run --budget 48 --seed 7 --n-init 8 --out artifacts/demo
+uv run cswe atlas --n 32 --seed 7 --n-iter 100 --workers 4
 ```
 
-Expected artifacts:
+Writes `artifacts/mixing_atlas.json` (35 converged cases in the committed atlas: 32 LHS + 3 classical injectors). τ range 0.086–0.268 s.
 
-| Path | Role |
-| --- | --- |
-| `artifacts/demo/ai/exploration.jsonl` | Step-by-step AI evaluations |
-| `artifacts/demo/ai/campaign.json` | Seeds, discoveries, hypotheses |
-| `artifacts/demo/baseline/exploration.jsonl` | Latin-hypercube baseline |
-| `artifacts/demo/comparison.json` | Hold-out reconstruction comparison |
+A single live case:
 
-The comparison is stochastic in the Gaussian-process fit. Hold-out accuracy should remain above the baseline for seed 7; if it does not, report the negative result. That is a valid Type II outcome.
+```bash
+uv run cswe foam --g 1.0 --d 0.2 --a 0.5 --s 0.4 --o 0.5 --n-iter 120 --out artifacts/foam_case
+```
 
-Random seeds are the CLI `--seed` (AI environment and GP) and `--seed + 10000` (baseline environment). All parameters live in `src/cswe/physics.py`.
+## Exploration campaigns (atlas, no solver)
 
-## Dependencies
+```bash
+uv run cswe run --budget 48 --seed 11 --out artifacts/demo
+uv run cswe run --budget 48 --seed 7 --out artifacts/seed7
+uv run cswe run --budget 48 --seed 19 --out artifacts/seed19
+uv run cswe classical
+```
 
-Pinned by `uv.lock` after `uv sync`. No commercial APIs. No closed-source models. No external scientific datasets.
+Committed demo logs are seed 11. Seed 7 is a known AI Gaussian-process collapse and must be kept in the writeup.
 
-## What not to ship
+## Tests
 
-Dimensional orifice diameters, chamber drawings, propellant mass-flow schedules, or any package that could be read as a flight-injector specification. Keep public discussion at the level of qualitative window structure.
+```bash
+uv run pytest
+```
+
+Tests skip if `artifacts/mixing_atlas.json` is missing.
+
+No commercial APIs. No closed-source models. No dimensional injector drawings.

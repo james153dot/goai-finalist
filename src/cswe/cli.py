@@ -51,5 +51,50 @@ def demo() -> None:
     typer.echo(json.dumps(result.as_dict(), indent=2))
 
 
+@app.command()
+def atlas(
+    n: int = typer.Option(36, help="Latin-hypercube OpenFOAM mixing cases."),
+    seed: int = typer.Option(7),
+    n_iter: int = typer.Option(120, help="SIMPLE iterations per case."),
+    workers: int = typer.Option(4),
+) -> None:
+    """Build the OpenFOAM mixing atlas used by the acoustic layer."""
+    from cswe.mixing import ATLAS_PATH, build_atlas
+
+    built = build_atlas(n=n, seed=seed, n_iter=n_iter, workers=workers)
+    n_ok = sum(1 for r in built.rows if r["Cconv"])
+    taus = [r["tau"] for r in built.rows if r["Cconv"]]
+    typer.echo(f"Wrote {ATLAS_PATH}  converged={n_ok}/{len(built.rows)}  tau=[{min(taus):.4f},{max(taus):.4f}]")
+
+
+@app.command()
+def foam(
+    g: float = 1.0,
+    d: float = 0.2,
+    a: float = 0.5,
+    s: float = 0.4,
+    o: float = 0.5,
+    n_iter: int = 120,
+    out: Path = Path("artifacts/foam_case"),
+) -> None:
+    """Run one live OpenFOAM mixer evaluation (not the interpolator)."""
+    from cswe.openfoam import run_mixer
+
+    report = run_mixer({"g": g, "d": d, "a": a, "s": s, "o": o}, work=out, n_iter=n_iter)
+    typer.echo(json.dumps(report.__dict__, indent=2))
+
+
+@app.command()
+def classical() -> None:
+    """Evaluate textbook injector analogs through the CFD-informed environment."""
+    from cswe.geometry import CLASSICAL_INJECTORS
+    from cswe.physics import simulate
+
+    rng = __import__("numpy").random.default_rng(0)
+    for name, x in CLASSICAL_INJECTORS.items():
+        r = simulate(x, rng=rng)
+        typer.echo(f"{name:20s}  S={r.S:.3f}  stable={r.stable}  tau={r.tau:.4f}  Um={r.Um:.3f}  backend={r.backend}")
+
+
 if __name__ == "__main__":
     app()

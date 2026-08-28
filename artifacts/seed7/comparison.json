@@ -1,24 +1,24 @@
 {
   "budget": 48,
-  "seed": 11,
+  "seed": 7,
   "ai": {
     "method": "ai_level_set",
     "n_discoveries": 4,
-    "first_boundary_step": 7,
+    "first_boundary_step": 0,
     "reconstruction": {
       "n_valid": 48,
       "n_probe": 800,
-      "holdout_accuracy": 0.96625,
-      "brier": 0.06581554282753382,
-      "pred_stable_fraction": 0.7225,
-      "true_stable_fraction": 0.74625
+      "holdout_accuracy": 0.755,
+      "brier": 0.22823251709962747,
+      "pred_stable_fraction": 0.99875,
+      "true_stable_fraction": 0.75375
     },
     "hypotheses": [
       {
         "id": "H_swirl_monotonic",
         "statement": "Increasing swirl intensity analog s consistently improves stability.",
         "status": "falsified",
-        "evidence_count": 6,
+        "evidence_count": 9,
         "note": "Higher swirl analog changed mixing delay enough to cross the Rayleigh phase condition, so 'more swirl is always more stable' fails on this CFD map."
       },
       {
@@ -32,23 +32,23 @@
   },
   "baseline": {
     "method": "lhs_baseline",
-    "n_discoveries": 4,
+    "n_discoveries": 3,
     "first_boundary_step": 0,
     "reconstruction": {
       "n_valid": 48,
       "n_probe": 800,
-      "holdout_accuracy": 0.9575,
-      "brier": 0.05877479570110889,
-      "pred_stable_fraction": 0.785,
-      "true_stable_fraction": 0.7675
+      "holdout_accuracy": 0.9375,
+      "brier": 0.06435025044921171,
+      "pred_stable_fraction": 0.765,
+      "true_stable_fraction": 0.765
     },
     "hypotheses": [
       {
         "id": "H_swirl_monotonic",
         "statement": "Increasing swirl intensity analog s consistently improves stability.",
-        "status": "falsified",
-        "evidence_count": 1,
-        "note": "Higher swirl analog changed mixing delay enough to cross the Rayleigh phase condition, so 'more swirl is always more stable' fails on this CFD map."
+        "status": "not_falsified",
+        "evidence_count": 0,
+        "note": "No clear counterexample in this budget."
       },
       {
         "id": "H_connected_unstable",

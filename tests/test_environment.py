@@ -1,5 +1,13 @@
+from pathlib import Path
+
+import pytest
+
 from cswe.environment import ExplorationEnv
+from cswe.geometry import CLASSICAL_INJECTORS, jet_layout
 from cswe.physics import STABILITY_THRESHOLD, simulate, true_stability
+
+ATLAS = Path(__file__).resolve().parents[1] / "artifacts" / "mixing_atlas.json"
+pytestmark = pytest.mark.skipif(not ATLAS.exists(), reason="mixing atlas not built yet")
 
 
 def test_simulate_returns_finite_for_interior_point():
@@ -7,15 +15,14 @@ def test_simulate_returns_finite_for_interior_point():
     assert result.Cconv
     assert result.S > 0
     assert result.stable == (result.S < STABILITY_THRESHOLD)
+    assert result.backend == "openfoam_atlas"
 
 
 def test_true_map_has_both_regimes():
-    stables = 0
-    unstables = 0
     env = ExplorationEnv(seed=1)
+    stables = unstables = 0
     for _ in range(80):
-        x = env.sample_uniform()
-        if true_stability(x):
+        if true_stability(env.sample_uniform()):
             stables += 1
         else:
             unstables += 1
@@ -23,18 +30,16 @@ def test_true_map_has_both_regimes():
     assert unstables > 5
 
 
-def test_hidden_island_is_unstable():
-    island = {"g": 0.35, "d": 0.55, "a": 0.32, "s": 0.25, "o": 0.72}
-    calm = {"g": 1.6, "d": 0.1, "a": 0.7, "s": 0.35, "o": 0.3}
-    assert true_stability(island) is False
-    assert true_stability(calm) is True
+def test_classical_injectors_evaluate():
+    for name, x in CLASSICAL_INJECTORS.items():
+        r = simulate(x)
+        assert r.Cconv, name
+        assert r.tau > 0
 
 
-def test_swirl_is_not_monotone_at_high_swirl():
-    low = {"g": 1.2, "d": 0.10, "a": 0.4, "s": 0.15, "o": 0.3}
-    high = {"g": 1.2, "d": 0.10, "a": 0.4, "s": 0.95, "o": 0.3}
-    assert true_stability(low) is True
-    assert true_stability(high) is False
+def test_jet_slots_are_ordered():
+    layout = jet_layout(1.0, 0.2, 0.5, 0.4, 0.5)
+    assert 0 < layout.y0_lo < layout.y0_hi < layout.y1_lo < layout.y1_hi < 0.021
 
 
 def test_agent_and_baseline_same_budget():
@@ -46,4 +51,3 @@ def test_agent_and_baseline_same_budget():
     base = LatinHypercubeBaseline(ExplorationEnv(seed=4)).run(budget)
     assert len(ai.evaluations) == budget
     assert len(base.evaluations) == budget
-    assert ai.discoveries

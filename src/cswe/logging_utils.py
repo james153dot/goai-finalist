@@ -33,9 +33,8 @@ def save_campaign(record: CampaignRecord, out_dir: Path) -> None:
         "discoveries": record.discoveries,
         "stability_threshold": STABILITY_THRESHOLD,
         "fixed_environment": {
-            "chamber_mode": "first_longitudinal_nondim",
-            "model": "crocco_n_tau",
-            "propellant_family": "abstract_LOX_fuel_analog",
+            "chamber_mode": "first_longitudinal_n_tau",
+            "injector_mixing": "openfoam14_2d_laminar_dual_jet",
             "public_outputs": "abstract_design_principles_only",
         },
     }

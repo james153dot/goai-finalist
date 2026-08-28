@@ -1,6 +1,6 @@
 {
   "method": "lhs_baseline",
-  "seed": 10011,
+  "seed": 10007,
   "budget": 48,
   "n_evaluations": 48,
   "n_converged": 48,
@@ -8,9 +8,9 @@
     {
       "id": "H_swirl_monotonic",
       "statement": "Increasing swirl intensity analog s consistently improves stability.",
-      "status": "falsified",
-      "evidence_count": 1,
-      "note": "Higher swirl analog changed mixing delay enough to cross the Rayleigh phase condition, so 'more swirl is always more stable' fails on this CFD map."
+      "status": "not_falsified",
+      "evidence_count": 0,
+      "note": "No clear counterexample in this budget."
     },
     {
       "id": "H_connected_unstable",
@@ -23,23 +23,17 @@
   "discoveries": [
     {
       "type": "stability_window",
-      "n_stable": 37,
-      "n_unstable": 11,
-      "stable_fraction": 0.7708333333333334,
+      "n_stable": 38,
+      "n_unstable": 10,
+      "stable_fraction": 0.7916666666666666,
       "note": "A verified stable/unstable partition exists under the frozen n-\u03c4 criterion."
     },
     {
       "type": "boundary_structure",
-      "n_near_threshold": 14,
-      "mean_swirl_on_boundary": 0.35766114318620684,
-      "mean_spread_on_boundary": 0.4241361378331368,
+      "n_near_threshold": 18,
+      "mean_swirl_on_boundary": 0.4184688406780258,
+      "mean_spread_on_boundary": 0.6079459479903986,
       "note": "Evaluations concentrated near S \u2248 1 reconstruct the window edge."
-    },
-    {
-      "type": "counterexample",
-      "hypothesis": "H_swirl_monotonic",
-      "evidence_count": 1,
-      "note": "Higher swirl analog changed mixing delay enough to cross the Rayleigh phase condition, so 'more swirl is always more stable' fails on this CFD map."
     },
     {
       "type": "anomaly",
