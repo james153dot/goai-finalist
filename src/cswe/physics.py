@@ -1,17 +1,28 @@
 """Frozen closed-closed 1L acoustics driven by an OpenFOAM mixing field.
 
-Heat-release analog q(x) is the cross-stream mixture variance — the stations
-where mixing-limited reaction would still be active. The chamber pressure
-mode is the frozen first longitudinal of a closed-closed duct,
-p(x) = cos(π x / L), so the injector face is a pressure antinode. The Rayleigh
-overlap is ∫ q p dx / ∫ q dx. The same field supplies the convective delay
-τ = L_mix / U. There is no planted island.
+OpenFOAM determines spatial and temporal mixing features. The acoustic model
+converts those features into a hypothesis-level Rayleigh stability indicator
+σ_analog. The project therefore evaluates an autonomous exploration method for
+combustion-stability *analogs*, not predictive stability of a real rocket
+combustor.
+
+Heat-release proxy q_proxy(x) is the cross-stream variance of mixture fraction.
+Large Var_y[T] means the two streams are still unmixed at that station, so
+mixing-limited reaction could still occur there. Fully mixed stations
+(Var → 0) contribute no further proxy heat release. This is not a finite-rate
+flame.
+
+The chamber pressure mode is the frozen first longitudinal of a closed-closed
+duct, p(x) = cos(π x / L), so the injector face is a pressure antinode.
+R_spatial = ∫ q_proxy p dx / ∫ q_proxy dx. The same field supplies the
+convective delay τ = L_mix / U. There is no planted island.
 """
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Mapping
+from typing import Iterator, Mapping
 
 import numpy as np
 
@@ -75,6 +86,7 @@ class SimulationResult:
             "Cconv": int(self.Cconv),
             "S": self.S,
             "sigma": self.sigma,
+            "sigma_analog": self.sigma,
             "n_index": self.n_index,
             "tau": self.tau,
             "stable": int(self.stable),
@@ -106,28 +118,88 @@ def _acoustics(
     o: float,
     R_spatial: float | None = None,
     compactness: float | None = None,
+    damping: float | None = None,
+    omega0: float | None = None,
 ) -> tuple[float, float, float, float, float, float]:
+    """Map mixing features to the Rayleigh analog σ_analog.
+
+    OpenFOAM supplies τ, unmixedness, R_spatial, compactness. This function
+    only converts those features into a hypothesis-level stability indicator.
+    """
     if R_spatial is None or R_spatial != R_spatial:
         R_spatial = 0.35
     if compactness is None or compactness != compactness:
         compactness = 1.4
+    damping = ACOUSTIC_DAMPING if damping is None else float(damping)
+    omega0 = CHAMBER_OMEGA if omega0 is None else float(omega0)
     n_index = (
         N_BASE
         + N_COMPACT * np.tanh(compactness - 1.0)
         + N_UNMIXED * (1.0 - um)
         + N_LOAD * (o - 0.5) ** 2
     )
-    omega = CHAMBER_OMEGA * (0.92 + 0.16 * o)
+    omega = omega0 * (0.92 + 0.16 * o)
     phase = float(np.cos(omega * tau))
-    # Spatial overlap × time-lag phase. Compact, injector-local mixing on a
-    # closed-closed 1L drives; delayed / spread mixing damps.
     rayleigh = float(n_index * R_spatial * phase)
-    sigma = HEAT_RELEASE_SCALE * rayleigh - ACOUSTIC_DAMPING
+    sigma = HEAT_RELEASE_SCALE * rayleigh - damping
     if sigma >= 0:
         S = float(np.exp(3.2 * sigma))
     else:
         S = float(1.0 / (1.0 - 4.0 * sigma))
     return float(n_index), float(omega), rayleigh, float(sigma), float(S), phase
+
+
+@contextmanager
+def analog_constants(*, damping: float | None = None, omega0: float | None = None) -> Iterator[None]:
+    """Temporarily replace analog damping / base frequency. Mixing fields stay fixed."""
+    global ACOUSTIC_DAMPING, CHAMBER_OMEGA
+    old = ACOUSTIC_DAMPING, CHAMBER_OMEGA
+    if damping is not None:
+        ACOUSTIC_DAMPING = float(damping)
+    if omega0 is not None:
+        CHAMBER_OMEGA = float(omega0)
+    try:
+        yield
+    finally:
+        ACOUSTIC_DAMPING, CHAMBER_OMEGA = old
+
+
+def relabel_mixing_row(row: dict, damping: float | None = None, omega0: float | None = None) -> dict:
+    """Recompute σ_analog from stored OpenFOAM mixing features."""
+    out = dict(row)
+    if not row.get("Cconv"):
+        return out
+    n_index, omega, rayleigh, sigma, S, phase = _acoustics(
+        row["tau"], row["Um"], row["o"], row.get("R_spatial"), row.get("compactness"),
+        damping=damping, omega0=omega0,
+    )
+    out["n_index"] = n_index
+    out["R"] = rayleigh
+    out["sigma"] = sigma
+    out["sigma_analog"] = sigma
+    out["S"] = S
+    out["phase"] = phase
+    out["stable"] = int(S < STABILITY_THRESHOLD)
+    return out
+
+
+def unstable_runs_1d(values: list[float], sigma: list[float]) -> list[tuple[float, float]]:
+    """Inclusive [g_lo, g_hi] intervals where σ_analog > 0 along a sorted 1-D slice."""
+    pairs = sorted(zip(values, sigma), key=lambda t: t[0])
+    runs: list[tuple[float, float]] = []
+    start = None
+    last = None
+    for g, s in pairs:
+        if s > 0:
+            if start is None:
+                start = g
+            last = g
+        elif start is not None:
+            runs.append((float(start), float(last)))
+            start = last = None
+    if start is not None:
+        runs.append((float(start), float(last)))
+    return runs
 
 
 def _result_from_report(

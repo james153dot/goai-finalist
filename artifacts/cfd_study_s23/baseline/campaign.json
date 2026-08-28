@@ -1,0 +1,58 @@
+{
+  "method": "lhs_baseline",
+  "seed": 10023,
+  "budget": 16,
+  "n_evaluations": 16,
+  "n_converged": 16,
+  "hypotheses": [
+    {
+      "id": "H_swirl_monotonic",
+      "statement": "Increasing swirl intensity analog s consistently improves stability.",
+      "status": "falsified",
+      "evidence_count": 1,
+      "note": "Higher swirl analog changed mixing delay and Rayleigh overlap enough to cross \u03c3 = 0, so 'more swirl is always more stable' fails on this CFD map."
+    },
+    {
+      "id": "H_connected_unstable",
+      "statement": "Unstable conditions form a single connected region in the explored domain.",
+      "status": "challenged",
+      "evidence_count": 2,
+      "note": "At least two unstable evaluations sit among mostly stable neighbors. That is consistent with a nonmonotonic map, not a proof of a disconnected 5-D pocket."
+    }
+  ],
+  "discoveries": [
+    {
+      "type": "stability_window",
+      "n_stable": 10,
+      "n_unstable": 6,
+      "stable_fraction": 0.625,
+      "note": "A verified stable/unstable partition exists under the Rayleigh-from-mixing criterion."
+    },
+    {
+      "type": "boundary_structure",
+      "n_near_threshold": 3,
+      "mean_swirl_on_boundary": 0.3050618454465771,
+      "mean_spread_on_boundary": 0.348056619365021,
+      "note": "Evaluations concentrated near \u03c3 \u2248 0 reconstruct the window edge."
+    },
+    {
+      "type": "counterexample",
+      "hypothesis": "H_swirl_monotonic",
+      "evidence_count": 1,
+      "note": "Higher swirl analog changed mixing delay and Rayleigh overlap enough to cross \u03c3 = 0, so 'more swirl is always more stable' fails on this CFD map."
+    },
+    {
+      "type": "anomaly",
+      "hypothesis": "H_connected_unstable",
+      "evidence_count": 2,
+      "note": "At least two unstable evaluations sit among mostly stable neighbors. That is consistent with a nonmonotonic map, not a proof of a disconnected 5-D pocket."
+    }
+  ],
+  "stability_threshold": 1.0,
+  "fixed_environment": {
+    "chamber_mode": "first_longitudinal_n_tau",
+    "injector_mixing": "openfoam14_2d_laminar_dual_jet",
+    "acoustics": "rayleigh_overlap_of_mixing_limited_heat_release_on_frozen_1L_mode",
+    "public_outputs": "abstract_design_principles_only"
+  }
+}

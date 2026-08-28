@@ -355,5 +355,66 @@ def figures() -> None:
         typer.echo(str(path))
 
 
+@app.command()
+def sensitivity(
+    n_seeds: int = typer.Option(16),
+    budget: int = typer.Option(16),
+    n_init: int = typer.Option(5),
+) -> None:
+    """Perturb analog D and ω0 with OpenFOAM mixing fields frozen."""
+    from cswe.sensitivity import OUT_PATH, run_sensitivity
+
+    payload = run_sensitivity(n_seeds=n_seeds, budget=budget, n_init=n_init)
+    typer.echo(f"Wrote {OUT_PATH}")
+    typer.echo(f"second interval persists: {payload['second_unstable_interval_persists_on_g_slice']}")
+    typer.echo(f"AI finds more unstables in every setting: {payload['ai_finds_more_unstables_in_every_setting']}")
+    for c in payload["cases"]:
+        gs = c.get("g_slice", {})
+        ss = c["seed_study"]["summary"]
+        typer.echo(
+            f"  {c['name']:12s} intervals={gs.get('n_unstable_intervals')}  "
+            f"atlas_u={c['atlas']['unstable_fraction']:.0%}  "
+            f"AI recall={ss.get('ai_mean_unstable_recall')}  "
+            f"LHS recall={ss.get('lhs_mean_unstable_recall')}"
+        )
+
+
+@app.command()
+def reproduce() -> None:
+    """Minimum end-to-end path: one foam case (if present), short matched campaigns, figures."""
+    from cswe.figures import write_all
+    from cswe.geometry import CLASSICAL_INJECTORS
+    from cswe.metrics import campaign_diagnostics, load_test_set, score_against_test
+    from cswe.mixing import TEST_PATH
+    from cswe.openfoam import openfoam_available, run_mixer
+
+    out = Path("artifacts/reproduce")
+    out.mkdir(parents=True, exist_ok=True)
+    if openfoam_available():
+        report = run_mixer(CLASSICAL_INJECTORS["like_on_like"], work=out / "foam", n_iter=60)
+        typer.echo(
+            f"foam like-on-like  Cconv={report.Cconv}  tau={report.tau:.4f}  "
+            f"R_spatial={report.R_spatial:.3f}  q_proxy compactness={report.compactness:.2f}"
+        )
+    else:
+        typer.echo("OpenFOAM 14 not found; skipping live foam case.")
+
+    budget = 12
+    ai = LevelSetAgent(ExplorationEnv(seed=11), n_init=4).run(budget=budget)
+    base = LatinHypercubeBaseline(ExplorationEnv(seed=11 + 10_000)).run(budget=budget)
+    save_campaign(ai, out / "ai")
+    save_campaign(base, out / "baseline")
+    summary = {"ai": campaign_diagnostics(ai.evaluations), "lhs": campaign_diagnostics(base.evaluations)}
+    if TEST_PATH.exists():
+        test = load_test_set(TEST_PATH)
+        summary["ai_test"] = score_against_test(ai.evaluations, test)
+        summary["lhs_test"] = score_against_test(base.evaluations, test)
+    (out / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    typer.echo(json.dumps(summary, indent=2))
+    for path in write_all():
+        typer.echo(str(path))
+    typer.echo("reproduce done")
+
+
 if __name__ == "__main__":
     app()

@@ -181,7 +181,7 @@ def _assess_hypotheses(record: CampaignRecord) -> list[dict]:
         "evidence_count": len(counterexamples),
         "note": (
             "Higher swirl analog changed mixing delay and Rayleigh overlap enough "
-            "to cross σ = 0, so 'more swirl is always more stable' fails on this CFD map."
+            "to cross σ_analog = 0, so 'more swirl is always more stable' fails on this analog map."
             if counterexamples
             else "No clear counterexample in this budget."
         ),
@@ -207,10 +207,11 @@ def _assess_hypotheses(record: CampaignRecord) -> list[dict]:
         "status": "challenged" if len(island) >= 2 else "not_challenged",
         "evidence_count": len(island),
         "note": (
-            "At least two unstable evaluations sit among mostly stable neighbors, "
-            "which is consistent with a disconnected pocket in the CFD mixing map."
+            "At least two unstable evaluations sit among mostly stable neighbors. "
+            "That is consistent with a nonmonotonic map, not a proof of a "
+            "disconnected 5-D pocket."
             if len(island) >= 2
-            else "The campaign did not isolate a disconnected pocket."
+            else "The campaign did not isolate a disconnected region."
         ),
     }
     return [h1, h2]

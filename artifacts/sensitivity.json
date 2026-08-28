@@ -1,0 +1,306 @@
+{
+  "nominal_damping": 0.08,
+  "nominal_omega0": 11.0,
+  "note": "Mixing fields are frozen OpenFOAM outputs. Only analog damping D and base frequency \u03c90 change. The exact \u03c3_analog=0 contour moves; the question is whether qualitative topology and the adaptive-search advantage persist.",
+  "second_unstable_interval_persists_on_g_slice": false,
+  "ai_finds_more_unstables_in_every_setting": true,
+  "cases": [
+    {
+      "name": "D=0.8 D0",
+      "damping": 0.064,
+      "omega0": 11.0,
+      "damping_scale": 0.8,
+      "omega_scale": 1.0,
+      "atlas": {
+        "n": 35,
+        "n_unstable": 12,
+        "unstable_fraction": 0.34285714285714286
+      },
+      "classical": {
+        "like_on_like": {
+          "sigma_analog": 0.4169049754079808,
+          "stable": false,
+          "tau": 0.08622685218402777
+        },
+        "unlike_impinging": {
+          "sigma_analog": -0.04492023209961723,
+          "stable": true,
+          "tau": 0.1406250005659722
+        },
+        "swirl_coaxial": {
+          "sigma_analog": -0.5991922036425719,
+          "stable": true,
+          "tau": 0.23128858120254625
+        }
+      },
+      "g_slice": {
+        "n_unstable_stations": 4,
+        "n_unstable_intervals": 2,
+        "intervals": [
+          {
+            "g_lo": 0.05,
+            "g_hi": 0.2875
+          },
+          {
+            "g_lo": 1.4749999999999999,
+            "g_hi": 1.7125
+          }
+        ],
+        "second_interval_present": true,
+        "nonmonotonic": true
+      },
+      "seed_study": {
+        "summary": {
+          "ai_mean_n_unstable": 7.375,
+          "lhs_mean_n_unstable": 4.625,
+          "ai_mean_unstable_recall": 0.6597222222222222,
+          "lhs_mean_unstable_recall": 0.4930555555555555,
+          "ai_better_n_unstable": 0.875,
+          "ai_better_recall": 0.9375
+        },
+        "n_seeds": 16,
+        "budget": 16
+      }
+    },
+    {
+      "name": "nominal",
+      "damping": 0.08,
+      "omega0": 11.0,
+      "damping_scale": 1.0,
+      "omega_scale": 1.0,
+      "atlas": {
+        "n": 35,
+        "n_unstable": 12,
+        "unstable_fraction": 0.34285714285714286
+      },
+      "classical": {
+        "like_on_like": {
+          "sigma_analog": 0.4009049754079808,
+          "stable": false,
+          "tau": 0.08622685218402777
+        },
+        "unlike_impinging": {
+          "sigma_analog": -0.06092023209961723,
+          "stable": true,
+          "tau": 0.1406250005659722
+        },
+        "swirl_coaxial": {
+          "sigma_analog": -0.6151922036425719,
+          "stable": true,
+          "tau": 0.23128858120254625
+        }
+      },
+      "g_slice": {
+        "n_unstable_stations": 4,
+        "n_unstable_intervals": 2,
+        "intervals": [
+          {
+            "g_lo": 0.05,
+            "g_hi": 0.2875
+          },
+          {
+            "g_lo": 1.4749999999999999,
+            "g_hi": 1.7125
+          }
+        ],
+        "second_interval_present": true,
+        "nonmonotonic": true
+      },
+      "seed_study": {
+        "summary": {
+          "ai_mean_n_unstable": 7.4375,
+          "lhs_mean_n_unstable": 4.5625,
+          "ai_mean_unstable_recall": 0.6527777777777777,
+          "lhs_mean_unstable_recall": 0.4444444444444444,
+          "ai_better_n_unstable": 0.875,
+          "ai_better_recall": 0.9375
+        },
+        "n_seeds": 16,
+        "budget": 16
+      }
+    },
+    {
+      "name": "D=1.2 D0",
+      "damping": 0.096,
+      "omega0": 11.0,
+      "damping_scale": 1.2,
+      "omega_scale": 1.0,
+      "atlas": {
+        "n": 35,
+        "n_unstable": 11,
+        "unstable_fraction": 0.3142857142857143
+      },
+      "classical": {
+        "like_on_like": {
+          "sigma_analog": 0.38490497540798085,
+          "stable": false,
+          "tau": 0.08622685218402777
+        },
+        "unlike_impinging": {
+          "sigma_analog": -0.07692023209961724,
+          "stable": true,
+          "tau": 0.1406250005659722
+        },
+        "swirl_coaxial": {
+          "sigma_analog": -0.6311922036425719,
+          "stable": true,
+          "tau": 0.23128858120254625
+        }
+      },
+      "g_slice": {
+        "n_unstable_stations": 4,
+        "n_unstable_intervals": 2,
+        "intervals": [
+          {
+            "g_lo": 0.05,
+            "g_hi": 0.2875
+          },
+          {
+            "g_lo": 1.4749999999999999,
+            "g_hi": 1.7125
+          }
+        ],
+        "second_interval_present": true,
+        "nonmonotonic": true
+      },
+      "seed_study": {
+        "summary": {
+          "ai_mean_n_unstable": 6.75,
+          "lhs_mean_n_unstable": 4.25,
+          "ai_mean_unstable_recall": 0.7265625,
+          "lhs_mean_unstable_recall": 0.4453125,
+          "ai_better_n_unstable": 0.8125,
+          "ai_better_recall": 0.9375
+        },
+        "n_seeds": 16,
+        "budget": 16
+      }
+    },
+    {
+      "name": "\u03c9=0.9 \u03c90",
+      "damping": 0.08,
+      "omega0": 9.9,
+      "damping_scale": 1.0,
+      "omega_scale": 0.9,
+      "atlas": {
+        "n": 35,
+        "n_unstable": 17,
+        "unstable_fraction": 0.4857142857142857
+      },
+      "classical": {
+        "like_on_like": {
+          "sigma_analog": 0.460760524321775,
+          "stable": false,
+          "tau": 0.08622685218402777
+        },
+        "unlike_impinging": {
+          "sigma_analog": 0.06171659881905102,
+          "stable": false,
+          "tau": 0.1406250005659722
+        },
+        "swirl_coaxial": {
+          "sigma_analog": -0.509317140689973,
+          "stable": true,
+          "tau": 0.23128858120254625
+        }
+      },
+      "g_slice": {
+        "n_unstable_stations": 7,
+        "n_unstable_intervals": 2,
+        "intervals": [
+          {
+            "g_lo": 0.05,
+            "g_hi": 0.525
+          },
+          {
+            "g_lo": 1.2375,
+            "g_hi": 1.95
+          }
+        ],
+        "second_interval_present": true,
+        "nonmonotonic": true
+      },
+      "seed_study": {
+        "summary": {
+          "ai_mean_n_unstable": 7.5,
+          "lhs_mean_n_unstable": 6.0625,
+          "ai_mean_unstable_recall": 0.78125,
+          "lhs_mean_unstable_recall": 0.70625,
+          "ai_better_n_unstable": 0.6875,
+          "ai_better_recall": 0.75
+        },
+        "n_seeds": 16,
+        "budget": 16
+      }
+    },
+    {
+      "name": "\u03c9=1.1 \u03c90",
+      "damping": 0.08,
+      "omega0": 12.100000000000001,
+      "damping_scale": 1.0,
+      "omega_scale": 1.1,
+      "atlas": {
+        "n": 35,
+        "n_unstable": 6,
+        "unstable_fraction": 0.17142857142857143
+      },
+      "classical": {
+        "like_on_like": {
+          "sigma_analog": 0.3367950823125116,
+          "stable": false,
+          "tau": 0.08622685218402777
+        },
+        "unlike_impinging": {
+          "sigma_analog": -0.18401269832322428,
+          "stable": true,
+          "tau": 0.1406250005659722
+        },
+        "swirl_coaxial": {
+          "sigma_analog": -0.6860612199873946,
+          "stable": true,
+          "tau": 0.23128858120254625
+        }
+      },
+      "g_slice": {
+        "n_unstable_stations": 2,
+        "n_unstable_intervals": 1,
+        "intervals": [
+          {
+            "g_lo": 0.05,
+            "g_hi": 0.2875
+          }
+        ],
+        "second_interval_present": false,
+        "nonmonotonic": false
+      },
+      "seed_study": {
+        "summary": {
+          "ai_mean_n_unstable": 6.375,
+          "lhs_mean_n_unstable": 3.375,
+          "ai_mean_unstable_recall": 0.6458333333333334,
+          "lhs_mean_unstable_recall": 0.19791666666666666,
+          "ai_better_n_unstable": 0.9375,
+          "ai_better_recall": 1.0
+        },
+        "n_seeds": 16,
+        "budget": 16
+      }
+    }
+  ],
+  "nominal_g_intervals": {
+    "n_unstable_stations": 4,
+    "n_unstable_intervals": 2,
+    "intervals": [
+      {
+        "g_lo": 0.05,
+        "g_hi": 0.2875
+      },
+      {
+        "g_lo": 1.4749999999999999,
+        "g_hi": 1.7125
+      }
+    ],
+    "second_interval_present": true,
+    "nonmonotonic": true
+  }
+}

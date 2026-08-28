@@ -446,8 +446,9 @@ def _metrics_from_fields(case: Path, layout: JetLayout) -> MixingReport:
             variances.append(sum((t - mu) ** 2 for t in bins[b]) / len(bins[b]))
         xmid.append(xmin + (b + 0.5) * (xmax - xmin) / nbins)
 
-    # Mixing-limited heat-release analog: cross-stream variance of T.
-    # Fully mixed stations (Var→0) contribute no further heat release.
+# Mixing-limited heat-release *proxy*: cross-stream variance of T.
+    # Large Var_y[T] means unmixed fluid remains, so mixing-limited reaction
+    # could still occur. Fully mixed stations (Var→0) add no further q_proxy.
     q_profile = [float(v) for v in variances]
     x_profile = [float(v) for v in xmid]
 

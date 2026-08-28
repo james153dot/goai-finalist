@@ -132,8 +132,7 @@ swirl = _load_json(ROOT / "artifacts" / "swirl_sweep.json")
 gsweep = _load_json(ROOT / "artifacts" / "g_sweep.json")
 
 cfd_studies = []
-for seed in (11, 14, 19):
-    p = ROOT / "artifacts" / f"cfd_study_s{seed}" / "cfd_comparison.json"
+for p in sorted((ROOT / "artifacts").glob("cfd_study_s*/cfd_comparison.json")):
     payload = _load_json(p)
     if payload:
         cfd_studies.append(payload)
@@ -141,13 +140,16 @@ for seed in (11, 14, 19):
 with tabs[0]:
     st.markdown(
         """
-The useful job is **not** tiling a 5-D box. Unstable injectors are the minority class
-(~34% of the OpenFOAM atlas). A Latin hypercube spends most of its CFD budget confirming
-the stable majority. The agent fits a Gaussian process to the growth rate **σ** (the
-level set is σ = 0, not the exponential amplitude S) and:
+The useful job is recovering the minority unstable class with a small solver budget.
+Unstable injectors are ~34% of the OpenFOAM atlas. Overall accuracy can remain high
+by predicting the dominant stable regime. Unstable recall
+Recall_U = TP_U / (TP_U + FN_U) measures whether the reconstructed map recovers
+the scientifically important minority class.
+
+The agent fits a Gaussian process to **σ_analog** (level set σ_analog = 0) and:
 
 1. hunts for the missing class if every observation so far is stable,
-2. then straddles the window edge.
+2. then straddles the analog threshold.
         """
     )
     if seed_study:
@@ -295,8 +297,9 @@ reaction would still be active — not 4T(1−T), which peaks after the gases ar
         st.plotly_chart(fig, use_container_width=True)
         st.caption(
             "On this slice the like-on-like end is unstable. The map is not monotone: "
-            "a second unstable band appears at high g with low swirl — coaxial layout without the swirl analog. "
-            "Swirl-coaxial stability on this analog needs both."
+            "a second unstable *interval* appears at high g with low swirl. That is a "
+            "1-D slice observation, not a mapped 5-D pocket. Swirl-coaxial stability "
+            "on this analog needs both the coaxial pattern and the swirl analog."
         )
 
     if swirl:
@@ -314,9 +317,8 @@ reaction would still be active — not 4T(1−T), which peaks after the gases ar
         )
         st.plotly_chart(fig, use_container_width=True)
         st.caption(
-            "Adding swirl analog inside the like-on-like family lowers σ but does not cross the window. "
-            "You cannot swirl your way out of this family on the analog; you have to change pattern class. "
-            "That falsifies 'more swirl always stabilizes.'"
+            "Increasing the swirl analog inside the like-on-like family lowers σ_analog "
+            "but does not cross the stability boundary over the tested range."
         )
 
     if swirl and swirl["rows"][0].get("q_profile"):
@@ -470,29 +472,24 @@ injector *names* (like-on-like, unlike-impinging, swirl-coaxial) are geometry an
 not flight hardware.
 
 **What a scientist can believe.**
-- 35 converged OpenFOAM 14 mixing cases, plus an independent 24-case hold-out.
-- Heat-release analog = cross-stream mixture variance (mixing still active).
-- Pressure mode = cos(πx/L) (injector-face antinode).
-- Classical injectors: like-on-like unstable, unlike-impinging near the edge, swirl-coaxial stable.
-- Pattern class g organizes the window; swirl analog inside the like-on-like family does not stabilize it.
-- Adaptive search on σ spends matched live OpenFOAM budget on the minority
-  unstable class. Three `foamRun` campaigns, budget 16: unstable recall
-  **0.70 vs 0.15**, 7.3 vs 4.3 unstable evaluations. 24 atlas seeds confirm
-  the same direction (recall 0.62 vs 0.46). All seeds are reported, including
-  seed 14 where Latin hypercube hold-out unstable recall is zero.
+- OpenFOAM supplies mixing fields; σ_analog is a Rayleigh *indicator*, not an engine stability prediction.
+- q_proxy(x) = Var_y[T](x): unmixed fluid remaining at station x.
+- Like-on-like analog: σ_analog > 0. Unlike-impinging: near the threshold. Swirl-coaxial: σ_analog < 0.
+- A fixed-low-swirl OpenFOAM g-slice has two separated unstable *intervals*, not a mapped 5-D pocket.
+- Live seed 14 independently sampled both low-g and high-g unstable regions; the g-sweep then characterized the 1-D slice.
+- Adaptive search spends matched OpenFOAM budget on the minority unstable class. All live seeds are shown as individual markers, not a population estimate.
 
 **What a scientist must not believe.**
 - This is not 3-D reacting LES, not a stability margin for a real engine, not a dimensional injector.
-- ω, n-index prefactors, and damping are analog constants. They set the scale of σ.
-  Like-on-like / unlike / swirl-coaxial all have n-index ≈ 0.79; the ordering is from
-  OpenFOAM τ and R_spatial, not from those constants.
-- The atlas interpolator is smoother than a new OpenFOAM case; that is why live CFD campaigns exist.
-- Volume accuracy against the interpolator is the wrong score. It was the first-round trap.
+- ω, n-index prefactors, and damping D are analog constants. They set the scale of σ_analog.
+  Classical injectors share n-index ≈ 0.79; ordering is from OpenFOAM τ and R_spatial.
+- The atlas interpolator is smoother than a new OpenFOAM case; live foamRun campaigns exist for that reason.
+- Volume accuracy can stay high by predicting the majority stable class. Unstable recall is the metric of interest.
+
+**Claim levels.** Observed from OpenFOAM: τ, R_spatial, q_proxy. Derived from the analog: σ_analog, stable/unstable. Inferred by the agent: reconstructed σ_analog=0 contour and predicted unstable set.
 
 **Safety / dual-use.** Public outputs stay at abstract design principles. No dimensional
 flight-injector packages.
 
-**Dates.** Second-round package due 3 September. Finals (if invited) 22 September, Hangzhou.
-Type II is ranked separately from the algorithm track.
         """
     )

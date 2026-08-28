@@ -1,0 +1,40 @@
+{
+  "project": {
+    "name": "cswe",
+    "version": "0.1.0",
+    "track": "GOAI Track 3 Type II"
+  },
+  "environment": {
+    "openfoam": "14",
+    "python": ">=3.11",
+    "analog": {
+      "omega0": 11.0,
+      "damping": 0.08,
+      "heat_release_scale": 1.45,
+      "threshold": "sigma_analog = 0",
+      "q_proxy": "cross_stream_variance_of_mixture_fraction",
+      "pressure_mode": "cos(pi x / L) closed-closed 1L"
+    }
+  },
+  "protocol": {
+    "live_budget": 16,
+    "n_init": 5,
+    "holdout_size": 24,
+    "holdout_seed": 123,
+    "atlas_n": 35,
+    "atlas_seed": 7,
+    "matched_bounds": true,
+    "ai_init_is_latin_hypercube": true
+  },
+  "primary_live_seeds": [11, 14, 19],
+  "artifacts": {
+    "atlas": "artifacts/mixing_atlas.json",
+    "holdout": "artifacts/of_test.json",
+    "seed_study": "artifacts/seed_study.json",
+    "sensitivity": "artifacts/sensitivity.json",
+    "g_sweep": "artifacts/g_sweep.json",
+    "swirl_sweep": "artifacts/swirl_sweep.json",
+    "live_cfd_glob": "artifacts/cfd_study_s*/cfd_comparison.json",
+    "figures": "artifacts/figures/"
+  }
+}

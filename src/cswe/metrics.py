@@ -79,7 +79,21 @@ def _gp(rows: list[dict]) -> GaussianProcessRegressor | None:
 
 
 def score_against_test(campaign_rows: list[dict], test_rows: list[dict]) -> dict:
-    """Compare a campaign's GP (fit on σ) to independent OpenFOAM tests."""
+    """Compare a campaign's GP (fit on σ_analog) to independent OpenFOAM tests.
+
+    Unstable recall
+        Recall_U = TP_U / (TP_U + FN_U)
+        on the hold-out set, where unstable means σ_analog > 0.
+        Overall accuracy can stay high by predicting the majority stable class;
+        Recall_U asks whether the reconstructed map recovers the minority regime.
+
+    Boundary MAE
+        Let B = { i in hold-out : |σ_i| < 0.20 }. Then
+            E_B = (1/|B|) Σ_{i in B} |σ̂(x_i) − σ_i|
+        where σ̂ is the GP fit on campaign evaluations. This is the error in
+        predicted growth rate on hold-out points that already lie near the
+        analog threshold, not a Euclidean contour distance in parameter space.
+    """
     test = [r for r in test_rows if r.get("Cconv") in (1, True) and _sigma(r) == _sigma(r)]
     gp = _gp(campaign_rows)
     out = campaign_diagnostics(campaign_rows)
