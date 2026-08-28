@@ -5,7 +5,7 @@ description = "AI-guided exploration of liquid-rocket combustion-stability windo
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-authors = [{ name = "Dave Lu" }]
+authors = [{ name = "James \"Dave\" Lu" }]
 keywords = ["combustion-stability", "active-learning", "ai-for-science", "goai"]
 dependencies = [
   "numpy>=2.0",
