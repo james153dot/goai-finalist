@@ -160,15 +160,16 @@ The agent fits a Gaussian process to **σ_analog** (level set σ_analog = 0) and
         c1.caption(f"LHS {s['lhs_mean_unstable_recall']:.2f}")
         c2.metric("Unstable evals per campaign", f"{s['ai_mean_n_unstable']:.1f}")
         c2.caption(f"LHS {s['lhs_mean_n_unstable']:.1f}")
-        c3.metric("Near-boundary σ MAE", f"{s['ai_mean_boundary_mae']:.3f}")
+        c3.metric("Near-boundary growth-rate MAE", f"{s['ai_mean_boundary_mae']:.3f}")
         c3.caption(f"LHS {s['lhs_mean_boundary_mae']:.3f}  ·  E_σ,boundary, not contour distance")
         c4.metric("Volume accuracy", f"{s['ai_mean_volume_accuracy']:.2f}")
         c4.caption(f"LHS {s['lhs_mean_volume_accuracy']:.2f}")
         st.caption(
             "Atlas campaigns scored on an independent 24-case OpenFOAM hold-out (`artifacts/of_test.json`). "
             "Volume accuracy is the weak metric — space-filling already tiles the majority class. "
-            "Recall of the dangerous class is the claim. Near-boundary σ MAE is prediction error in "
-            "σ_analog among hold-out points with |σ| < 0.20, not Hausdorff distance to a contour."
+            "Recall of the dangerous class is the claim. Near-boundary growth-rate MAE "
+            "E_σ,boundary is prediction error in σ_analog among hold-out points with |σ| < 0.20, "
+            "not Hausdorff distance to a contour."
         )
         recs = pd.DataFrame(
             [
@@ -507,7 +508,7 @@ not flight hardware.
 - A fixed-low-swirl OpenFOAM g-slice has two separated unstable *intervals*, not a mapped 5-D pocket.
 - Live seed 14 independently sampled both low-g and high-g unstable regions; the g-sweep then characterized the 1-D slice.
 - Across eight matched live CFD campaigns, AI has higher unstable recall in 7/8 seeds and more unstable evaluations in 7/8. Seed 35 is the reversal and is kept.
-- Near-boundary σ MAE is a mean tie. The claim is rare-regime recovery, not dominance on every metric.
+- Near-boundary growth-rate MAE E_σ,boundary is a mean tie. The claim is rare-regime recovery, not dominance on every metric.
 - The high-g unstable interval is not universal within the analog; it disappears at ω + 10%.
 
 **What a scientist must not believe.**

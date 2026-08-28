@@ -10,6 +10,7 @@ build/
 .python-version
 .streamlit/secrets.toml
 artifacts/local/
+artifacts/reproduce/
 uploads/
 agent-tools/
 .DS_Store
