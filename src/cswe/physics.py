@@ -8,19 +8,35 @@ combustion-stability *analogs*, not predictive stability of a real rocket
 combustor.
 
 The design / exploration vector is z = [g, d, a, s, o]. Axial chamber
-position is x. Pipeline: z → OpenFOAM → q_proxy(x) → σ_analog(z).
+position is x. Pipeline: z → OpenFOAM → q_mix(x) → σ_analog(z).
 
-Heat-release proxy q_proxy(x) = Var_y[Z](x) is the cross-stream variance of
-mixture fraction Z (OpenFOAM field name: T). Large Var_y[Z] means the two
-streams are still unmixed at that station, so mixing-limited reaction could
-still occur there. Fully mixed stations (Var → 0) contribute no further
-proxy heat release. This is not a finite-rate flame.
+Mixing-availability proxy q_mix(x) = Var_y[Z](x) is the cross-stream
+variance of mixture fraction Z (OpenFOAM field name: T). q_mix is not a
+heat-release prediction. It identifies axial locations where scalar
+segregation remains and is the declared mixing-side weighting of the
+Rayleigh analog. Fully mixed stations (Var → 0) contribute no further
+weight. This is not a finite-rate flame and is not 4Z(1−Z).
 
 The chamber pressure mode is the declared first longitudinal of a
 closed-closed duct, p(x) = cos(π x / L), so the injector face is a pressure
-antinode. R_spatial = ∫ q_proxy p dx / ∫ q_proxy dx. Mixing delay τ is
+antinode. R_spatial = ∫ q_mix p dx / ∫ q_mix dx. Mixing delay τ is
 defined from the same field (first axial bin with Var_y[Z] < 0.045, then
 τ = x_m / U_b). There is no planted island.
+
+The interaction index used in the analog is generated from OpenFOAM-derived
+mixing features and the operating analog o, not from g, d, a, or s directly:
+
+    n = 0.50 + 0.28 tanh(C − 1) + 0.16 (1 − Um) + 0.10 (o − 0.5)²
+
+where C is compactness of q_mix (max/mean of the axial profile) and Um is
+mixedness at the 45% axial station. Then
+
+    σ_analog = α n R_spatial cos(ω τ) − D,   α = 1.45,  D = 0.08,
+
+    ω = ω0 (0.92 + 0.16 o),   ω0 = 11.
+
+Classical injector analogs share n ≈ 0.79; their ordering comes from τ and
+R_spatial, not from n.
 """
 
 from __future__ import annotations
@@ -128,8 +144,12 @@ def _acoustics(
 ) -> tuple[float, float, float, float, float, float]:
     """Map mixing features to the Rayleigh analog σ_analog.
 
-    OpenFOAM supplies τ, unmixedness, R_spatial, compactness. This function
-    only converts those features into a hypothesis-level stability indicator.
+    OpenFOAM supplies τ, unmixedness Um, R_spatial, compactness C. This
+    function only converts those features into a hypothesis-level indicator.
+
+    n = N_BASE + N_COMPACT tanh(C−1) + N_UNMIXED (1−Um) + N_LOAD (o−0.5)²
+    ω = ω0 (0.92 + 0.16 o)
+    σ = HEAT_RELEASE_SCALE * n * R_spatial * cos(ω τ) − D
     """
     if R_spatial is None or R_spatial != R_spatial:
         R_spatial = 0.35

@@ -8,6 +8,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from cswe.logging_utils import load_evaluations
+from cswe.metrics import learning_curve, load_test_set, score_against_test
+from cswe.mixing import TEST_PATH
+
 ROOT = Path(__file__).resolve().parents[2]
 FIGDIR = ROOT / "artifacts" / "figures"
 
@@ -121,12 +125,14 @@ def live_cfd_strip() -> Path | None:
     payloads = _cfd_payloads()
     if not payloads:
         return None
-    fig, axes = plt.subplots(2, 2, figsize=(8.8, 7.2))
+    fig, axes = plt.subplots(2, 3, figsize=(11.2, 7.0))
     panels = (
         (axes[0, 0], "unstable_recall", "Hold-out unstable recall"),
-        (axes[0, 1], "n_unstable_found", "Unstable evaluations found"),
-        (axes[1, 0], "volume_accuracy", "Hold-out volume accuracy"),
-        (axes[1, 1], "boundary_mae", r"Near-boundary $\sigma$ MAE $E_{\sigma,\mathrm{boundary}}$"),
+        (axes[0, 1], "unstable_precision", "Hold-out unstable precision"),
+        (axes[0, 2], "unstable_f1", "Hold-out unstable F1"),
+        (axes[1, 0], "n_unstable_found", "Unstable evaluations found"),
+        (axes[1, 1], "volume_accuracy", "Hold-out volume accuracy"),
+        (axes[1, 2], "boundary_mae", r"Near-boundary $\sigma$ MAE $E_{\sigma,\mathrm{boundary}}$"),
     )
     for ax, field, title in panels:
         ai = [p["ai"]["final"][field] for p in payloads]
@@ -176,7 +182,7 @@ def seed14_both_bands() -> Path | None:
     ax.legend(handles.values(), handles.keys(), loc="best")
     ax.set_xlabel("live OpenFOAM evaluation t")
     ax.set_ylabel("pattern class g")
-    ax.set_title("Primary exhibit — seed 14: agent samples both unstable g-intervals before the sweep")
+    ax.set_title("Primary exhibit — seed 14: unstable at both low and high g (full 5-D samples)")
     ax.axhline(0.3, color="#c0392b", ls=":", lw=1, alpha=0.5)
     ax.axhline(1.5, color="#8e44ad", ls=":", lw=1, alpha=0.5)
     return _save(fig, "seed14_both_g_intervals.png")
@@ -236,6 +242,60 @@ def sensitivity_figure() -> Path | None:
     return _save(fig, "sensitivity.png")
 
 
+def tau_sensitivity_figure() -> Path | None:
+    path = ROOT / "artifacts" / "tau_sensitivity.json"
+    if not path.exists():
+        return None
+    data = json.loads(path.read_text(encoding="utf-8"))
+    cases = data["cases"]
+    names = [c["name"].replace("V_crit=", "V=").replace("N_bins=", "N=") for c in cases]
+    n_int = [c.get("g_slice", {}).get("n_unstable_intervals", 0) for c in cases]
+    like = [c["classical"]["like_on_like"]["sigma_analog"] for c in cases]
+    unlike = [c["classical"]["unlike_impinging"]["sigma_analog"] for c in cases]
+    swirl = [c["classical"]["swirl_coaxial"]["sigma_analog"] for c in cases]
+    x = np.arange(len(names))
+    fig, ax = plt.subplots(figsize=(8.4, 4.4))
+    ax.plot(x, like, "o-", color="#c0392b", label="like-on-like σ")
+    ax.plot(x, unlike, "s--", color="#d4ac0d", label="unlike-impinging σ")
+    ax.plot(x, swirl, "D-.", color="#1f618d", label="swirl-coaxial σ")
+    ax.axhline(0.0, color="#444", ls=":", lw=1)
+    ax.set_xticks(x, names, rotation=20, ha="right")
+    ax.set_ylabel("σ_analog")
+    ax.set_title("τ-definition sensitivity (stored q_mix profiles, no CFD rerun)")
+    ax.legend(loc="upper right", fontsize=8)
+    ax2 = ax.twinx()
+    ax2.plot(x, n_int, "^", color="#8e44ad", label="g-slice intervals")
+    ax2.set_ylabel("unstable intervals on g-slice")
+    ax2.set_ylim(0, 4)
+    return _save(fig, "tau_sensitivity.png")
+
+
+def rescore_cfd_studies() -> list[Path]:
+    """Refresh hold-out scores on committed live campaigns (no foamRun)."""
+    if not TEST_PATH.exists():
+        return []
+    test = load_test_set(TEST_PATH)
+    written = []
+    for cmp_path in sorted((ROOT / "artifacts").glob("cfd_study_s*/cfd_comparison.json")):
+        payload = json.loads(cmp_path.read_text(encoding="utf-8"))
+        study = cmp_path.parent
+        ai_rows = load_evaluations(study / "ai" / "exploration.jsonl")
+        lhs_rows = load_evaluations(study / "baseline" / "exploration.jsonl")
+        payload["ai"] = {
+            "final": score_against_test(ai_rows, test),
+            "curve": learning_curve(ai_rows, test),
+            "hypotheses": payload.get("ai", {}).get("hypotheses") or payload.get("hypotheses"),
+        }
+        payload["baseline"] = {
+            "final": score_against_test(lhs_rows, test),
+            "curve": learning_curve(lhs_rows, test),
+            "hypotheses": payload.get("baseline", {}).get("hypotheses"),
+        }
+        cmp_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        written.append(cmp_path)
+    return written
+
+
 def write_live_cfd_summary() -> Path | None:
     """Rewrite artifacts/cfd_live_summary.json from committed campaign logs."""
     payloads = _cfd_payloads()
@@ -250,6 +310,10 @@ def write_live_cfd_summary() -> Path | None:
                 "seed": p["seed"],
                 "ai_recall": ai["unstable_recall"],
                 "lhs_recall": lhs["unstable_recall"],
+                "ai_precision": ai.get("unstable_precision"),
+                "lhs_precision": lhs.get("unstable_precision"),
+                "ai_f1": ai.get("unstable_f1"),
+                "lhs_f1": lhs.get("unstable_f1"),
                 "ai_n_u": ai["n_unstable_found"],
                 "lhs_n_u": lhs["n_unstable_found"],
                 "ai_volume_accuracy": ai["volume_accuracy"],
@@ -260,7 +324,7 @@ def write_live_cfd_summary() -> Path | None:
         )
 
     def _stats(vals: list[float]) -> dict:
-        a = np.array(vals, dtype=float)
+        a = np.array([v for v in vals if v is not None], dtype=float)
         return {
             "mean": float(a.mean()),
             "median": float(np.median(a)),
@@ -272,6 +336,10 @@ def write_live_cfd_summary() -> Path | None:
     n_nu_ai = sum(r["ai_n_u"] > r["lhs_n_u"] for r in rows)
     n_vol_ai = sum(r["ai_volume_accuracy"] > r["lhs_volume_accuracy"] for r in rows)
     n_mae_ai = sum(r["ai_near_boundary_sigma_mae"] < r["lhs_near_boundary_sigma_mae"] for r in rows)
+    n_prec_ai = sum(
+        (r["ai_precision"] or 0) > (r["lhs_precision"] or 0) for r in rows
+    )
+    n_f1_ai = sum((r["ai_f1"] or 0) > (r["lhs_f1"] or 0) for r in rows)
     summary = {
         "backend": "openfoam",
         "budget": 16,
@@ -282,6 +350,16 @@ def write_live_cfd_summary() -> Path | None:
             "ai": _stats([r["ai_recall"] for r in rows]),
             "lhs": _stats([r["lhs_recall"] for r in rows]),
             "ai_wins": n_recall_ai,
+        },
+        "precision": {
+            "ai": _stats([r["ai_precision"] for r in rows]),
+            "lhs": _stats([r["lhs_precision"] for r in rows]),
+            "ai_wins": n_prec_ai,
+        },
+        "f1": {
+            "ai": _stats([r["ai_f1"] for r in rows]),
+            "lhs": _stats([r["lhs_f1"] for r in rows]),
+            "ai_wins": n_f1_ai,
         },
         "n_unstable_found": {
             "ai": _stats([r["ai_n_u"] for r in rows]),
@@ -300,6 +378,8 @@ def write_live_cfd_summary() -> Path | None:
         },
         "paired": {
             "ai_higher_unstable_recall": f"{n_recall_ai}/{len(rows)}",
+            "ai_higher_unstable_precision": f"{n_prec_ai}/{len(rows)}",
+            "ai_higher_unstable_f1": f"{n_f1_ai}/{len(rows)}",
             "ai_more_unstable_evaluations": f"{n_nu_ai}/{len(rows)}",
             "ai_higher_volume_accuracy": f"{n_vol_ai}/{len(rows)}",
             "ai_lower_near_boundary_sigma_mae": f"{n_mae_ai}/{len(rows)}",
@@ -310,8 +390,10 @@ def write_live_cfd_summary() -> Path | None:
             "Eight independent live OpenFOAM campaigns, budget 16. "
             "AI has higher unstable recall in 7 of 8 seeds and finds more unstable "
             "evaluations in 7 of 8. Seed 35 reverses both and is kept. "
+            "Precision and F1 are reported so high recall is not confused with "
+            "predicting a huge unstable region. "
             "Near-boundary growth-rate MAE is a mean tie; AI is lower in only 3/8. "
-            "Seed 14 is the high-g interval exhibit."
+            "Seed 14 independently found unstable conditions at both low and high g."
         ),
     }
     out = ROOT / "artifacts" / "cfd_live_summary.json"
@@ -321,7 +403,11 @@ def write_live_cfd_summary() -> Path | None:
 
 def write_all() -> list[Path]:
     _style()
+    from cswe.tau_sensitivity import run_tau_sensitivity
+
+    run_tau_sensitivity()
     written = []
+    written.extend(rescore_cfd_studies())
     for fn in (
         g_sweep_figure,
         swirl_sweep_figure,
@@ -330,6 +416,7 @@ def write_all() -> list[Path]:
         seed14_both_bands,
         seed_study_figure,
         sensitivity_figure,
+        tau_sensitivity_figure,
         write_live_cfd_summary,
     ):
         p = fn()

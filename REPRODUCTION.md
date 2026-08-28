@@ -27,6 +27,7 @@ uv run cswe swirl-sweep --g 0.15 --n 8 --n-iter 90 --out artifacts/swirl_sweep.j
 uv run cswe g-sweep --s 0.10 --n 9 --n-iter 90 --out artifacts/g_sweep.json
 uv run cswe seed-study --n-seeds 24 --budget 16 --n-init 5 --out artifacts/seed_study.json
 uv run cswe sensitivity --n-seeds 16 --budget 16
+uv run cswe tau-sensitivity
 uv run cswe cfd-study --budget 16 --seed 11 --n-init 5 --n-iter 90 --out artifacts/cfd_study_s11
 uv run cswe figures
 uv run pytest
@@ -37,10 +38,14 @@ live OpenFOAM query. Analog-constant sensitivity holds mixing fields fixed and
 only changes D and ω.
 
 Notation: design vector **z** = [g, d, a, s, o]; axial coordinate **x**;
-mixture fraction **Z** (OpenFOAM field name `T`). Mixing delay τ is the first
-of 24 axial bins with Var_y[Z] < 0.045, then τ = x_m / U_b. Near-boundary
-growth-rate MAE E_{σ,boundary} is hold-out |σ̂(z) − σ| among points with
-|σ| < 0.20, not geometric contour distance.
+mixture fraction **Z** (OpenFOAM field name `T`). Mixing-availability
+q_mix(x) = Var_y[Z](x) is unmixedness, not heat release. Mixing delay τ is
+the first of 24 axial bins with Var_y[Z] < 0.045, then τ = x_m / U_b.
+Near-boundary growth-rate MAE E_{σ,boundary} is hold-out |σ̂(z) − σ| among
+points with |σ| < 0.20, not geometric contour distance. Unstable precision
+and F1 are reported alongside recall.
+
+`cswe tau-sensitivity` re-reads stored q_mix profiles (no CFD rerun).
 
 Index: `artifacts/manifest.json`.
 

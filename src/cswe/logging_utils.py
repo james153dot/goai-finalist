@@ -36,7 +36,7 @@ def save_campaign(record: CampaignRecord, out_dir: Path) -> None:
         "fixed_environment": {
             "chamber_mode": "first_longitudinal_n_tau",
             "injector_mixing": "openfoam14_2d_laminar_dual_jet",
-            "acoustics": "rayleigh_overlap_of_mixing_limited_heat_release_on_frozen_1L_mode",
+            "acoustics": "rayleigh_overlap_of_q_mix_on_declared_closed_closed_1L_mode",
             "public_outputs": "abstract_design_principles_only",
         },
     }

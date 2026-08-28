@@ -6,8 +6,8 @@ Two families:
    minority unstable class is found, how many unstable evaluations the
    budget bought, how many points sit near σ = 0.
 2. Hold-out OpenFOAM scoring: a GP fit on the campaign's σ values is
-   compared to independent CFD test rows (unstable recall, near-boundary
-   growth-rate MAE E_σ,boundary, volume accuracy).
+   compared to independent CFD test rows (unstable recall, precision, F1,
+   near-boundary growth-rate MAE E_σ,boundary, volume accuracy).
 
 Volume accuracy against a smooth interpolator is not the claim. The claim
 is that adaptive search spends expensive solver calls on the window edge.
@@ -88,6 +88,15 @@ def score_against_test(campaign_rows: list[dict], test_rows: list[dict]) -> dict
         Overall accuracy can stay high by predicting the majority stable class;
         Recall_U asks whether the reconstructed map recovers the minority regime.
 
+    Unstable precision
+        Precision_U = TP_U / (TP_U + FP_U)
+        If the GP predicts no unstable hold-out points, Precision_U = 0.
+        This answers whether high recall is bought by flooding the map
+        with unstable predictions.
+
+    Unstable F1
+        F1_U = 2 P_U R_U / (P_U + R_U), or 0 if P_U + R_U = 0.
+
     Near-boundary growth-rate MAE, E_σ,boundary
         Let B = { i in hold-out : |σ_i| < 0.20 }. Then
             E_σ,boundary = (1/|B|) Σ_{i in B} |σ̂(z_i) − σ_i|
@@ -106,6 +115,8 @@ def score_against_test(campaign_rows: list[dict], test_rows: list[dict]) -> dict
             "n_test": len(test),
             "volume_accuracy": None,
             "unstable_recall": None,
+            "unstable_precision": None,
+            "unstable_f1": None,
             "stable_recall": None,
             "boundary_mae": None,  # alias kept for existing JSON logs
             "near_boundary_sigma_mae": None,
@@ -122,6 +133,16 @@ def score_against_test(campaign_rows: list[dict], test_rows: list[dict]) -> dict
     out["volume_accuracy"] = float(np.mean(pred_bin == ybin))
     if ybin.any():
         out["unstable_recall"] = float(np.mean(pred_bin[ybin]))
+    if pred_bin.any():
+        out["unstable_precision"] = float(np.mean(ybin[pred_bin]))
+    else:
+        out["unstable_precision"] = 0.0
+    p_u = out["unstable_precision"]
+    r_u = out["unstable_recall"]
+    if p_u is not None and r_u is not None and (p_u + r_u) > 0:
+        out["unstable_f1"] = float(2.0 * p_u * r_u / (p_u + r_u))
+    elif r_u is not None:
+        out["unstable_f1"] = 0.0
     if (~ybin).any():
         out["stable_recall"] = float(np.mean(~pred_bin[~ybin]))
     edge = np.abs(yt) < 0.20

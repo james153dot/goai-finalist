@@ -277,6 +277,10 @@ def seed_study(
             return float(np.mean(vals)) if vals else None
         summary["ai_mean_unstable_recall"] = tmean("ai_test", "unstable_recall")
         summary["lhs_mean_unstable_recall"] = tmean("baseline_test", "unstable_recall")
+        summary["ai_mean_unstable_precision"] = tmean("ai_test", "unstable_precision")
+        summary["lhs_mean_unstable_precision"] = tmean("baseline_test", "unstable_precision")
+        summary["ai_mean_unstable_f1"] = tmean("ai_test", "unstable_f1")
+        summary["lhs_mean_unstable_f1"] = tmean("baseline_test", "unstable_f1")
         summary["ai_mean_boundary_mae"] = tmean("ai_test", "boundary_mae")
         summary["lhs_mean_boundary_mae"] = tmean("baseline_test", "boundary_mae")
         summary["ai_mean_near_boundary_sigma_mae"] = tmean("ai_test", "boundary_mae")
@@ -357,6 +361,26 @@ def figures() -> None:
         typer.echo(str(path))
 
 
+@app.command("tau-sensitivity")
+def tau_sensitivity() -> None:
+    """Perturb V_crit and N_bins on stored q_mix profiles (no CFD rerun)."""
+    from cswe.tau_sensitivity import OUT_PATH, run_tau_sensitivity
+
+    payload = run_tau_sensitivity()
+    typer.echo(f"Wrote {OUT_PATH}")
+    typer.echo(f"classical ordering survives: {payload['classical_ordering_survives']}")
+    typer.echo(f"g-slice two intervals survive: {payload['g_slice_two_intervals_survive']}")
+    for c in payload["cases"]:
+        gs = c.get("g_slice", {})
+        typer.echo(
+            f"  {c['name']:28s} intervals={gs.get('n_unstable_intervals')}  "
+            f"like={c['classical']['like_on_like']['sigma_analog']:+.2f}  "
+            f"unlike={c['classical']['unlike_impinging']['sigma_analog']:+.2f}  "
+            f"swirl={c['classical']['swirl_coaxial']['sigma_analog']:+.2f}  "
+            f"ok={c['ordering']['qualitative_ok']}"
+        )
+
+
 @app.command()
 def sensitivity(
     n_seeds: int = typer.Option(16),
@@ -396,7 +420,7 @@ def reproduce() -> None:
         report = run_mixer(CLASSICAL_INJECTORS["like_on_like"], work=out / "foam", n_iter=60)
         typer.echo(
             f"foam like-on-like  Cconv={report.Cconv}  tau={report.tau:.4f}  "
-            f"R_spatial={report.R_spatial:.3f}  q_proxy compactness={report.compactness:.2f}"
+            f"R_spatial={report.R_spatial:.3f}  q_mix compactness={report.compactness:.2f}"
         )
     else:
         typer.echo("OpenFOAM 14 not found; skipping live foam case.")

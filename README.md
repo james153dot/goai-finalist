@@ -19,7 +19,7 @@ Public outputs stay at abstract design principles.
 
 | Level | Quantity | Source |
 | --- | --- | --- |
-| Observed from OpenFOAM | mixing delay τ, spatial overlap R_spatial, proxy field q_proxy(x) | dual-jet `foamRun` |
+| Observed from OpenFOAM | mixing delay τ, spatial overlap R_spatial, mixing-availability field q_mix(x) | dual-jet `foamRun` |
 | Derived from the analog | σ_analog(z), stable / unstable label | declared closed-closed 1L Rayleigh map |
 | Inferred by the agent | reconstructed σ_analog = 0 contour, predicted unstable set | GP + straddle / regime-seeking |
 
@@ -28,9 +28,9 @@ design vector z = [g, d, a, s, o]
         ↓
 OpenFOAM mixing field  (Z stored as field T, U)
         ↓
-τ, R_spatial, q_proxy(x) = Var_y[Z](x)
+τ, R_spatial, q_mix(x) = Var_y[Z](x)
         ↓
-σ_analog(z) = n R_spatial cos(ωτ) − D
+σ_analog(z) = α n R_spatial cos(ωτ) − D
         ↓
 observation  {σ_analog, stable/unstable}
         ↓
@@ -40,27 +40,30 @@ GP active explorer
 The five-dimensional exploration vector is **z**. Axial chamber position is
 **x**. The pipeline is then
 
-    z → OpenFOAM → q_proxy(x) → σ_analog(z).
+    z → OpenFOAM → q_mix(x) → σ_analog(z).
 
 Python campaign logs still use the dict key `x` for the design point; that is
 an implementation detail, not the paper notation.
 
-## Heat-release proxy
+## Mixing-availability proxy
 
 The passive scalar is denoted **Z** (mixture fraction) here for clarity. It is
 stored as OpenFOAM field `T` in the current implementation. The field name
 was not renamed so that the committed atlas and live CFD logs remain valid.
 
-q_proxy(x) is the **cross-stream variance of mixture fraction** at station x:
+q_mix(x) is the **cross-stream variance of mixture fraction** at station x:
 
-    q_proxy(x) = Var_y[Z](x).
+    q_mix(x) = Var_y[Z](x).
 
-Large Var_y[Z] means the two inlet streams are still unmixed there, so
-mixing-limited reaction could still occur. Fully mixed stations (Var → 0)
-contribute no further proxy heat release. This is not a finite-rate flame
-and is not 4Z(1−Z), which would peak after the gases are already uniform.
+q_mix is **not a heat-release prediction**. Rayleigh's criterion concerns
+heat-release fluctuations coupled to pressure; scalar variance is unmixedness.
+q_mix identifies axial locations where scalar segregation remains and is the
+declared mixing-side weighting used by the Rayleigh analog. Fully mixed
+stations (Var → 0) contribute no further weight. This is not a finite-rate
+flame and is not 4Z(1−Z), which would peak after the gases are already uniform.
+JSON logs store the axial profile under the key `q_profile`.
 
-    R_spatial = ∫ q_proxy p dx / ∫ q_proxy dx,    p(x) = cos(πx/L)
+    R_spatial = ∫ q_mix p dx / ∫ q_mix dx,    p(x) = cos(πx/L)
 
 (injector-face pressure antinode of a closed-closed 1L analog).
 
@@ -89,15 +92,25 @@ Then
 
     τ = max(10⁻⁴, x_m / U_b).
 
-## Analog constants
+## Analog constants and n-index
 
-ω, n-index prefactors, and damping D set the *scale* of σ_analog so that both
-regimes exist in the box. They are not measured chamber data.
+ω, n-index prefactors, the scale α, and damping D set the *scale* of
+σ_analog so that both regimes exist in the box. They are not measured
+chamber data.
 
-The *ordering* of classical injector analogs is not coming from those
-constants: like-on-like, unlike-impinging, and swirl-coaxial all have
-n-index ≈ 0.79. Discrimination is from OpenFOAM τ (Rayleigh phase) and
-R_spatial.
+    n = 0.50 + 0.28 tanh(C − 1) + 0.16 (1 − Um) + 0.10 (o − 0.5)²
+
+C is compactness of q_mix (max/mean of the axial profile). Um is mixedness
+at the 45% axial station. g, d, a, and s enter n only through those
+OpenFOAM-derived features. o also appears directly, and weakly scales the
+analog frequency:
+
+    ω = ω0 (0.92 + 0.16 o),    ω0 = 11,
+    σ_analog = α n R_spatial cos(ω τ) − D,    α = 1.45,    D = 0.08.
+
+The *ordering* of classical injector analogs is not coming from n:
+like-on-like, unlike-impinging, and swirl-coaxial all have n ≈ 0.79.
+Discrimination is from OpenFOAM τ (Rayleigh phase) and R_spatial.
 
 Sensitivity (`cswe sensitivity`) holds the OpenFOAM mixing fields fixed and
 perturbs
@@ -124,13 +137,42 @@ slice is damping-robust and frequency-sensitive.
 
 Artifacts: `artifacts/sensitivity.json`, `artifacts/figures/sensitivity.png`.
 
+The mixing-delay definition itself is a modeling choice. `cswe tau-sensitivity`
+re-reads stored q_mix profiles (no CFD rerun) and perturbs
+
+    V_crit ∈ {0.035, 0.045, 0.055},    N_bins ∈ {16, 24, 32}
+
+one at a time. N_bins resamples the stored 24-bin profile; it is not a
+re-extraction from cell centres.
+
+Classical injector ordering (like-on-like σ > unlike-impinging σ >
+swirl-coaxial σ, with like-on-like analog-unstable and swirl-coaxial
+analog-stable) survives every setting. Two g-slice unstable intervals
+survive N_bins ∈ {16, 24, 32} and V_crit = 0.055.
+
+**V_crit = 0.035 collapses the high-g interval to one.** A stricter mixing
+criterion moves x_m downstream, increases τ, and rotates the Rayleigh phase.
+That is disclosed, not hidden: the second interval is real on the declared
+definition (V_crit = 0.045, 24 bins) and is not an artifact of N_bins, but
+it is not invariant to a 22% tighter variance threshold.
+
+Artifacts: `artifacts/tau_sensitivity.json`, `artifacts/figures/tau_sensitivity.png`.
+
 ## Environment contract
 
 **Fixed:** chamber L = 80 mm, H = 20 mm, laminar viscosity, closed-closed 1L
 mode, Rayleigh-from-mixing analog, threshold σ_analog = 0.
 
-**Explorable:** z = [g, d, a, s, o] — pattern class, orifice-size spread,
-impingement, swirl analog, operating analog.
+**Explorable:** z = [g, d, a, s, o]. Implementation: `src/cswe/geometry.py`
+(`DESIGN_VARIABLES`, `jet_layout`).
+
+| Variable | Meaning | Range | What changes in OpenFOAM |
+| --- | --- | --- | --- |
+| g | pattern-class analog | [0, 2] | Inlet-slot centre-lines: close like-on-like pair (g≈0) → unlike-separated pair (g≈1) → coaxial-like stacked arrangement (g≈2). |
+| d | orifice-size-spread analog | [0, 1] | Relative slot heights h0 = 0.13 H (1+0.55 d), h1 = 0.13 H (1−0.55 d). |
+| a | impingement analog | [0, 1] | Inlet-vector polar angle θ = (0.12+0.70 a)×0.70 rad (~7°–47°); jets aimed toward each other. |
+| s | swirl analog | [0, 1] | Additional slot offset and opposing cross-stream velocity (spin = 0.45 s). 2-D stand-in for swirl, not azimuthal velocity. |
+| o | operating analog | [0, 1] | Bulk axial speeds u0x = U_ref (0.70+0.30 o), u1x = U_ref (1.30−0.30 o). Also weakly scales analog frequency ω. |
 
 **Discovery signals (declared before search):**
 
@@ -161,7 +203,14 @@ Unstable recall on a hold-out OpenFOAM set with labels y_i = 1{σ_analog(z_i) > 
 
 Overall classification accuracy can remain high by predicting the dominant
 stable regime. Recall_U measures whether an exploration strategy reconstructs
-the scientifically important minority regime.
+the scientifically important minority regime. A high-recall map could still
+be useless if it simply paints a huge fraction of the box as unstable, so
+the same GP is also scored by
+
+    Precision_U = TP_U / (TP_U + FP_U),
+    F1_U = 2 Precision_U Recall_U / (Precision_U + Recall_U).
+
+If the GP predicts no unstable hold-out points, Precision_U = 0.
 
 Near-boundary growth-rate MAE. Let B = { i in hold-out : |σ_i| < 0.20 }. Then
 
@@ -202,28 +251,29 @@ motivates looking for separated unstable regions in the full space.
 Increasing the swirl analog within the like-on-like family (g = 0.15) reduced
 σ_analog over the tested range but did not cross the stability boundary.
 
-### Primary exhibit: seed 14 sampled both intervals
+### Primary exhibit: seed 14 found unstable regimes at both low and high g
 
-The adaptive campaign itself encountered evidence of separated instability
-behavior; the later one-dimensional sweep was used to characterize that
-observation rather than manufacture it.
+The adaptive campaign independently encountered unstable conditions at both
+low and high pattern-class values. This motivated the subsequent
+fixed-condition g-sweep, which established that a low-swirl one-dimensional
+slice contains two separated unstable intervals.
 
-Live OpenFOAM campaign **seed 14**, independently of the later g-sweep:
+Those seed-14 evaluations are full five-dimensional samples, not points on
+the later slice (d, a, s, o were free):
 
-| t | g | s | σ_analog | analog class |
-| --- | --- | --- | --- | --- |
-| 2 | 0.10 | 0.45 | +0.32 | unstable, low g |
-| 3 | 1.80 | 0.21 | +0.06 | unstable, high g |
-| 6 | 0.52 | 0.27 | +0.21 | unstable, low g |
-| 14 | 1.92 | 0.04 | +0.40 | unstable, high g |
+| t | g | d | a | s | o | σ_analog | analog class |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 2 | 0.10 | 0.99 | 0.07 | 0.45 | 0.12 | +0.32 | unstable, low g |
+| 3 | 1.80 | 0.35 | 0.87 | 0.21 | 0.74 | +0.06 | unstable, high g |
+| 6 | 0.52 | 0.51 | 0.92 | 0.27 | 0.90 | +0.21 | unstable, low g |
+| 14 | 1.92 | 0.93 | 0.73 | 0.04 | 0.38 | +0.40 | unstable, high g |
 
-The agent independently evaluated unstable conditions at both ends
-(g = 0.10, σ = +0.32 and g = 1.80, σ = +0.06), then later again at
-g = 1.92, σ = +0.40.
+The agent did not literally sample both intervals of the later 1-D slice.
+It independently found unstable cases at both low and high g, which is why
+that slice was run.
 
 Primary figure: `artifacts/figures/seed14_both_g_intervals.png`.
-Seed 11 did not place an unstable point in the high-g interval; that seed is
-kept.
+Seed 11 did not place an unstable point at high g; that seed is kept.
 
 ### Adaptive search vs Latin hypercube
 
@@ -237,6 +287,8 @@ Atlas (n = 24 seeds), mean:
 | | AI | LHS |
 | --- | --- | --- |
 | Unstable recall | 0.62 | 0.46 |
+| Unstable precision | 0.92 | 0.91 |
+| Unstable F1 | 0.72 | 0.60 |
 | Unstable evaluations found | 7.5 | 4.5 |
 | Near-boundary σ MAE E_{σ,boundary} | 0.123 | 0.167 |
 | Volume accuracy | 0.83 | 0.79 |
@@ -246,33 +298,44 @@ Live OpenFOAM, n = 8 seeds, budget 16. Mean ± sample sd:
 | | AI | LHS |
 | --- | --- | --- |
 | Unstable recall | 0.68 ± 0.13 | 0.33 ± 0.21 |
+| Unstable precision | 0.86 ± 0.11 | 0.85 ± 0.35 |
+| Unstable F1 | 0.76 ± 0.12 | 0.46 ± 0.25 |
 | Unstable evaluations found | 7.5 ± 1.2 | 5.9 ± 1.6 |
 | Volume accuracy | 0.84 ± 0.07 | 0.75 ± 0.08 |
 | Near-boundary σ MAE E_{σ,boundary} | 0.134 ± 0.031 | 0.134 ± 0.046 |
 
 Across eight matched live-CFD campaigns, adaptive exploration achieved higher
 unstable recall than LHS in **7/8** seeds and sampled more unstable conditions
-in **7/8** seeds. Volume accuracy follows the same 7/8 split. The one
-reversal (seed 35) is retained. Near-boundary growth-rate MAE is a **tie in
-the mean** (0.134 vs 0.134); AI is lower (better) in only 3/8 seeds. That is
-the intended argument: adaptive sampling is advantageous when the scientific
-objective is recovering a rare instability regime under an expensive
-evaluation budget, not that AI dominates every metric.
+in **7/8** seeds. Unstable F1 follows the same **7/8** split. Volume accuracy
+is also 7/8. The one reversal (seed 35) is retained.
 
-| seed | AI recall | LHS recall | AI n_u | LHS n_u | AI vol | LHS vol | AI E_{σ,b} | LHS E_{σ,b} |
+Mean unstable precision is a **near-tie** (0.86 vs 0.85); AI is higher in only
+1/8 seeds. LHS precision looks high because it under-predicts the unstable
+class (high precision, low recall), except seed 14 where the LHS GP predicted
+no unstable hold-out points (precision 0). Adaptive search therefore roughly
+**doubles recall without a precision collapse** — it is not painting a huge
+fraction of the box as unstable.
+
+Near-boundary growth-rate MAE is a **tie in the mean** (0.134 vs 0.134); AI
+is lower (better) in only 3/8 seeds. That is the intended argument: adaptive
+sampling is advantageous when the scientific objective is recovering a rare
+instability regime under an expensive evaluation budget, not that AI
+dominates every metric.
+
+| seed | AI R | LHS R | AI P | LHS P | AI F1 | LHS F1 | AI n_u | LHS n_u |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 8 | 0.89 | 0.67 | 9 | 8 | 0.96 | 0.88 | 0.079 | 0.103 |
-| 11 | 0.67 | 0.22 | 7 | 5 | 0.88 | 0.71 | 0.147 | 0.099 |
-| 14 | 0.67 | 0.00 | 9 | 3 | 0.83 | 0.62 | 0.125 | 0.218 |
-| 19 | 0.78 | 0.22 | 6 | 5 | 0.88 | 0.71 | 0.159 | 0.137 |
-| 23 | 0.67 | 0.22 | 7 | 6 | 0.79 | 0.71 | 0.162 | 0.083 |
-| 26 | 0.67 | 0.33 | 8 | 6 | 0.83 | 0.75 | 0.099 | 0.175 |
-| 32 | 0.67 | 0.44 | 8 | 7 | 0.83 | 0.79 | 0.134 | 0.107 |
-| 35 | 0.44 | 0.56 | 6 | 7 | 0.71 | 0.79 | 0.165 | 0.148 |
+| 8 | 0.89 | 0.67 | 1.00 | 1.00 | 0.94 | 0.80 | 9 | 8 |
+| 11 | 0.67 | 0.22 | 1.00 | 1.00 | 0.80 | 0.36 | 7 | 5 |
+| 14 | 0.67 | 0.00 | 0.86 | 0.00 | 0.75 | 0.00 | 9 | 3 |
+| 19 | 0.78 | 0.22 | 0.88 | 1.00 | 0.82 | 0.36 | 6 | 5 |
+| 23 | 0.67 | 0.22 | 0.75 | 1.00 | 0.71 | 0.36 | 7 | 6 |
+| 26 | 0.67 | 0.33 | 0.86 | 1.00 | 0.75 | 0.50 | 8 | 6 |
+| 32 | 0.67 | 0.44 | 0.86 | 1.00 | 0.75 | 0.62 | 8 | 7 |
+| 35 | 0.44 | 0.56 | 0.67 | 0.83 | 0.53 | 0.67 | 6 | 7 |
 
-Seed 35 reverses hold-out recall and unstable count; it is kept. Seed 14
-remains the exhibit for sampling both g-intervals. Markers:
-`artifacts/figures/live_cfd_strip.png`.
+Seed 35 reverses hold-out recall, F1, and unstable count; it is kept. Seed 14
+is the exhibit for independently finding unstable conditions at both low and
+high g. Markers: `artifacts/figures/live_cfd_strip.png`.
 
 The preliminary implementation evaluated adaptive exploration primarily by
 global volume reconstruction. Subsequent experiments showed that this metric
@@ -292,9 +355,10 @@ under a small budget.
 
 ## Analog limitations
 
-- 2-D, laminar, non-reacting. q_proxy is mixing variance, not a flame.
-- ω, n, and D are analog constants. Sensitivity to D and ω is reported,
-  including the ω + 10% disappearance of the high-g interval.
+- 2-D, laminar, non-reacting. q_mix is scalar variance (unmixedness), not heat release.
+- ω, n, α, and D are analog constants. Sensitivity to D, ω, and the τ
+  definition (V_crit, N_bins) is reported, including the ω + 10% and
+  V_crit = 0.035 disappearances of the high-g interval.
 - The 35-case atlas interpolator is smoother than a new OpenFOAM case.
 - Closed-closed 1L is a duct analog, not a full acoustic eigenproblem.
 - The second unstable interval is a 9-point live g-slice at fixed low swirl.
@@ -322,6 +386,7 @@ uv run cswe swirl-sweep --g 0.15 --n 8
 uv run cswe g-sweep --s 0.10 --n 9
 uv run cswe seed-study --n-seeds 24 --budget 16
 uv run cswe sensitivity
+uv run cswe tau-sensitivity
 uv run cswe cfd-study --budget 16 --seed 11 --out artifacts/cfd_study_s11
 uv run cswe figures
 ```
@@ -335,10 +400,10 @@ OpenFOAM mixing fields, Rayleigh analog with declared constants, classical
 injector analogs, limitations.
 
 Exploration signal 35% — adaptive search on σ_analog = 0, pre-registered
-signals, minority-class efficiency, both g-intervals sampled in live seed 14.
+signals, minority-class efficiency, unstable conditions at both low and high g in live seed 14.
 
-Verifiability 15% — JSONL logs, seeds, hold-out OpenFOAM test set, sensitivity,
-`pytest`, `cswe reproduce`.
+Verifiability 15% — JSONL logs, seeds, hold-out OpenFOAM test set, analog and
+τ-definition sensitivity, `pytest`, `cswe reproduce`.
 
 Open-source 5% — MIT, no APIs, no closed models.
 

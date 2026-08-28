@@ -1,0 +1,498 @@
+{
+  "note": "No CFD rerun. Stored 24-bin Var_y[Z] profiles are reused. V_crit changes only \u03c4. N_bins resamples the stored profile (linear interpolation of q_mix) and recomputes \u03c4, R_spatial, compactness, and Um. That N_bins test is a definition sensitivity, not a re-extraction from cell centres. Classical injector ordering survives every setting. The high-g g-slice interval disappears at V_crit = 0.035 (stricter mixing criterion \u2192 later x_m \u2192 larger \u03c4).",
+  "nominal_v_crit": 0.045,
+  "nominal_n_bins": 24,
+  "classical_ordering_survives": true,
+  "g_slice_two_intervals_survive": false,
+  "g_slice_two_intervals_fail_at": [
+    "V_crit=0.035, N_bins=24"
+  ],
+  "cases": [
+    {
+      "name": "V_crit=0.035, N_bins=24",
+      "v_crit": 0.035,
+      "n_bins": 24,
+      "nominal": false,
+      "classical": {
+        "like_on_like": {
+          "sigma_analog": 0.2618354653224334,
+          "stable": false,
+          "tau": 0.1043595683113426,
+          "n_index": 0.7892920520681281,
+          "R_spatial": 0.7133418360673545
+        },
+        "unlike_impinging": {
+          "sigma_analog": -0.21930580314125286,
+          "stable": true,
+          "tau": 0.15875771669328706,
+          "n_index": 0.790291754756724,
+          "R_spatial": 0.696103637665173
+        },
+        "swirl_coaxial": {
+          "sigma_analog": -0.7088541579489972,
+          "stable": true,
+          "tau": 0.2675540134571759,
+          "n_index": 0.7923428296922405,
+          "R_spatial": 0.5558397598691363
+        }
+      },
+      "ordering": {
+        "like_gt_unlike_gt_swirl": true,
+        "like_unstable": true,
+        "unlike_stable": true,
+        "swirl_stable": true,
+        "qualitative_ok": true
+      },
+      "g_slice": {
+        "n_unstable_stations": 2,
+        "n_unstable_intervals": 1,
+        "intervals": [
+          {
+            "g_lo": 0.05,
+            "g_hi": 0.2875
+          }
+        ],
+        "second_interval_present": false
+      },
+      "g_slice_sigmas": [
+        {
+          "g": 0.05,
+          "sigma": 0.4175305675887991,
+          "tau": 0.08622685218402777
+        },
+        {
+          "g": 0.2875,
+          "sigma": 0.1018294450728774,
+          "tau": 0.12249228443865741
+        },
+        {
+          "g": 0.525,
+          "sigma": -0.37407941507749526,
+          "tau": 0.17689043282060185
+        },
+        {
+          "g": 0.7625,
+          "sigma": -0.5140891987838573,
+          "tau": 0.1950231489479166
+        },
+        {
+          "g": 1.0,
+          "sigma": -0.36520029354859224,
+          "tau": 0.17689043282060185
+        },
+        {
+          "g": 1.2375,
+          "sigma": -0.21274049972404796,
+          "tau": 0.15875771669328706
+        },
+        {
+          "g": 1.4749999999999999,
+          "sigma": -0.06204197241767487,
+          "tau": 0.1406250005659722
+        },
+        {
+          "g": 1.7125,
+          "sigma": -0.2099152057384065,
+          "tau": 0.15875771669328706
+        },
+        {
+          "g": 1.95,
+          "sigma": -0.21160498333605593,
+          "tau": 0.15875771669328706
+        }
+      ]
+    },
+    {
+      "name": "V_crit=0.045, N_bins=16",
+      "v_crit": 0.045,
+      "n_bins": 16,
+      "nominal": false,
+      "classical": {
+        "like_on_like": {
+          "sigma_analog": 0.3199012414732738,
+          "stable": false,
+          "tau": 0.09710648186041666,
+          "n_index": 0.7886131379910614,
+          "R_spatial": 0.7148842701041702
+        },
+        "unlike_impinging": {
+          "sigma_analog": -0.16655012559469284,
+          "stable": true,
+          "tau": 0.1527134779841821,
+          "n_index": 0.7883744513029862,
+          "R_spatial": 0.6956566400001422
+        },
+        "swirl_coaxial": {
+          "sigma_analog": -0.6282254525245721,
+          "stable": true,
+          "tau": 0.23612397216983022,
+          "n_index": 0.7867858867611713,
+          "R_spatial": 0.554838660719001
+        }
+      },
+      "ordering": {
+        "like_gt_unlike_gt_swirl": true,
+        "like_unstable": true,
+        "unlike_stable": true,
+        "swirl_stable": true,
+        "qualitative_ok": true
+      },
+      "g_slice": {
+        "n_unstable_stations": 5,
+        "n_unstable_intervals": 2,
+        "intervals": [
+          {
+            "g_lo": 0.05,
+            "g_hi": 0.2875
+          },
+          {
+            "g_lo": 1.4749999999999999,
+            "g_hi": 1.95
+          }
+        ],
+        "second_interval_present": true
+      },
+      "g_slice_sigmas": [
+        {
+          "g": 0.05,
+          "sigma": 0.5382038485102469,
+          "tau": 0.06930298379853395
+        },
+        {
+          "g": 0.2875,
+          "sigma": 0.08021745186081684,
+          "tau": 0.12490997992229938
+        },
+        {
+          "g": 0.525,
+          "sigma": -0.1669993283768739,
+          "tau": 0.1527134779841821
+        },
+        {
+          "g": 0.7625,
+          "sigma": -0.40004218137849845,
+          "tau": 0.1805169760460648
+        },
+        {
+          "g": 1.0,
+          "sigma": -0.16441598888342296,
+          "tau": 0.1527134779841821
+        },
+        {
+          "g": 1.2375,
+          "sigma": -0.16248682626989233,
+          "tau": 0.1527134779841821
+        },
+        {
+          "g": 1.4749999999999999,
+          "sigma": 0.06646050273500594,
+          "tau": 0.12490997992229938
+        },
+        {
+          "g": 1.7125,
+          "sigma": 0.06510632528874692,
+          "tau": 0.12490997992229938
+        },
+        {
+          "g": 1.95,
+          "sigma": 0.06697854983348768,
+          "tau": 0.12490997992229938
+        }
+      ]
+    },
+    {
+      "name": "V_crit=0.045, N_bins=24",
+      "v_crit": 0.045,
+      "n_bins": 24,
+      "nominal": true,
+      "classical": {
+        "like_on_like": {
+          "sigma_analog": 0.4009049754079808,
+          "stable": false,
+          "tau": 0.08622685218402777,
+          "n_index": 0.7892920520681281,
+          "R_spatial": 0.7133418360673545
+        },
+        "unlike_impinging": {
+          "sigma_analog": -0.06092023209961723,
+          "stable": true,
+          "tau": 0.1406250005659722,
+          "n_index": 0.790291754756724,
+          "R_spatial": 0.696103637665173
+        },
+        "swirl_coaxial": {
+          "sigma_analog": -0.6151922036425719,
+          "stable": true,
+          "tau": 0.23128858120254625,
+          "n_index": 0.7923428296922405,
+          "R_spatial": 0.5558397598691363
+        }
+      },
+      "ordering": {
+        "like_gt_unlike_gt_swirl": true,
+        "like_unstable": true,
+        "unlike_stable": true,
+        "swirl_stable": true,
+        "qualitative_ok": true
+      },
+      "g_slice": {
+        "n_unstable_stations": 4,
+        "n_unstable_intervals": 2,
+        "intervals": [
+          {
+            "g_lo": 0.05,
+            "g_hi": 0.2875
+          },
+          {
+            "g_lo": 1.4749999999999999,
+            "g_hi": 1.7125
+          }
+        ],
+        "second_interval_present": true
+      },
+      "g_slice_sigmas": [
+        {
+          "g": 0.05,
+          "sigma": 0.5450824469870105,
+          "tau": 0.06809413605671297
+        },
+        {
+          "g": 0.2875,
+          "sigma": 0.25681623326719977,
+          "tau": 0.1043595683113426
+        },
+        {
+          "g": 0.525,
+          "sigma": -0.06079537916498989,
+          "tau": 0.1406250005659722
+        },
+        {
+          "g": 0.7625,
+          "sigma": -0.3726023742820301,
+          "tau": 0.17689043282060185
+        },
+        {
+          "g": 1.0,
+          "sigma": -0.2159838085723611,
+          "tau": 0.15875771669328706
+        },
+        {
+          "g": 1.2375,
+          "sigma": -0.06181943703273006,
+          "tau": 0.1406250005659722
+        },
+        {
+          "g": 1.4749999999999999,
+          "sigma": 0.08631969149400663,
+          "tau": 0.12249228443865741
+        },
+        {
+          "g": 1.7125,
+          "sigma": 0.08479684796757818,
+          "tau": 0.12249228443865741
+        },
+        {
+          "g": 1.95,
+          "sigma": -0.06197496098536828,
+          "tau": 0.1406250005659722
+        }
+      ]
+    },
+    {
+      "name": "V_crit=0.045, N_bins=32",
+      "v_crit": 0.045,
+      "n_bins": 32,
+      "nominal": false,
+      "classical": {
+        "like_on_like": {
+          "sigma_analog": 0.4372283867701566,
+          "stable": false,
+          "tau": 0.0809625152438396,
+          "n_index": 0.7889863763910389,
+          "R_spatial": 0.712570898425827
+        },
+        "unlike_impinging": {
+          "sigma_analog": -0.12749581312279346,
+          "stable": true,
+          "tau": 0.1482290428129107,
+          "n_index": 0.7896176430025211,
+          "R_spatial": 0.6950019551539238
+        },
+        "swirl_coaxial": {
+          "sigma_analog": -0.6033297215713984,
+          "stable": true,
+          "tau": 0.228948875895796,
+          "n_index": 0.7897516995025056,
+          "R_spatial": 0.5548591016087822
+        }
+      },
+      "ordering": {
+        "like_gt_unlike_gt_swirl": true,
+        "like_unstable": true,
+        "unlike_stable": true,
+        "swirl_stable": true,
+        "qualitative_ok": true
+      },
+      "g_slice": {
+        "n_unstable_stations": 4,
+        "n_unstable_intervals": 2,
+        "intervals": [
+          {
+            "g_lo": 0.05,
+            "g_hi": 0.2875
+          },
+          {
+            "g_lo": 1.4749999999999999,
+            "g_hi": 1.7125
+          }
+        ],
+        "second_interval_present": true
+      },
+      "g_slice_sigmas": [
+        {
+          "g": 0.05,
+          "sigma": 0.5479047489195459,
+          "tau": 0.06750920973002539
+        },
+        {
+          "g": 0.2875,
+          "sigma": 0.226911070819298,
+          "tau": 0.10786912627146805
+        },
+        {
+          "g": 0.525,
+          "sigma": -0.009470765323482427,
+          "tau": 0.13477573729909648
+        },
+        {
+          "g": 0.7625,
+          "sigma": -0.3571360867351617,
+          "tau": 0.1751356538405391
+        },
+        {
+          "g": 1.0,
+          "sigma": -0.12635541844574466,
+          "tau": 0.1482290428129107
+        },
+        {
+          "g": 1.2375,
+          "sigma": -0.013156887386515506,
+          "tau": 0.13477573729909648
+        },
+        {
+          "g": 1.4749999999999999,
+          "sigma": 0.09534134904233586,
+          "tau": 0.12132243178528226
+        },
+        {
+          "g": 1.7125,
+          "sigma": 0.09372339385899693,
+          "tau": 0.12132243178528226
+        },
+        {
+          "g": 1.95,
+          "sigma": -0.013726594460982247,
+          "tau": 0.13477573729909648
+        }
+      ]
+    },
+    {
+      "name": "V_crit=0.055, N_bins=24",
+      "v_crit": 0.055,
+      "n_bins": 24,
+      "nominal": false,
+      "classical": {
+        "like_on_like": {
+          "sigma_analog": 0.5212082849491966,
+          "stable": false,
+          "tau": 0.06809413605671297,
+          "n_index": 0.7892920520681281,
+          "R_spatial": 0.7133418360673545
+        },
+        "unlike_impinging": {
+          "sigma_analog": -0.06092023209961723,
+          "stable": true,
+          "tau": 0.1406250005659722,
+          "n_index": 0.790291754756724,
+          "R_spatial": 0.696103637665173
+        },
+        "swirl_coaxial": {
+          "sigma_analog": -0.5348346441721766,
+          "stable": true,
+          "tau": 0.21315586507523146,
+          "n_index": 0.7923428296922405,
+          "R_spatial": 0.5558397598691363
+        }
+      },
+      "ordering": {
+        "like_gt_unlike_gt_swirl": true,
+        "like_unstable": true,
+        "unlike_stable": true,
+        "swirl_stable": true,
+        "qualitative_ok": true
+      },
+      "g_slice": {
+        "n_unstable_stations": 7,
+        "n_unstable_intervals": 2,
+        "intervals": [
+          {
+            "g_lo": 0.05,
+            "g_hi": 0.525
+          },
+          {
+            "g_lo": 1.2375,
+            "g_hi": 1.95
+          }
+        ],
+        "second_interval_present": true
+      },
+      "g_slice_sigmas": [
+        {
+          "g": 0.05,
+          "sigma": 0.5450824469870105,
+          "tau": 0.06809413605671297
+        },
+        {
+          "g": 0.2875,
+          "sigma": 0.39844740948880786,
+          "tau": 0.08622685218402777
+        },
+        {
+          "g": 0.525,
+          "sigma": 0.09786511340933653,
+          "tau": 0.12249228443865741
+        },
+        {
+          "g": 0.7625,
+          "sigma": -0.21951312867567818,
+          "tau": 0.15875771669328706
+        },
+        {
+          "g": 1.0,
+          "sigma": -0.06137522309002498,
+          "tau": 0.1406250005659722
+        },
+        {
+          "g": 1.2375,
+          "sigma": 0.08838072054638148,
+          "tau": 0.12249228443865741
+        },
+        {
+          "g": 1.4749999999999999,
+          "sigma": 0.22808636073613664,
+          "tau": 0.1043595683113426
+        },
+        {
+          "g": 1.7125,
+          "sigma": 0.22526548417116998,
+          "tau": 0.1043595683113426
+        },
+        {
+          "g": 1.95,
+          "sigma": 0.22923600304581737,
+          "tau": 0.1043595683113426
+        }
+      ]
+    }
+  ]
+}

@@ -3,9 +3,8 @@
 The chamber geometry is fixed. Two inlet slots carry complementary mixture
 fraction Z=0 and Z=1 (OpenFOAM field name: T). Mixing delay, unmixedness, and
 the Rayleigh spatial overlap are taken from the same steady field.
-Heat-release analog is the cross-stream mixture variance Var_y[Z]: that is
-where mixing-limited reaction would still be active, not 4Z(1-Z), which
-peaks after the gases are already uniform.
+q_mix(x) = Var_y[Z](x) is a mixing-availability proxy, not a heat-release
+prediction: it weights stations where scalar segregation remains.
 """
 
 from __future__ import annotations
@@ -21,6 +20,9 @@ from pathlib import Path
 import numpy as np
 
 from cswe.geometry import H, L, NU, T_DIFFUSIVITY, W, JetLayout, jet_layout
+
+DEFAULT_VARIANCE_THRESHOLD = 0.045
+DEFAULT_N_AXIAL_BINS = 24
 
 FOAM_BASHRC = Path("/opt/openfoam14/etc/bashrc")
 HEADER = r"""/*--------------------------------*- C++ -*----------------------------------*\
@@ -58,6 +60,72 @@ class MixingReport:
 
 def openfoam_available() -> bool:
     return FOAM_BASHRC.is_file()
+
+
+def mixing_delay_from_variance(
+    x_mid: list[float] | np.ndarray,
+    variances: list[float] | np.ndarray,
+    u_bulk: float,
+    thresh: float = DEFAULT_VARIANCE_THRESHOLD,
+) -> tuple[float, float]:
+    """Operational τ from an axial Var_y[Z] profile.
+
+    x_m is the first bin-centre with V < thresh (absolute, not V/V(0)).
+    No interpolation. If the threshold is never reached, x_m is the last
+    bin-centre. τ = max(1e-4, x_m / U_b).
+    """
+    xs = [float(v) for v in x_mid]
+    vs = [float(v) for v in variances]
+    if not xs:
+        return 1e-4, float("nan")
+    x_m = xs[-1]
+    for x, var in zip(xs, vs):
+        if var < thresh:
+            x_m = x
+            break
+    tau = max(1e-4, x_m / max(float(u_bulk), 1e-6))
+    return float(tau), float(x_m)
+
+
+def resample_axial_profile(
+    x: np.ndarray, v: np.ndarray, n_bins: int
+) -> tuple[np.ndarray, np.ndarray]:
+    """Linearly resample a stored axial profile onto n_bins stations.
+
+    Used only for post-processing sensitivity of the τ definition.
+    It does not re-bin raw OpenFOAM cells.
+    """
+    x = np.asarray(x, dtype=float)
+    v = np.asarray(v, dtype=float)
+    n_bins = int(n_bins)
+    if n_bins <= 1 or len(x) < 2:
+        return x, v
+    if n_bins == len(x):
+        return x, v
+    x_new = np.linspace(float(x[0]), float(x[-1]), n_bins)
+    v_new = np.interp(x_new, x, v)
+    return x_new, v_new
+
+
+def spatial_overlap_from_profile(x: np.ndarray, q: np.ndarray) -> tuple[float, float, float]:
+    """R_spatial, compactness, x_q from mixing-availability q_mix(x)."""
+    xx = np.asarray(x, dtype=float)
+    qq = np.asarray(q, dtype=float)
+    xi = np.clip(xx / L, 0.0, 1.0)
+    p_mode = np.cos(np.pi * xi)
+    mass = float(np.trapezoid(np.maximum(qq, 0.0), xx)) + 1e-12
+    r_spatial = float(np.trapezoid(qq * p_mode, xx) / mass)
+    compactness = float(qq.max() / (qq.mean() + 1e-12)) if qq.size else 1.0
+    x_q = float(np.trapezoid(qq * xx, xx) / mass)
+    return r_spatial, compactness, x_q
+
+
+def mixedness_at_fraction(x: np.ndarray, v: np.ndarray, frac: float = 0.45) -> float:
+    xx = np.asarray(x, dtype=float)
+    vv = np.asarray(v, dtype=float)
+    target = float(xx[0] + frac * (xx[-1] - xx[0]))
+    j = int(np.argmin(np.abs(xx - target)))
+    return float(max(0.0, min(1.0, 1.0 - 4.0 * vv[j])))
 
 
 def _write(path: Path, text: str) -> None:
@@ -428,7 +496,7 @@ def _metrics_from_fields(case: Path, layout: JetLayout) -> MixingReport:
 
     xs = [C[i][0] for i in range(n)]
     xmin, xmax = min(xs), max(xs)
-    nbins = 24
+    nbins = DEFAULT_N_AXIAL_BINS
     bins = [[] for _ in range(nbins)]
     ubins = [[] for _ in range(nbins)]
     for i in range(n):
@@ -447,38 +515,21 @@ def _metrics_from_fields(case: Path, layout: JetLayout) -> MixingReport:
             variances.append(sum((t - mu) ** 2 for t in bins[b]) / len(bins[b]))
         xmid.append(xmin + (b + 0.5) * (xmax - xmin) / nbins)
 
-    # Mixing-limited heat-release *proxy*: cross-stream variance of mixture
-    # fraction Z (OpenFOAM field name: T). Large Var_y[Z] means unmixed fluid
-    # remains, so mixing-limited reaction could still occur. Fully mixed
-    # stations (Var→0) add no further q_proxy.
+    # Mixing-availability proxy q_mix(x) = Var_y[Z](x). This is not a
+    # heat-release prediction. It identifies axial stations where scalar
+    # segregation remains and is the declared mixing-side weighting of the
+    # Rayleigh analog. Stored in JSON as q_profile. OpenFOAM field name: T.
     q_profile = [float(v) for v in variances]
     x_profile = [float(v) for v in xmid]
 
     q = np.array(q_profile, dtype=float)
     xx = np.array(x_profile, dtype=float)
-    # Closed-closed 1L analog: pressure antinodes at injector (x=0) and
-    # outlet (x=L), node at mid-chamber. Front-loaded mixing couples more.
+    R_spatial, compactness, x_q = spatial_overlap_from_profile(xx, q)
     xi = np.clip(xx / L, 0.0, 1.0)
     p_mode = np.cos(np.pi * xi)
-    mass = float(np.trapezoid(np.maximum(q, 0.0), xx)) + 1e-12
-    R_spatial = float(np.trapezoid(q * p_mode, xx) / mass)
-    compactness = float(q.max() / (q.mean() + 1e-12)) if q.size else 1.0
-    x_q = float(np.trapezoid(q * xx, xx) / mass)
 
-    # Mixing delay. 24 equal-width axial bins of cell centres. V_b is the
-    # sample variance of Z in bin b (set to 1 if the bin has <3 cells).
-    # x_m is the bin-centre of the first bin with V_b < 0.045 (absolute
-    # variance, not V_b/V_0). If no bin meets the threshold, x_m is the last
-    # bin centre. U_b is the mean of the two inlet axial speeds.
-    # τ = max(1e-4, x_m / U_b). No interpolation between bins.
-    thresh = 0.045
-    L_mix = xmid[-1]
-    for x, var in zip(xmid, variances):
-        if var < thresh:
-            L_mix = x
-            break
     u_bulk = 0.5 * (abs(layout.u0[0]) + abs(layout.u1[0]))
-    tau = max(1e-4, L_mix / max(u_bulk, 1e-6))
+    tau, L_mix = mixing_delay_from_variance(xmid, variances, u_bulk)
     target = xmin + 0.45 * (xmax - xmin)
     j = min(range(nbins), key=lambda k: abs(xmid[k] - target))
     Um = float(max(0.0, min(1.0, 1.0 - 4.0 * variances[j])))

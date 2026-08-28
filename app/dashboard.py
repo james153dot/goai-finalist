@@ -14,7 +14,7 @@ import streamlit as st
 from cswe.agent import LevelSetAgent
 from cswe.baseline import LatinHypercubeBaseline
 from cswe.environment import ExplorationEnv
-from cswe.geometry import CLASSICAL_INJECTORS, L
+from cswe.geometry import CLASSICAL_INJECTORS, L, DESIGN_VARIABLES
 from cswe.logging_utils import compare_campaigns, load_evaluations
 from cswe.physics import PARAM_BOUNDS, STABILITY_THRESHOLD, simulate, true_stability
 
@@ -167,7 +167,8 @@ The agent fits a Gaussian process to **σ_analog** (level set σ_analog = 0) and
         st.caption(
             "Atlas campaigns scored on an independent 24-case OpenFOAM hold-out (`artifacts/of_test.json`). "
             "Volume accuracy is the weak metric — space-filling already tiles the majority class. "
-            "Recall of the dangerous class is the claim. Near-boundary growth-rate MAE "
+            "Recall of the dangerous class is the claim. Atlas precision is essentially "
+            "tied (0.92 vs 0.91); F1 follows recall. Near-boundary growth-rate MAE "
             "E_σ,boundary is prediction error in σ_analog among hold-out points with |σ| < 0.20, "
             "not Hausdorff distance to a contour."
         )
@@ -204,10 +205,12 @@ The agent fits a Gaussian process to **σ_analog** (level set σ_analog = 0) and
     seed14_fig = ROOT / "artifacts" / "figures" / "seed14_both_g_intervals.png"
     if seed14_fig.exists():
         st.markdown(
-            "**Primary exhibit — seed 14.** The adaptive campaign independently evaluated "
-            "unstable conditions at both ends of pattern class *g* "
-            "(g = 0.10, σ = +0.32 and g = 1.80, σ = +0.06; later g = 1.92, σ = +0.40). "
-            "The later one-dimensional sweep characterized that observation rather than manufacturing it."
+            "**Primary exhibit — seed 14.** The adaptive campaign independently "
+            "encountered unstable conditions at both low and high pattern-class *g* "
+            "(full 5-D samples: g = 0.10, σ = +0.32 and g = 1.80, σ = +0.06; later "
+            "g = 1.92, σ = +0.40). That motivated the subsequent fixed-condition "
+            "g-sweep, which established two separated unstable intervals on a "
+            "low-swirl 1-D slice. Seed 14 did not literally sample that slice."
         )
         st.image(str(seed14_fig), use_container_width=True)
     if live_summary:
@@ -216,8 +219,10 @@ The agent fits a Gaussian process to **σ_analog** (level set σ_analog = 0) and
             f"Across eight matched live-CFD campaigns, adaptive exploration achieved higher "
             f"unstable recall than LHS in **{paired.get('ai_higher_unstable_recall', '7/8')}** seeds "
             f"and sampled more unstable conditions in **{paired.get('ai_more_unstable_evaluations', '7/8')}**. "
-            "The one reversal (seed 35) is retained. Near-boundary growth-rate MAE is a mean tie; "
-            "AI is lower in only 3/8. Adaptive sampling is for rare-regime recovery, not every metric."
+            f"Unstable F1 follows the same **{paired.get('ai_higher_unstable_f1', '7/8')}**. "
+            "The one reversal (seed 35) is retained. Mean unstable precision is a near-tie "
+            "(AI higher in only 1/8): adaptive search roughly doubles recall without a precision collapse. "
+            "Near-boundary growth-rate MAE is a mean tie. Adaptive sampling is for rare-regime recovery, not every metric."
         )
     if cfd_studies:
         rows = []
@@ -233,6 +238,10 @@ The agent fits a Gaussian process to **σ_analog** (level set σ_analog = 0) and
                     "LHS unstable found": base.get("n_unstable_found"),
                     "AI recall": ai_f.get("unstable_recall"),
                     "LHS recall": base_f.get("unstable_recall"),
+                    "AI precision": ai_f.get("unstable_precision"),
+                    "LHS precision": base_f.get("unstable_precision"),
+                    "AI F1": ai_f.get("unstable_f1"),
+                    "LHS F1": base_f.get("unstable_f1"),
                     "AI volume acc.": ai_f.get("volume_accuracy"),
                     "LHS volume acc.": base_f.get("volume_accuracy"),
                     "AI E_σ,boundary": ai_f.get("near_boundary_sigma_mae") or ai_f.get("boundary_mae"),
@@ -292,14 +301,18 @@ with tabs[1]:
 **Fixed-geometry chamber.** Length 80 mm, height 20 mm, laminar `incompressibleFluid`, complementary
 mixture fraction Z = 0 / 1 (OpenFOAM field name `T`). **Explorable injector vector** `z = [g, d, a, s, o]`.
 
-**Heat-release analog** is the cross-stream variance of Z — stations where mixing-limited
-reaction would still be active — not 4Z(1−Z), which peaks after the gases are already uniform.
+**Mixing-availability proxy** q_mix(x) = Var_y[Z](x) is unmixedness, not a heat-release prediction.
+It is the declared mixing-side weighting of the Rayleigh analog — not 4Z(1−Z).
 
 **Acoustics.** Declared closed-closed 1L, `p(x) = cos(πx/L)`, injector face a pressure antinode.
-σ_analog(z) = n · R_spatial · cos(ωτ) − damping. Unstable iff σ > 0. No planted island.
+n = 0.50 + 0.28 tanh(C−1) + 0.16 (1−Um) + 0.10 (o−0.5)², then
+σ_analog = α n R_spatial cos(ωτ) − D with α = 1.45, D = 0.08, ω = ω0 (0.92 + 0.16 o).
+Unstable iff σ > 0. No planted island.
 Mixing delay τ is the first axial bin with Var_y[Z] < 0.045, then τ = x_m / U_b.
         """
     )
+    st.dataframe(pd.DataFrame(DESIGN_VARIABLES), use_container_width=True, hide_index=True)
+    st.caption("What changing each coordinate of z does in the OpenFOAM dual-jet case (`jet_layout`).")
     cols = st.columns(3)
     rng = np.random.default_rng(0)
     for col, (name, x) in zip(cols, CLASSICAL_INJECTORS.items()):
@@ -330,6 +343,14 @@ Mixing delay τ is the first axial bin with Var_y[Z] < 0.045, then τ = x_m / U_
             "1-D slice observation, not a mapped 5-D pocket. Swirl-coaxial stability "
             "on this analog needs both the coaxial pattern and the swirl analog."
         )
+        tau_fig = ROOT / "artifacts" / "figures" / "tau_sensitivity.png"
+        if tau_fig.exists():
+            st.image(str(tau_fig), use_container_width=True)
+            st.caption(
+                "τ-definition sensitivity from stored q_mix profiles (no CFD rerun). "
+                "Classical ordering survives. V_crit = 0.035 collapses the high-g interval; "
+                "N_bins ∈ {16, 32} does not."
+            )
 
     if swirl:
         sdf = pd.DataFrame(swirl["rows"])
@@ -370,9 +391,9 @@ Mixing delay τ is the first axial bin with Var_y[Z] < 0.045, then τ = x_m / U_
         fig.update_layout(
             template="plotly_dark",
             height=360,
-            title="Mixing-limited heat-release analog q_proxy(x) vs closed-closed 1L pressure",
+            title="Mixing-availability q_mix(x) vs closed-closed 1L pressure",
             xaxis_title="axial position x (m)",
-            yaxis_title="q_proxy(x)  (cross-stream Var_y[Z])",
+            yaxis_title="q_mix(x)  (cross-stream Var_y[Z])",
             margin=dict(l=10, r=10, t=48, b=10),
         )
         st.plotly_chart(fig, use_container_width=True)
@@ -495,31 +516,32 @@ with tabs[5]:
 with tabs[6]:
     st.markdown(
         """
-**What this package is.** A 2-D laminar dual-jet mixing analog whose delay and spatial
-heat-release overlap drive a declared closed-closed 1L Rayleigh criterion. Liquid-rocket
-injector *names* (like-on-like, unlike-impinging, swirl-coaxial) are geometry analogs,
-not flight hardware.
+**What this package is.** A 2-D laminar dual-jet mixing analog whose delay and
+mixing-availability overlap drive a declared closed-closed 1L Rayleigh criterion.
+Liquid-rocket injector *names* (like-on-like, unlike-impinging, swirl-coaxial)
+are geometry analogs, not flight hardware.
 
 **What a scientist can believe.**
 - OpenFOAM supplies mixing fields; σ_analog is a Rayleigh *indicator*, not an engine stability prediction.
-- Design vector z = [g, d, a, s, o]; axial coordinate x; q_proxy(x) = Var_y[Z](x).
+- Design vector z = [g, d, a, s, o]; axial coordinate x; q_mix(x) = Var_y[Z](x) is unmixedness, not heat release.
 - The passive scalar is denoted Z; it is stored as OpenFOAM field T.
+- n = 0.50 + 0.28 tanh(C−1) + 0.16 (1−Um) + 0.10 (o−0.5)². Classical cases share n ≈ 0.79.
 - Like-on-like analog: σ_analog > 0. Unlike-impinging: near the threshold. Swirl-coaxial: σ_analog < 0.
 - A fixed-low-swirl OpenFOAM g-slice has two separated unstable *intervals*, not a mapped 5-D pocket.
-- Live seed 14 independently sampled both low-g and high-g unstable regions; the g-sweep then characterized the 1-D slice.
-- Across eight matched live CFD campaigns, AI has higher unstable recall in 7/8 seeds and more unstable evaluations in 7/8. Seed 35 is the reversal and is kept.
+- Live seed 14 independently found unstable 5-D samples at both low and high g; that motivated the later slice.
+- Across eight matched live CFD campaigns, AI has higher unstable recall in 7/8 and higher F1 in 7/8. Mean precision is a near-tie. Seed 35 is the reversal and is kept.
 - Near-boundary growth-rate MAE E_σ,boundary is a mean tie. The claim is rare-regime recovery, not dominance on every metric.
-- The high-g unstable interval is not universal within the analog; it disappears at ω + 10%.
+- The high-g unstable interval is not universal within the analog; it disappears at ω + 10% and at V_crit = 0.035.
 
 **What a scientist must not believe.**
 - This is not 3-D reacting LES, not a stability margin for a real engine, not a dimensional injector.
-- ω, n-index prefactors, and damping D are analog constants. They set the scale of σ_analog.
+- ω, n-index prefactors, α, and damping D are analog constants. They set the scale of σ_analog.
   Classical injectors share n-index ≈ 0.79; ordering is from OpenFOAM τ and R_spatial.
 - The atlas interpolator is smoother than a new OpenFOAM case; live foamRun campaigns exist for that reason.
-- Volume accuracy can stay high by predicting the majority stable class. Unstable recall is the metric of interest.
+- Volume accuracy can stay high by predicting the majority stable class. Unstable recall is the metric of interest; precision and F1 close the flooding argument.
 - E_σ,boundary is not Hausdorff or nearest-contour distance.
 
-**Claim levels.** Observed from OpenFOAM: τ, R_spatial, q_proxy(x). Derived from the analog: σ_analog(z), stable/unstable. Inferred by the agent: reconstructed σ_analog=0 contour and predicted unstable set.
+**Claim levels.** Observed from OpenFOAM: τ, R_spatial, q_mix(x). Derived from the analog: σ_analog(z), stable/unstable. Inferred by the agent: reconstructed σ_analog=0 contour and predicted unstable set.
 
 **Safety / dual-use.** Public outputs stay at abstract design principles. No dimensional
 flight-injector packages.

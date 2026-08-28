@@ -2,7 +2,8 @@
 
 Chamber length, height, and acoustic boundaries stay fixed. Only the two
 inlet slots move. Coordinates are SI meters for OpenFOAM; the exploration
-vector z = (g, d, a, s, o) remains abstract.
+vector z = (g, d, a, s, o) remains abstract. DESIGN_VARIABLES is the
+reviewer-facing contract for what each coordinate does in CFD.
 """
 
 from __future__ import annotations
@@ -33,6 +34,58 @@ CLASSICAL_INJECTORS: dict[str, dict[str, float]] = {
     "unlike_impinging": {"g": 1.00, "d": 0.08, "a": 0.78, "s": 0.10, "o": 0.50},
     "swirl_coaxial": {"g": 1.85, "d": 0.10, "a": 0.28, "s": 0.82, "o": 0.55},
 }
+
+# Reviewer contract: what changing each coordinate of z does in OpenFOAM.
+# Implementation: jet_layout(). Ranges are abstract/normalized, not hardware units.
+DESIGN_VARIABLES: list[dict[str, str]] = [
+    {
+        "symbol": "g",
+        "meaning": "pattern-class analog",
+        "range": "[0, 2]",
+        "cfd": (
+            "Maps the two inlet-slot centre-lines from a close like-on-like pair "
+            "(g≈0) through an unlike-separated pair (g≈1) to a coaxial-like stacked "
+            "arrangement (g≈2). See _lerp in jet_layout."
+        ),
+    },
+    {
+        "symbol": "d",
+        "meaning": "orifice-size-spread analog",
+        "range": "[0, 1]",
+        "cfd": (
+            "Relative inlet heights: h0 = 0.13 H (1 + 0.55 d), "
+            "h1 = 0.13 H (1 − 0.55 d). d = 0 is equal slots; d = 1 is a 1.55:0.45 width split."
+        ),
+    },
+    {
+        "symbol": "a",
+        "meaning": "impingement analog",
+        "range": "[0, 1]",
+        "cfd": (
+            "Inlet-vector polar angle θ = (0.12 + 0.70 a) × 0.70 rad (~7°–47°). "
+            "The two jets are aimed toward each other in the cross-stream direction."
+        ),
+    },
+    {
+        "symbol": "s",
+        "meaning": "swirl analog",
+        "range": "[0, 1]",
+        "cfd": (
+            "Additional slot offset (c0 −= 0.06 H s, c1 += 0.04 H s) and opposing "
+            "cross-stream velocity with spin = 0.45 s. This is a 2-D stand-in for swirl, "
+            "not a 3-D azimuthal velocity."
+        ),
+    },
+    {
+        "symbol": "o",
+        "meaning": "operating analog",
+        "range": "[0, 1]",
+        "cfd": (
+            "Bulk axial speeds: u0x = U_ref (0.70 + 0.30 o), u1x = U_ref (1.30 − 0.30 o). "
+            "o also weakly scales the analog frequency: ω = ω0 (0.92 + 0.16 o)."
+        ),
+    },
+]
 
 
 def _lerp(g: float, low: float, mid: float, high: float) -> float:

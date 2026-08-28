@@ -71,8 +71,11 @@
       "n_test": 24,
       "volume_accuracy": 0.875,
       "unstable_recall": 0.6666666666666666,
+      "unstable_precision": 1.0,
+      "unstable_f1": 0.8,
       "stable_recall": 1.0,
       "boundary_mae": 0.14726443783572118,
+      "near_boundary_sigma_mae": 0.14726443783572118,
       "brier": 0.12591485635451846
     },
     "curve": [
@@ -89,8 +92,11 @@
         "n_test": 24,
         "volume_accuracy": 0.7083333333333334,
         "unstable_recall": 0.2222222222222222,
+        "unstable_precision": 1.0,
+        "unstable_f1": 0.3636363636363636,
         "stable_recall": 1.0,
         "boundary_mae": 0.18626364637678097,
+        "near_boundary_sigma_mae": 0.18626364637678097,
         "brier": 0.21939012044185033
       },
       {
@@ -106,8 +112,11 @@
         "n_test": 24,
         "volume_accuracy": 0.7916666666666666,
         "unstable_recall": 0.4444444444444444,
+        "unstable_precision": 1.0,
+        "unstable_f1": 0.6153846153846153,
         "stable_recall": 1.0,
         "boundary_mae": 0.14463215528949747,
+        "near_boundary_sigma_mae": 0.14463215528949747,
         "brier": 0.16189200854712563
       },
       {
@@ -123,8 +132,11 @@
         "n_test": 24,
         "volume_accuracy": 0.7916666666666666,
         "unstable_recall": 0.5555555555555556,
+        "unstable_precision": 0.8333333333333334,
+        "unstable_f1": 0.6666666666666667,
         "stable_recall": 0.9333333333333333,
         "boundary_mae": 0.13165525840417724,
+        "near_boundary_sigma_mae": 0.13165525840417724,
         "brier": 0.14361287364340058
       },
       {
@@ -140,8 +152,11 @@
         "n_test": 24,
         "volume_accuracy": 0.7916666666666666,
         "unstable_recall": 0.5555555555555556,
+        "unstable_precision": 0.8333333333333334,
+        "unstable_f1": 0.6666666666666667,
         "stable_recall": 0.9333333333333333,
         "boundary_mae": 0.17027861272772593,
+        "near_boundary_sigma_mae": 0.17027861272772593,
         "brier": 0.1571116906573247
       },
       {
@@ -157,8 +172,11 @@
         "n_test": 24,
         "volume_accuracy": 0.8333333333333334,
         "unstable_recall": 0.5555555555555556,
+        "unstable_precision": 1.0,
+        "unstable_f1": 0.7142857142857143,
         "stable_recall": 1.0,
         "boundary_mae": 0.1668268987540479,
+        "near_boundary_sigma_mae": 0.1668268987540479,
         "brier": 0.15708032308451222
       },
       {
@@ -174,8 +192,11 @@
         "n_test": 24,
         "volume_accuracy": 0.875,
         "unstable_recall": 0.6666666666666666,
+        "unstable_precision": 1.0,
+        "unstable_f1": 0.8,
         "stable_recall": 1.0,
         "boundary_mae": 0.14706000487061555,
+        "near_boundary_sigma_mae": 0.14706000487061555,
         "brier": 0.13090036774301184
       },
       {
@@ -191,8 +212,11 @@
         "n_test": 24,
         "volume_accuracy": 0.875,
         "unstable_recall": 0.6666666666666666,
+        "unstable_precision": 1.0,
+        "unstable_f1": 0.8,
         "stable_recall": 1.0,
         "boundary_mae": 0.14726443783572118,
+        "near_boundary_sigma_mae": 0.14726443783572118,
         "brier": 0.12591485635451846
       }
     ],
@@ -226,8 +250,11 @@
       "n_test": 24,
       "volume_accuracy": 0.7083333333333334,
       "unstable_recall": 0.2222222222222222,
+      "unstable_precision": 1.0,
+      "unstable_f1": 0.3636363636363636,
       "stable_recall": 1.0,
       "boundary_mae": 0.099015274705395,
+      "near_boundary_sigma_mae": 0.099015274705395,
       "brier": 0.2068621488496373
     },
     "curve": [
@@ -244,8 +271,11 @@
         "n_test": 24,
         "volume_accuracy": 0.625,
         "unstable_recall": 0.0,
+        "unstable_precision": 0.0,
+        "unstable_f1": 0.0,
         "stable_recall": 1.0,
         "boundary_mae": 0.11248847478205436,
+        "near_boundary_sigma_mae": 0.11248847478205436,
         "brier": 0.2297116040568914
       },
       {
@@ -261,8 +291,11 @@
         "n_test": 24,
         "volume_accuracy": 0.625,
         "unstable_recall": 0.0,
+        "unstable_precision": 0.0,
+        "unstable_f1": 0.0,
         "stable_recall": 1.0,
         "boundary_mae": 0.12448756738361882,
+        "near_boundary_sigma_mae": 0.12448756738361882,
         "brier": 0.26472477117140586
       },
       {
@@ -278,8 +311,11 @@
         "n_test": 24,
         "volume_accuracy": 0.625,
         "unstable_recall": 0.0,
+        "unstable_precision": 0.0,
+        "unstable_f1": 0.0,
         "stable_recall": 1.0,
         "boundary_mae": 0.12594052309730402,
+        "near_boundary_sigma_mae": 0.12594052309730402,
         "brier": 0.26715115844113974
       },
       {
@@ -295,8 +331,11 @@
         "n_test": 24,
         "volume_accuracy": 0.625,
         "unstable_recall": 0.0,
+        "unstable_precision": 0.0,
+        "unstable_f1": 0.0,
         "stable_recall": 1.0,
         "boundary_mae": 0.12377921998559309,
+        "near_boundary_sigma_mae": 0.12377921998559309,
         "brier": 0.26331171136734705
       },
       {
@@ -312,8 +351,11 @@
         "n_test": 24,
         "volume_accuracy": 0.625,
         "unstable_recall": 0.0,
+        "unstable_precision": 0.0,
+        "unstable_f1": 0.0,
         "stable_recall": 1.0,
         "boundary_mae": 0.12933085765443586,
+        "near_boundary_sigma_mae": 0.12933085765443586,
         "brier": 0.2709515382407343
       },
       {
@@ -329,8 +371,11 @@
         "n_test": 24,
         "volume_accuracy": 0.7083333333333334,
         "unstable_recall": 0.2222222222222222,
+        "unstable_precision": 1.0,
+        "unstable_f1": 0.3636363636363636,
         "stable_recall": 1.0,
         "boundary_mae": 0.10396650036484797,
+        "near_boundary_sigma_mae": 0.10396650036484797,
         "brier": 0.21680285271914243
       },
       {
@@ -346,8 +391,11 @@
         "n_test": 24,
         "volume_accuracy": 0.7083333333333334,
         "unstable_recall": 0.2222222222222222,
+        "unstable_precision": 1.0,
+        "unstable_f1": 0.3636363636363636,
         "stable_recall": 1.0,
         "boundary_mae": 0.099015274705395,
+        "near_boundary_sigma_mae": 0.099015274705395,
         "brier": 0.2068621488496373
       }
     ],

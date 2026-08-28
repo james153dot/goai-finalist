@@ -22,6 +22,16 @@ def test_long_delay_damps():
     assert S < 1.0
 
 
+def test_n_index_depends_on_mixing_features_and_o_not_g():
+    n_a, *_ = _acoustics(0.10, 0.9, 0.4, R_spatial=0.7, compactness=4.0)
+    n_b, *_ = _acoustics(0.10, 0.9, 0.4, R_spatial=0.7, compactness=4.0)
+    n_hi_o, *_ = _acoustics(0.10, 0.9, 0.9, R_spatial=0.7, compactness=4.0)
+    n_compact, *_ = _acoustics(0.10, 0.5, 0.4, R_spatial=0.7, compactness=6.0)
+    assert n_a == n_b
+    assert n_hi_o > n_a  # (o-0.5)^2 term
+    assert n_compact > n_a
+
+
 def test_front_loaded_overlap_is_more_driving():
     *_, sigma_front, _, _ = _acoustics(0.10, 0.9, 0.5, R_spatial=0.75, compactness=4.0)
     *_, sigma_aft, _, _ = _acoustics(0.10, 0.9, 0.5, R_spatial=0.35, compactness=4.0)

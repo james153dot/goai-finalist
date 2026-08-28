@@ -47,3 +47,7 @@ def test_near_boundary_mae_aliases_boundary_mae():
     out = score_against_test(camp, test)
     assert out["near_boundary_sigma_mae"] is not None
     assert out["boundary_mae"] == out["near_boundary_sigma_mae"]
+    assert out["unstable_precision"] is not None
+    assert out["unstable_f1"] is not None
+    assert 0.0 <= out["unstable_precision"] <= 1.0
+    assert 0.0 <= out["unstable_f1"] <= 1.0

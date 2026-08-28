@@ -34,6 +34,48 @@
     },
     "ai_wins": 7
   },
+  "precision": {
+    "ai": {
+      "mean": 0.8578869047619048,
+      "median": 0.8571428571428571,
+      "sd": 0.11268891833070752,
+      "range": [
+        0.6666666666666666,
+        1.0
+      ]
+    },
+    "lhs": {
+      "mean": 0.8541666666666667,
+      "median": 1.0,
+      "sd": 0.35002834352355133,
+      "range": [
+        0.0,
+        1.0
+      ]
+    },
+    "ai_wins": 1
+  },
+  "f1": {
+    "ai": {
+      "mean": 0.7567401960784315,
+      "median": 0.75,
+      "sd": 0.11525275737766465,
+      "range": [
+        0.5333333333333333,
+        0.9411764705882353
+      ]
+    },
+    "lhs": {
+      "mean": 0.4591200466200466,
+      "median": 0.43181818181818177,
+      "sd": 0.24596955285023106,
+      "range": [
+        0.0,
+        0.8
+      ]
+    },
+    "ai_wins": 7
+  },
   "n_unstable_found": {
     "ai": {
       "mean": 7.5,
@@ -99,6 +141,8 @@
   },
   "paired": {
     "ai_higher_unstable_recall": "7/8",
+    "ai_higher_unstable_precision": "1/8",
+    "ai_higher_unstable_f1": "7/8",
     "ai_more_unstable_evaluations": "7/8",
     "ai_higher_volume_accuracy": "7/8",
     "ai_lower_near_boundary_sigma_mae": "3/8",
@@ -109,6 +153,10 @@
       "seed": 8,
       "ai_recall": 0.8888888888888888,
       "lhs_recall": 0.6666666666666666,
+      "ai_precision": 1.0,
+      "lhs_precision": 1.0,
+      "ai_f1": 0.9411764705882353,
+      "lhs_f1": 0.8,
       "ai_n_u": 9,
       "lhs_n_u": 8,
       "ai_volume_accuracy": 0.9583333333333334,
@@ -120,6 +168,10 @@
       "seed": 11,
       "ai_recall": 0.6666666666666666,
       "lhs_recall": 0.2222222222222222,
+      "ai_precision": 1.0,
+      "lhs_precision": 1.0,
+      "ai_f1": 0.8,
+      "lhs_f1": 0.3636363636363636,
       "ai_n_u": 7,
       "lhs_n_u": 5,
       "ai_volume_accuracy": 0.875,
@@ -131,6 +183,10 @@
       "seed": 14,
       "ai_recall": 0.6666666666666666,
       "lhs_recall": 0.0,
+      "ai_precision": 0.8571428571428571,
+      "lhs_precision": 0.0,
+      "ai_f1": 0.75,
+      "lhs_f1": 0.0,
       "ai_n_u": 9,
       "lhs_n_u": 3,
       "ai_volume_accuracy": 0.8333333333333334,
@@ -142,6 +198,10 @@
       "seed": 19,
       "ai_recall": 0.7777777777777778,
       "lhs_recall": 0.2222222222222222,
+      "ai_precision": 0.875,
+      "lhs_precision": 1.0,
+      "ai_f1": 0.823529411764706,
+      "lhs_f1": 0.3636363636363636,
       "ai_n_u": 6,
       "lhs_n_u": 5,
       "ai_volume_accuracy": 0.875,
@@ -153,6 +213,10 @@
       "seed": 23,
       "ai_recall": 0.6666666666666666,
       "lhs_recall": 0.2222222222222222,
+      "ai_precision": 0.75,
+      "lhs_precision": 1.0,
+      "ai_f1": 0.7058823529411765,
+      "lhs_f1": 0.3636363636363636,
       "ai_n_u": 7,
       "lhs_n_u": 6,
       "ai_volume_accuracy": 0.7916666666666666,
@@ -164,6 +228,10 @@
       "seed": 26,
       "ai_recall": 0.6666666666666666,
       "lhs_recall": 0.3333333333333333,
+      "ai_precision": 0.8571428571428571,
+      "lhs_precision": 1.0,
+      "ai_f1": 0.75,
+      "lhs_f1": 0.5,
       "ai_n_u": 8,
       "lhs_n_u": 6,
       "ai_volume_accuracy": 0.8333333333333334,
@@ -175,6 +243,10 @@
       "seed": 32,
       "ai_recall": 0.6666666666666666,
       "lhs_recall": 0.4444444444444444,
+      "ai_precision": 0.8571428571428571,
+      "lhs_precision": 1.0,
+      "ai_f1": 0.75,
+      "lhs_f1": 0.6153846153846153,
       "ai_n_u": 8,
       "lhs_n_u": 7,
       "ai_volume_accuracy": 0.8333333333333334,
@@ -186,6 +258,10 @@
       "seed": 35,
       "ai_recall": 0.4444444444444444,
       "lhs_recall": 0.5555555555555556,
+      "ai_precision": 0.6666666666666666,
+      "lhs_precision": 0.8333333333333334,
+      "ai_f1": 0.5333333333333333,
+      "lhs_f1": 0.6666666666666667,
       "ai_n_u": 6,
       "lhs_n_u": 7,
       "ai_volume_accuracy": 0.7083333333333334,
@@ -194,5 +270,5 @@
       "lhs_near_boundary_sigma_mae": 0.1481304495275018
     }
   ],
-  "note": "Eight independent live OpenFOAM campaigns, budget 16. AI has higher unstable recall in 7 of 8 seeds and finds more unstable evaluations in 7 of 8. Seed 35 reverses both and is kept. Near-boundary growth-rate MAE is a mean tie; AI is lower in only 3/8. Seed 14 is the high-g interval exhibit."
+  "note": "Eight independent live OpenFOAM campaigns, budget 16. AI has higher unstable recall in 7 of 8 seeds and finds more unstable evaluations in 7 of 8. Seed 35 reverses both and is kept. Precision and F1 are reported so high recall is not confused with predicting a huge unstable region. Near-boundary growth-rate MAE is a mean tie; AI is lower in only 3/8. Seed 14 independently found unstable conditions at both low and high g."
 }

@@ -77,8 +77,11 @@
       "n_test": 24,
       "volume_accuracy": 0.8333333333333334,
       "unstable_recall": 0.6666666666666666,
+      "unstable_precision": 0.8571428571428571,
+      "unstable_f1": 0.75,
       "stable_recall": 0.9333333333333333,
       "boundary_mae": 0.09862230231598064,
+      "near_boundary_sigma_mae": 0.09862230231598064,
       "brier": 0.09074473188938088
     },
     "curve": [
@@ -95,8 +98,11 @@
         "n_test": 24,
         "volume_accuracy": 0.625,
         "unstable_recall": 0.0,
+        "unstable_precision": 0.0,
+        "unstable_f1": 0.0,
         "stable_recall": 1.0,
         "boundary_mae": 0.11917297212409896,
+        "near_boundary_sigma_mae": 0.11917297212409896,
         "brier": 0.22307463249922985
       },
       {
@@ -112,8 +118,11 @@
         "n_test": 24,
         "volume_accuracy": 0.7916666666666666,
         "unstable_recall": 0.6666666666666666,
+        "unstable_precision": 0.75,
+        "unstable_f1": 0.7058823529411765,
         "stable_recall": 0.8666666666666667,
         "boundary_mae": 0.13005279392356478,
+        "near_boundary_sigma_mae": 0.13005279392356478,
         "brier": 0.16542306222676878
       },
       {
@@ -129,8 +138,11 @@
         "n_test": 24,
         "volume_accuracy": 0.7916666666666666,
         "unstable_recall": 0.6666666666666666,
+        "unstable_precision": 0.75,
+        "unstable_f1": 0.7058823529411765,
         "stable_recall": 0.8666666666666667,
         "boundary_mae": 0.13248603335291043,
+        "near_boundary_sigma_mae": 0.13248603335291043,
         "brier": 0.17086681353775932
       },
       {
@@ -146,8 +158,11 @@
         "n_test": 24,
         "volume_accuracy": 0.7916666666666666,
         "unstable_recall": 0.6666666666666666,
+        "unstable_precision": 0.75,
+        "unstable_f1": 0.7058823529411765,
         "stable_recall": 0.8666666666666667,
         "boundary_mae": 0.08636622148817708,
+        "near_boundary_sigma_mae": 0.08636622148817708,
         "brier": 0.12180231731185072
       },
       {
@@ -163,8 +178,11 @@
         "n_test": 24,
         "volume_accuracy": 0.7916666666666666,
         "unstable_recall": 0.7777777777777778,
+        "unstable_precision": 0.7,
+        "unstable_f1": 0.7368421052631577,
         "stable_recall": 0.8,
         "boundary_mae": 0.0931339673820428,
+        "near_boundary_sigma_mae": 0.0931339673820428,
         "brier": 0.11904994471162932
       },
       {
@@ -180,8 +198,11 @@
         "n_test": 24,
         "volume_accuracy": 0.8333333333333334,
         "unstable_recall": 0.6666666666666666,
+        "unstable_precision": 0.8571428571428571,
+        "unstable_f1": 0.75,
         "stable_recall": 0.9333333333333333,
         "boundary_mae": 0.09699214434736994,
+        "near_boundary_sigma_mae": 0.09699214434736994,
         "brier": 0.08860046715439936
       },
       {
@@ -197,8 +218,11 @@
         "n_test": 24,
         "volume_accuracy": 0.8333333333333334,
         "unstable_recall": 0.6666666666666666,
+        "unstable_precision": 0.8571428571428571,
+        "unstable_f1": 0.75,
         "stable_recall": 0.9333333333333333,
         "boundary_mae": 0.09862230231598064,
+        "near_boundary_sigma_mae": 0.09862230231598064,
         "brier": 0.09074473188938088
       }
     ],
@@ -232,8 +256,11 @@
       "n_test": 24,
       "volume_accuracy": 0.75,
       "unstable_recall": 0.3333333333333333,
+      "unstable_precision": 1.0,
+      "unstable_f1": 0.5,
       "stable_recall": 1.0,
       "boundary_mae": 0.1750364503483391,
+      "near_boundary_sigma_mae": 0.1750364503483391,
       "brier": 0.1926889909624955
     },
     "curve": [
@@ -250,8 +277,11 @@
         "n_test": 24,
         "volume_accuracy": 0.625,
         "unstable_recall": 0.0,
+        "unstable_precision": 0.0,
+        "unstable_f1": 0.0,
         "stable_recall": 1.0,
         "boundary_mae": 0.41488876888626297,
+        "near_boundary_sigma_mae": 0.41488876888626297,
         "brier": 0.37151561476353573
       },
       {
@@ -267,8 +297,11 @@
         "n_test": 24,
         "volume_accuracy": 0.625,
         "unstable_recall": 0.0,
+        "unstable_precision": 0.0,
+        "unstable_f1": 0.0,
         "stable_recall": 1.0,
         "boundary_mae": 0.3314719853871761,
+        "near_boundary_sigma_mae": 0.3314719853871761,
         "brier": 0.36485871650029766
       },
       {
@@ -284,8 +317,11 @@
         "n_test": 24,
         "volume_accuracy": 0.625,
         "unstable_recall": 0.0,
+        "unstable_precision": 0.0,
+        "unstable_f1": 0.0,
         "stable_recall": 1.0,
         "boundary_mae": 0.3368084069828049,
+        "near_boundary_sigma_mae": 0.3368084069828049,
         "brier": 0.3659317305205225
       },
       {
@@ -301,8 +337,11 @@
         "n_test": 24,
         "volume_accuracy": 0.625,
         "unstable_recall": 0.0,
+        "unstable_precision": 0.0,
+        "unstable_f1": 0.0,
         "stable_recall": 1.0,
         "boundary_mae": 0.1927223603134995,
+        "near_boundary_sigma_mae": 0.1927223603134995,
         "brier": 0.2827938857456358
       },
       {
@@ -318,8 +357,11 @@
         "n_test": 24,
         "volume_accuracy": 0.6666666666666666,
         "unstable_recall": 0.1111111111111111,
+        "unstable_precision": 1.0,
+        "unstable_f1": 0.19999999999999998,
         "stable_recall": 1.0,
         "boundary_mae": 0.1522524222276092,
+        "near_boundary_sigma_mae": 0.1522524222276092,
         "brier": 0.24715006987996158
       },
       {
@@ -335,8 +377,11 @@
         "n_test": 24,
         "volume_accuracy": 0.75,
         "unstable_recall": 0.3333333333333333,
+        "unstable_precision": 1.0,
+        "unstable_f1": 0.5,
         "stable_recall": 1.0,
         "boundary_mae": 0.17483578502165514,
+        "near_boundary_sigma_mae": 0.17483578502165514,
         "brier": 0.19200370627881966
       },
       {
@@ -352,8 +397,11 @@
         "n_test": 24,
         "volume_accuracy": 0.75,
         "unstable_recall": 0.3333333333333333,
+        "unstable_precision": 1.0,
+        "unstable_f1": 0.5,
         "stable_recall": 1.0,
         "boundary_mae": 0.1750364503483391,
+        "near_boundary_sigma_mae": 0.1750364503483391,
         "brier": 0.1926889909624955
       }
     ],
