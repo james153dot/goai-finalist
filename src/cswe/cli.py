@@ -64,9 +64,9 @@ def atlas(
     from cswe.mixing import ATLAS_PATH, build_atlas
 
     built = build_atlas(n=n, seed=seed, n_iter=n_iter, workers=workers)
-    n_ok = sum(1 for r in built.rows if r["Cconv"])
-    taus = [r["tau"] for r in built.rows if r["Cconv"]]
-    typer.echo(f"Wrote {ATLAS_PATH}  converged={n_ok}/{len(built.rows)}  tau=[{min(taus):.4f},{max(taus):.4f}]")
+    n_ok = sum(1 for r in built.rows if r.get("Cvalid", r.get("Cconv", False)))
+    taus = [r["tau"] for r in built.rows if r.get("Cvalid", r.get("Cconv", False))]
+    typer.echo(f"Wrote {ATLAS_PATH}  solver-valid={n_ok}/{len(built.rows)}  tau=[{min(taus):.4f},{max(taus):.4f}]")
 
 
 @app.command("test-set")
@@ -156,7 +156,8 @@ def swirl_sweep(
             "S": S,
             "phase": phase,
             "stable": int(S < 1.0),
-            "Cconv": report.Cconv,
+            "Cvalid": report.Cvalid,
+            "Cconv": report.Cvalid,
             "q_profile": report.q_profile,
             "x_profile": report.x_profile,
             "p_profile": report.p_profile,
@@ -200,7 +201,8 @@ def g_sweep(
             "S": S,
             "phase": phase,
             "stable": int(S < 1.0),
-            "Cconv": report.Cconv,
+            "Cvalid": report.Cvalid,
+            "Cconv": report.Cvalid,
             "q_profile": report.q_profile,
             "x_profile": report.x_profile,
             "p_profile": report.p_profile,
@@ -232,20 +234,25 @@ def seed_study(
         seed = 11 + 3 * i
         ai = LevelSetAgent(ExplorationEnv(seed=seed), n_init=n_init).run(budget=budget)
         base = LatinHypercubeBaseline(ExplorationEnv(seed=seed + 10_000)).run(budget=budget)
+        rand = RandomBaseline(ExplorationEnv(seed=seed + 20_000)).run(budget=budget)
         rec = {
             "seed": seed,
             "ai": campaign_diagnostics(ai.evaluations),
             "baseline": campaign_diagnostics(base.evaluations),
+            "random": campaign_diagnostics(rand.evaluations),
         }
         if test_rows:
             rec["ai_test"] = score_against_test(ai.evaluations, test_rows)
             rec["baseline_test"] = score_against_test(base.evaluations, test_rows)
+            rec["random_test"] = score_against_test(rand.evaluations, test_rows)
         records.append(rec)
         typer.echo(
             f"seed {seed}: AI first_u={rec['ai']['time_to_first_unstable']} "
             f"n_u={rec['ai']['n_unstable_found']} edge={rec['ai']['frac_evals_near_edge']:.2f} | "
             f"LHS first_u={rec['baseline']['time_to_first_unstable']} "
-            f"n_u={rec['baseline']['n_unstable_found']} edge={rec['baseline']['frac_evals_near_edge']:.2f}"
+            f"n_u={rec['baseline']['n_unstable_found']} edge={rec['baseline']['frac_evals_near_edge']:.2f} | "
+            f"RAND first_u={rec['random']['time_to_first_unstable']} "
+            f"n_u={rec['random']['n_unstable_found']} edge={rec['random']['frac_evals_near_edge']:.2f}"
         )
 
     def _mean(key, field):
@@ -264,12 +271,18 @@ def seed_study(
         "lhs_mean_time_to_first_unstable": float(
             np.mean([r["baseline"]["time_to_first_unstable"] if r["baseline"]["time_to_first_unstable"] is not None else budget for r in records])
         ),
+        "random_mean_time_to_first_unstable": float(
+            np.mean([r["random"]["time_to_first_unstable"] if r["random"]["time_to_first_unstable"] is not None else budget for r in records])
+        ),
         "ai_mean_n_unstable": _mean("ai", "n_unstable_found"),
         "lhs_mean_n_unstable": _mean("baseline", "n_unstable_found"),
+        "random_mean_n_unstable": _mean("random", "n_unstable_found"),
         "ai_mean_frac_near_edge": _mean("ai", "frac_evals_near_edge"),
         "lhs_mean_frac_near_edge": _mean("baseline", "frac_evals_near_edge"),
+        "random_mean_frac_near_edge": _mean("random", "frac_evals_near_edge"),
         "ai_frac_missed_unstable": _miss("ai"),
         "lhs_frac_missed_unstable": _miss("baseline"),
+        "random_frac_missed_unstable": _miss("random"),
     }
     if test_rows:
         def tmean(which, field):
@@ -277,16 +290,22 @@ def seed_study(
             return float(np.mean(vals)) if vals else None
         summary["ai_mean_unstable_recall"] = tmean("ai_test", "unstable_recall")
         summary["lhs_mean_unstable_recall"] = tmean("baseline_test", "unstable_recall")
+        summary["random_mean_unstable_recall"] = tmean("random_test", "unstable_recall")
         summary["ai_mean_unstable_precision"] = tmean("ai_test", "unstable_precision")
         summary["lhs_mean_unstable_precision"] = tmean("baseline_test", "unstable_precision")
+        summary["random_mean_unstable_precision"] = tmean("random_test", "unstable_precision")
         summary["ai_mean_unstable_f1"] = tmean("ai_test", "unstable_f1")
         summary["lhs_mean_unstable_f1"] = tmean("baseline_test", "unstable_f1")
+        summary["random_mean_unstable_f1"] = tmean("random_test", "unstable_f1")
         summary["ai_mean_boundary_mae"] = tmean("ai_test", "boundary_mae")
         summary["lhs_mean_boundary_mae"] = tmean("baseline_test", "boundary_mae")
+        summary["random_mean_boundary_mae"] = tmean("random_test", "boundary_mae")
         summary["ai_mean_near_boundary_sigma_mae"] = tmean("ai_test", "boundary_mae")
         summary["lhs_mean_near_boundary_sigma_mae"] = tmean("baseline_test", "boundary_mae")
+        summary["random_mean_near_boundary_sigma_mae"] = tmean("random_test", "boundary_mae")
         summary["ai_mean_volume_accuracy"] = tmean("ai_test", "volume_accuracy")
         summary["lhs_mean_volume_accuracy"] = tmean("baseline_test", "volume_accuracy")
+        summary["random_mean_volume_accuracy"] = tmean("random_test", "volume_accuracy")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps({"summary": summary, "records": records}, indent=2), encoding="utf-8")
     typer.echo(json.dumps(summary, indent=2))
@@ -320,7 +339,7 @@ def atlas_report() -> None:
     atlas = get_atlas()
     sigmas = []
     for r in atlas.rows:
-        if not r.get("Cconv"):
+        if not r.get("Cvalid", r.get("Cconv", False)):
             continue
         *_, sigma, S, _ = _acoustics(r["tau"], r["Um"], r["o"], r.get("R_spatial"), r.get("compactness"))
         sigmas.append(sigma)
@@ -419,7 +438,7 @@ def reproduce() -> None:
     if openfoam_available():
         report = run_mixer(CLASSICAL_INJECTORS["like_on_like"], work=out / "foam", n_iter=60)
         typer.echo(
-            f"foam like-on-like  Cconv={report.Cconv}  tau={report.tau:.4f}  "
+            f"foam like-on-like  Cvalid={report.Cvalid}  tau={report.tau:.4f}  "
             f"R_spatial={report.R_spatial:.3f}  q_mix compactness={report.compactness:.2f}"
         )
     else:

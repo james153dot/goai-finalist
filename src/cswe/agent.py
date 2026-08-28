@@ -126,7 +126,7 @@ class LevelSetAgent:
         for x in self._init_design(min(self.n_init, budget)):
             result = self.env.evaluate(x)
             record.add_eval(result, acquisition=None)
-            if result.Cconv and result.sigma == result.sigma:
+            if result.Cvalid and result.sigma == result.sigma:
                 self.X.append(self.env.to_vector(x))
                 self.y.append(result.sigma)
 
@@ -134,7 +134,7 @@ class LevelSetAgent:
             x, acq = self._choose(rng)
             result = self.env.evaluate(x)
             record.add_eval(result, acquisition=acq)
-            if result.Cconv and result.sigma == result.sigma:
+            if result.Cvalid and result.sigma == result.sigma:
                 self.X.append(self.env.to_vector(x))
                 self.y.append(result.sigma)
 
@@ -144,7 +144,7 @@ class LevelSetAgent:
 
 
 def _valid_rows(record: CampaignRecord) -> list[dict]:
-    return [r for r in record.evaluations if r["Cconv"] == 1]
+    return [r for r in record.evaluations if r.get("Cvalid", r.get("Cconv", False))]
 
 
 def _is_unstable(r: dict) -> bool:

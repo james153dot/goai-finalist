@@ -120,20 +120,20 @@
   },
   "near_boundary_sigma_mae": {
     "ai": {
-      "mean": 0.13371910125982467,
-      "median": 0.1407098376788849,
-      "sd": 0.03143478997253469,
+      "mean": 0.1337191012598247,
+      "median": 0.14070983767888495,
+      "sd": 0.03143478997253467,
       "range": [
-        0.07863348828840798,
-        0.16511503306728845
+        0.07863348828840803,
+        0.16511503306728822
       ]
     },
     "lhs": {
-      "mean": 0.1338064925336909,
+      "mean": 0.133806492533691,
       "median": 0.12193037749623109,
-      "sd": 0.045527029346250414,
+      "sd": 0.04552702934625041,
       "range": [
-        0.08271110584898303,
+        0.08271110584898324,
         0.21833022937101612
       ]
     },
@@ -161,8 +161,8 @@
       "lhs_n_u": 8,
       "ai_volume_accuracy": 0.9583333333333334,
       "lhs_volume_accuracy": 0.875,
-      "ai_near_boundary_sigma_mae": 0.07863348828840798,
-      "lhs_near_boundary_sigma_mae": 0.10336767547583003
+      "ai_near_boundary_sigma_mae": 0.07863348828840803,
+      "lhs_near_boundary_sigma_mae": 0.10336767547583005
     },
     {
       "seed": 11,
@@ -176,8 +176,8 @@
       "lhs_n_u": 5,
       "ai_volume_accuracy": 0.875,
       "lhs_volume_accuracy": 0.7083333333333334,
-      "ai_near_boundary_sigma_mae": 0.14726443783572118,
-      "lhs_near_boundary_sigma_mae": 0.099015274705395
+      "ai_near_boundary_sigma_mae": 0.14726443783572135,
+      "lhs_near_boundary_sigma_mae": 0.09901527470539497
     },
     {
       "seed": 14,
@@ -191,7 +191,7 @@
       "lhs_n_u": 3,
       "ai_volume_accuracy": 0.8333333333333334,
       "lhs_volume_accuracy": 0.625,
-      "ai_near_boundary_sigma_mae": 0.12546281901957332,
+      "ai_near_boundary_sigma_mae": 0.12546281901957337,
       "lhs_near_boundary_sigma_mae": 0.21833022937101612
     },
     {
@@ -206,8 +206,8 @@
       "lhs_n_u": 5,
       "ai_volume_accuracy": 0.875,
       "lhs_volume_accuracy": 0.7083333333333334,
-      "ai_near_boundary_sigma_mae": 0.15858770190151883,
-      "lhs_near_boundary_sigma_mae": 0.1365907385810264
+      "ai_near_boundary_sigma_mae": 0.15858770190151897,
+      "lhs_near_boundary_sigma_mae": 0.13659073858102644
     },
     {
       "seed": 23,
@@ -221,8 +221,8 @@
       "lhs_n_u": 6,
       "ai_volume_accuracy": 0.7916666666666666,
       "lhs_volume_accuracy": 0.7083333333333334,
-      "ai_near_boundary_sigma_mae": 0.16191179012805834,
-      "lhs_near_boundary_sigma_mae": 0.08271110584898303
+      "ai_near_boundary_sigma_mae": 0.1619117901280584,
+      "lhs_near_boundary_sigma_mae": 0.08271110584898324
     },
     {
       "seed": 26,
@@ -236,8 +236,8 @@
       "lhs_n_u": 6,
       "ai_volume_accuracy": 0.8333333333333334,
       "lhs_volume_accuracy": 0.75,
-      "ai_near_boundary_sigma_mae": 0.09862230231598064,
-      "lhs_near_boundary_sigma_mae": 0.1750364503483391
+      "ai_near_boundary_sigma_mae": 0.09862230231598068,
+      "lhs_near_boundary_sigma_mae": 0.17503645034833903
     },
     {
       "seed": 32,
@@ -251,8 +251,8 @@
       "lhs_n_u": 7,
       "ai_volume_accuracy": 0.8333333333333334,
       "lhs_volume_accuracy": 0.7916666666666666,
-      "ai_near_boundary_sigma_mae": 0.13415523752204858,
-      "lhs_near_boundary_sigma_mae": 0.10727001641143577
+      "ai_near_boundary_sigma_mae": 0.13415523752204855,
+      "lhs_near_boundary_sigma_mae": 0.10727001641143573
     },
     {
       "seed": 35,
@@ -266,8 +266,8 @@
       "lhs_n_u": 7,
       "ai_volume_accuracy": 0.7083333333333334,
       "lhs_volume_accuracy": 0.7916666666666666,
-      "ai_near_boundary_sigma_mae": 0.16511503306728845,
-      "lhs_near_boundary_sigma_mae": 0.1481304495275018
+      "ai_near_boundary_sigma_mae": 0.16511503306728822,
+      "lhs_near_boundary_sigma_mae": 0.14813044952750254
     }
   ],
   "note": "Eight independent live OpenFOAM campaigns, budget 16. AI has higher unstable recall in 7 of 8 seeds and finds more unstable evaluations in 7 of 8. Seed 35 reverses both and is kept. Precision and F1 are reported so high recall is not confused with predicting a huge unstable region. Near-boundary growth-rate MAE is a mean tie; AI is lower in only 3/8. Seed 14 independently found unstable conditions at both low and high g."

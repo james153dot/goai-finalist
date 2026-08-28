@@ -79,7 +79,7 @@ class SimulationResult:
     R: float
     Um: float
     Qw: float
-    Cconv: bool
+    Cvalid: bool
     S: float
     sigma: float
     n_index: float
@@ -91,6 +91,10 @@ class SimulationResult:
     compactness: float = float("nan")
     x_q: float = float("nan")
     phase: float = float("nan")
+
+    @property
+    def Cconv(self) -> bool:  # legacy alias
+        return self.Cvalid
 
     def as_dict(self) -> dict:
         return {
@@ -104,7 +108,8 @@ class SimulationResult:
             "R": self.R,
             "Um": self.Um,
             "Qw": self.Qw,
-            "Cconv": int(self.Cconv),
+            "Cvalid": int(self.Cvalid),
+            "Cconv": int(self.Cvalid),
             "S": self.S,
             "sigma": self.sigma,
             "sigma_analog": self.sigma,
@@ -192,7 +197,7 @@ def analog_constants(*, damping: float | None = None, omega0: float | None = Non
 def relabel_mixing_row(row: dict, damping: float | None = None, omega0: float | None = None) -> dict:
     """Recompute σ_analog from stored OpenFOAM mixing features."""
     out = dict(row)
-    if not row.get("Cconv"):
+    if not row.get("Cvalid", row.get("Cconv", False)):
         return out
     n_index, omega, rayleigh, sigma, S, phase = _acoustics(
         row["tau"], row["Um"], row["o"], row.get("R_spatial"), row.get("compactness"),
@@ -233,10 +238,10 @@ def _result_from_report(
     rng: np.random.Generator,
     noise: bool,
 ) -> SimulationResult:
-    if not report.Cconv:
+    if not report.Cvalid:
         return SimulationResult(
             x=x, Ap=float("nan"), f_dom=float("nan"), R=float("nan"), Um=float("nan"),
-            Qw=float("nan"), Cconv=False, S=float("nan"), sigma=float("nan"),
+            Qw=float("nan"), Cvalid=False, S=float("nan"), sigma=float("nan"),
             n_index=float("nan"), tau=float("nan"), stable=False,
             notes=report.notes, backend=report.backend,
             R_spatial=report.R_spatial, compactness=report.compactness,
@@ -253,7 +258,7 @@ def _result_from_report(
     Qw = float(np.clip(WALL_HEAT_BASE + 0.25 * x["o"] + 0.18 * Ap / (1.0 + Ap), 0.1, 1.4))
     return SimulationResult(
         x=x, Ap=Ap, f_dom=float(omega / (2.0 * np.pi)), R=float(rayleigh),
-        Um=report.Um, Qw=Qw, Cconv=True, S=float(Ap), sigma=sigma_obs,
+        Um=report.Um, Qw=Qw, Cvalid=True, S=float(Ap), sigma=sigma_obs,
         n_index=n_index, tau=report.tau, stable=Ap < STABILITY_THRESHOLD,
         notes="", backend=report.backend,
         R_spatial=report.R_spatial, compactness=report.compactness,
@@ -279,7 +284,7 @@ def simulate(
 def true_stability(x: Mapping[str, float]) -> bool:
     x = clip_params(x)
     report = mix_cfd(x)
-    if not report.Cconv:
+    if not report.Cvalid:
         return False
     *rest, S, _phase = _acoustics(report.tau, report.Um, x["o"], report.R_spatial, report.compactness)
     return S < STABILITY_THRESHOLD

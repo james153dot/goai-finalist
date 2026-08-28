@@ -178,10 +178,15 @@ mode, Rayleigh-from-mixing analog, threshold σ_analog = 0.
 
 1. A reconstructed stable/unstable window under the Rayleigh analog.
 2. Whether increasing the swirl analog within a family always improves stability.
-3. Whether a 1-D characterization slice is monotone in pattern class g.
+3. Whether the explored response contains nonmonotonic or separated stability
+   structure that warrants controlled follow-up characterization.
 4. How classical injector analogs sit on the analog window.
 5. Whether adaptive search recovers the minority unstable class with fewer
    solver calls than a space-filling design of the same budget.
+
+The fixed-condition g sweep was a follow-up characterization motivated by
+seed 14. The general signal — nonmonotonic or separated structure — was
+predeclared; the exact slice was not.
 
 **Out of scope:** thrust, Isp, dimensional flight injectors, 3-D reacting LES.
 
@@ -224,6 +229,12 @@ isosurface.
 
 JSON logs keep the key `boundary_mae` as an alias of
 `near_boundary_sigma_mae`.
+
+`Cvalid` means the OpenFOAM run completed successfully, required fields were
+available, and derived metrics were finite. It is not an independently parsed
+residual-convergence certificate. `Cconv` is retained as a legacy alias for
+backward compatibility, and JSON row readers fall back with
+`row.get("Cvalid", row.get("Cconv", False))`.
 
 Volume accuracy is overall hold-out classification accuracy of the same GP.
 It is reported because space-filling designs can remain competitive on global
@@ -284,14 +295,22 @@ These are replicates, not a population census. No p-value is claimed on n = 8.
 
 Atlas (n = 24 seeds), mean:
 
-| | AI | LHS |
-| --- | --- | --- |
-| Unstable recall | 0.62 | 0.46 |
-| Unstable precision | 0.92 | 0.91 |
-| Unstable F1 | 0.72 | 0.60 |
-| Unstable evaluations found | 7.5 | 4.5 |
-| Near-boundary σ MAE E_{σ,boundary} | 0.123 | 0.167 |
-| Volume accuracy | 0.83 | 0.79 |
+| | AI | LHS | Random |
+| --- | --- | --- | --- |
+| Unstable recall | 0.59 | 0.46 | 0.38 |
+| Unstable precision | 0.88 | 0.91 | 0.79 |
+| Unstable F1 | 0.69 | 0.60 | 0.47 |
+| Unstable evaluations found | 7.5 | 4.5 | 3.5 |
+| Near-boundary σ MAE E_{σ,boundary} | 0.123 | 0.167 | 0.195 |
+| Volume accuracy | 0.82 | 0.79 | 0.75 |
+
+All three columns are read directly from `artifacts/seed_study.json`
+(24 seeds, budget 16), regenerated with
+`uv run cswe seed-study --n-seeds 24 --budget 16 --n-init 5 --out artifacts/seed_study.json`.
+That command runs `LevelSetAgent`, `LatinHypercubeBaseline`, and the existing
+`RandomBaseline` per seed and writes `ai` / `baseline` / `random` (and their
+`_test` blocks and `_mean_*` summary fields). The expensive live-CFD study
+(AI vs LHS only) is unchanged.
 
 Live OpenFOAM, n = 8 seeds, budget 16. Mean ± sample sd:
 

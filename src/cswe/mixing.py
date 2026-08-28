@@ -51,7 +51,7 @@ class MixingAtlas:
         self.gp_c: GaussianProcessRegressor | None = None
 
     def fit(self, rows: list[dict]) -> None:
-        valid = [r for r in rows if r.get("Cconv")]
+        valid = [r for r in rows if r.get("Cvalid", r.get("Cconv", False))]
         if len(valid) < 6:
             raise ValueError(f"Need at least 6 converged OpenFOAM cases, got {len(valid)}")
         self.rows = rows
@@ -79,7 +79,7 @@ class MixingAtlas:
         compactness = float(max(self.gp_c.predict(v)[0], 0.2))
         return MixingReport(
             tau=max(tau, 1e-4), Um=um, L_mix=float("nan"), u_bulk=float("nan"),
-            Cconv=True, backend="openfoam_atlas",
+            Cvalid=True, backend="openfoam_atlas",
             R_spatial=R_spatial, compactness=compactness,
         )
 
@@ -139,7 +139,8 @@ def _one(x: dict[str, float], n_iter: int) -> dict:
         "q_profile": report.q_profile,
         "x_profile": report.x_profile,
         "p_profile": report.p_profile,
-        "Cconv": report.Cconv,
+        "Cvalid": report.Cvalid,
+        "Cconv": report.Cvalid,
         "notes": report.notes,
         "label": label,
     }
@@ -158,8 +159,9 @@ def build_atlas(n: int = 36, seed: int = 7, n_iter: int = 120, workers: int = 4)
         for i, fut in enumerate(as_completed(futs), 1):
             row = fut.result()
             rows.append(row)
-            status = "ok" if row["Cconv"] else row["notes"]
-            print(f"[{i}/{len(pts)}] g={row['g']:.2f} s={row['s']:.2f} Cconv={row['Cconv']} tau={row.get('tau')} {status}", flush=True)
+            valid_flag = row.get("Cvalid", row.get("Cconv", False))
+            status = "ok" if valid_flag else row["notes"]
+            print(f"[{i}/{len(pts)}] g={row['g']:.2f} s={row['s']:.2f} Cvalid={valid_flag} tau={row.get('tau')} {status}", flush=True)
     atlas = MixingAtlas()
     atlas.fit(rows)
     atlas.save()
@@ -197,7 +199,7 @@ def build_test_set(n: int = 20, seed: int = 123, n_iter: int = 100, workers: int
             row["R"] = rayleigh
             row["phase"] = phase
             rows.append(row)
-            print(f"[test {i}/{n}] Cconv={row['Cconv']} S={S:.3f} stable={row['stable']}", flush=True)
+            print(f"[test {i}/{n}] Cvalid={row.get('Cvalid', row.get('Cconv', False))} S={S:.3f} stable={row['stable']}", flush=True)
     TEST_PATH.parent.mkdir(parents=True, exist_ok=True)
     TEST_PATH.write_text(json.dumps({"rows": rows}, indent=2), encoding="utf-8")
     return rows

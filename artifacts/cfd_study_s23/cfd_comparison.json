@@ -80,9 +80,9 @@
       "unstable_precision": 0.75,
       "unstable_f1": 0.7058823529411765,
       "stable_recall": 0.8666666666666667,
-      "boundary_mae": 0.16191179012805834,
-      "near_boundary_sigma_mae": 0.16191179012805834,
-      "brier": 0.15099516471219945
+      "boundary_mae": 0.1619117901280584,
+      "near_boundary_sigma_mae": 0.1619117901280584,
+      "brier": 0.1509951647121994
     },
     "curve": [
       {
@@ -101,9 +101,9 @@
         "unstable_precision": 0.6363636363636364,
         "unstable_f1": 0.7000000000000001,
         "stable_recall": 0.7333333333333333,
-        "boundary_mae": 0.13242852262933047,
-        "near_boundary_sigma_mae": 0.13242852262933047,
-        "brier": 0.1810079765364326
+        "boundary_mae": 0.13242852262933036,
+        "near_boundary_sigma_mae": 0.13242852262933036,
+        "brier": 0.18100797653643216
       },
       {
         "budget": 7,
@@ -121,9 +121,9 @@
         "unstable_precision": 0.6,
         "unstable_f1": 0.631578947368421,
         "stable_recall": 0.7333333333333333,
-        "boundary_mae": 0.15702422922288065,
-        "near_boundary_sigma_mae": 0.15702422922288065,
-        "brier": 0.18519975954514467
+        "boundary_mae": 0.1570242292228806,
+        "near_boundary_sigma_mae": 0.1570242292228806,
+        "brier": 0.1851997595451446
       },
       {
         "budget": 9,
@@ -143,7 +143,7 @@
         "stable_recall": 0.7333333333333333,
         "boundary_mae": 0.15520626364135406,
         "near_boundary_sigma_mae": 0.15520626364135406,
-        "brier": 0.1882851669331054
+        "brier": 0.18828516693310535
       },
       {
         "budget": 11,
@@ -163,7 +163,7 @@
         "stable_recall": 0.7333333333333333,
         "boundary_mae": 0.13260765062832258,
         "near_boundary_sigma_mae": 0.13260765062832258,
-        "brier": 0.16288030732655392
+        "brier": 0.16288030732655387
       },
       {
         "budget": 13,
@@ -181,9 +181,9 @@
         "unstable_precision": 0.7777777777777778,
         "unstable_f1": 0.7777777777777778,
         "stable_recall": 0.8666666666666667,
-        "boundary_mae": 0.1723023755688051,
-        "near_boundary_sigma_mae": 0.1723023755688051,
-        "brier": 0.1519823308429589
+        "boundary_mae": 0.1723023755790332,
+        "near_boundary_sigma_mae": 0.1723023755790332,
+        "brier": 0.15198233068722689
       },
       {
         "budget": 15,
@@ -201,9 +201,9 @@
         "unstable_precision": 0.7142857142857143,
         "unstable_f1": 0.6250000000000001,
         "stable_recall": 0.8666666666666667,
-        "boundary_mae": 0.18868079524992426,
-        "near_boundary_sigma_mae": 0.18868079524992426,
-        "brier": 0.17524736347364409
+        "boundary_mae": 0.1886807952499242,
+        "near_boundary_sigma_mae": 0.1886807952499242,
+        "brier": 0.175247363473644
       },
       {
         "budget": 16,
@@ -221,9 +221,9 @@
         "unstable_precision": 0.75,
         "unstable_f1": 0.7058823529411765,
         "stable_recall": 0.8666666666666667,
-        "boundary_mae": 0.16191179012805834,
-        "near_boundary_sigma_mae": 0.16191179012805834,
-        "brier": 0.15099516471219945
+        "boundary_mae": 0.1619117901280584,
+        "near_boundary_sigma_mae": 0.1619117901280584,
+        "brier": 0.1509951647121994
       }
     ],
     "hypotheses": [
@@ -259,9 +259,9 @@
       "unstable_precision": 1.0,
       "unstable_f1": 0.3636363636363636,
       "stable_recall": 1.0,
-      "boundary_mae": 0.08271110584898303,
-      "near_boundary_sigma_mae": 0.08271110584898303,
-      "brier": 0.21001883858376683
+      "boundary_mae": 0.08271110584898324,
+      "near_boundary_sigma_mae": 0.08271110584898324,
+      "brier": 0.21001883858376727
     },
     "curve": [
       {
@@ -380,9 +380,9 @@
         "unstable_precision": 1.0,
         "unstable_f1": 0.3636363636363636,
         "stable_recall": 1.0,
-        "boundary_mae": 0.08849125117995757,
-        "near_boundary_sigma_mae": 0.08849125117995757,
-        "brier": 0.22222802975156752
+        "boundary_mae": 0.08849125117995765,
+        "near_boundary_sigma_mae": 0.08849125117995765,
+        "brier": 0.22222802975156764
       },
       {
         "budget": 16,
@@ -400,9 +400,9 @@
         "unstable_precision": 1.0,
         "unstable_f1": 0.3636363636363636,
         "stable_recall": 1.0,
-        "boundary_mae": 0.08271110584898303,
-        "near_boundary_sigma_mae": 0.08271110584898303,
-        "brier": 0.21001883858376683
+        "boundary_mae": 0.08271110584898324,
+        "near_boundary_sigma_mae": 0.08271110584898324,
+        "brier": 0.21001883858376727
       }
     ],
     "hypotheses": [

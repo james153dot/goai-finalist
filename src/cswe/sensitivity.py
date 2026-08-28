@@ -74,7 +74,7 @@ def _classical(damping: float, omega0: float) -> dict:
 
 def _atlas_fraction(damping: float, omega0: float) -> dict:
     atlas = _load_json(ATLAS_PATH)
-    rows = [relabel_mixing_row(r, damping=damping, omega0=omega0) for r in atlas["rows"] if r.get("Cconv")]
+    rows = [relabel_mixing_row(r, damping=damping, omega0=omega0) for r in atlas["rows"] if r.get("Cvalid", r.get("Cconv", False))]
     n_u = sum(r["sigma"] > 0 for r in rows)
     return {"n": len(rows), "n_unstable": n_u, "unstable_fraction": n_u / len(rows)}
 

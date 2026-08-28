@@ -29,7 +29,8 @@ def save_campaign(record: CampaignRecord, out_dir: Path) -> None:
         "seed": record.seed,
         "budget": record.budget,
         "n_evaluations": len(record.evaluations),
-        "n_converged": sum(1 for r in record.evaluations if r["Cconv"] == 1),
+        "n_valid": sum(1 for r in record.evaluations if r.get("Cvalid", r.get("Cconv", False))),
+        "n_converged": sum(1 for r in record.evaluations if r.get("Cvalid", r.get("Cconv", False))),
         "hypotheses": record.hypotheses,
         "discoveries": record.discoveries,
         "stability_threshold": STABILITY_THRESHOLD,
@@ -55,7 +56,7 @@ def load_evaluations(log_path: Path) -> list[dict]:
 
 def boundary_error(rows: list[dict], n_probe: int = 800, seed: int = 0) -> dict:
     """Hold-out reconstruction error of the stability classifier vs the true map."""
-    valid = [r for r in rows if r["Cconv"] == 1]
+    valid = [r for r in rows if r.get("Cvalid", r.get("Cconv", False))]
     if len(valid) < 5:
         return {"n_valid": len(valid), "holdout_accuracy": None, "brier": None}
 
@@ -103,7 +104,7 @@ def boundary_error(rows: list[dict], n_probe: int = 800, seed: int = 0) -> dict:
 
 def first_boundary_step(rows: list[dict], band: float = 0.12) -> int | None:
     for r in rows:
-        if r.get("Cconv") != 1:
+        if not r.get("Cvalid", r.get("Cconv", False)):
             continue
         sig = r.get("sigma")
         if sig is None or sig != sig:

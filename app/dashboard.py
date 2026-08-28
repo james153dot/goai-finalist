@@ -57,8 +57,21 @@ def load_demo() -> tuple[pd.DataFrame, pd.DataFrame, dict]:
     return ai, base, comparison
 
 
+def _valid_mask(df: pd.DataFrame) -> pd.Series:
+    if df.empty:
+        return pd.Series([], dtype=bool)
+    if "Cvalid" in df.columns:
+        v = df["Cvalid"].astype(bool)
+        if "Cconv" in df.columns:
+            v = v | df["Cconv"].astype(bool)
+        return v
+    if "Cconv" in df.columns:
+        return df["Cconv"].astype(bool)
+    return pd.Series([False] * len(df), index=df.index)
+
+
 def scatter_map(df: pd.DataFrame, title: str) -> go.Figure:
-    valid = df[df["Cconv"] == 1].copy() if not df.empty else df
+    valid = df[_valid_mask(df)].copy() if not df.empty else df
     if valid.empty:
         fig = go.Figure()
         fig.update_layout(title=title, template="plotly_dark", height=380)
@@ -88,7 +101,7 @@ def scatter_map(df: pd.DataFrame, title: str) -> go.Figure:
 def progress_curve(ai: pd.DataFrame, base: pd.DataFrame) -> go.Figure:
     fig = go.Figure()
     for df, name, color in ((ai, "AI", "#6ea8fe"), (base, "LHS", "#adb5bd")):
-        valid = df[df["Cconv"] == 1].copy()
+        valid = df[_valid_mask(df)].copy()
         if valid.empty:
             continue
         valid = valid.sort_values("t")
@@ -476,14 +489,14 @@ with tabs[4]:
     o = cols[4].slider("operating analog o", 0.0, 1.0, 0.45, 0.01)
     result = simulate({"g": g, "d": d, "a": a, "s": s, "o": o}, rng=np.random.default_rng(0))
     k1, k2, k3, k4, k5 = st.columns(5)
-    k1.metric("Growth rate σ", "—" if not result.Cconv else f"{result.sigma:.3f}")
-    k2.metric("Regime", "failed" if not result.Cconv else ("stable" if result.stable else "unstable"))
-    k3.metric("Rayleigh R_spatial", "—" if not result.Cconv else f"{result.R_spatial:.3f}")
+    k1.metric("Growth rate σ", "—" if not result.Cvalid else f"{result.sigma:.3f}")
+    k2.metric("Regime", "solver-invalid" if not result.Cvalid else ("stable" if result.stable else "unstable"))
+    k3.metric("Rayleigh R_spatial", "—" if not result.Cvalid else f"{result.R_spatial:.3f}")
     k4.metric("Time lag τ", f"{result.tau:.3f} s")
     k5.metric("Phase cos(ωτ)", "—" if result.phase != result.phase else f"{result.phase:.2f}")
     st.caption(f"Unstable iff σ > 0 (equivalently S > {STABILITY_THRESHOLD}). Chamber length L = {L} m. Bounds: {PARAM_BOUNDS}")
-    if not result.Cconv:
-        st.error("Numerical non-convergence. The agent logs this and does not treat it as a discovery.")
+    if not result.Cvalid:
+        st.error("OpenFOAM run was not solver-valid (missing fields or non-finite metrics). The agent logs this and does not treat it as a discovery.")
 
 with tabs[5]:
     st.write(

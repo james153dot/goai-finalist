@@ -44,7 +44,7 @@ def is_unstable(row: dict) -> bool:
 
 
 def campaign_diagnostics(rows: list[dict]) -> dict:
-    valid = [r for r in rows if r.get("Cconv") in (1, True) and _sigma(r) == _sigma(r)]
+    valid = [r for r in rows if bool(r.get("Cvalid", r.get("Cconv", False))) and _sigma(r) == _sigma(r)]
     n_u = int(sum(is_unstable(r) for r in valid))
     first = None
     for r in valid:
@@ -64,7 +64,7 @@ def campaign_diagnostics(rows: list[dict]) -> dict:
 
 
 def _gp(rows: list[dict]) -> GaussianProcessRegressor | None:
-    valid = [r for r in rows if r.get("Cconv") in (1, True) and _sigma(r) == _sigma(r)]
+    valid = [r for r in rows if bool(r.get("Cvalid", r.get("Cconv", False))) and _sigma(r) == _sigma(r)]
     if len(valid) < 4:
         return None
     X = np.array([[r[n] for n in PARAM_NAMES] for r in valid], dtype=float)
@@ -106,7 +106,7 @@ def score_against_test(campaign_rows: list[dict], test_rows: list[dict]) -> dict
         Hausdorff distance, nearest-contour distance, or a geometric MAE on
         the σ_analog = 0 isosurface.
     """
-    test = [r for r in test_rows if r.get("Cconv") in (1, True) and _sigma(r) == _sigma(r)]
+    test = [r for r in test_rows if bool(r.get("Cvalid", r.get("Cconv", False))) and _sigma(r) == _sigma(r)]
     gp = _gp(campaign_rows)
     out = campaign_diagnostics(campaign_rows)
     out.update(

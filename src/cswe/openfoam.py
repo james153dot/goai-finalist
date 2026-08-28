@@ -47,7 +47,7 @@ class MixingReport:
     Um: float
     L_mix: float
     u_bulk: float
-    Cconv: bool
+    Cvalid: bool
     backend: str
     notes: str = ""
     R_spatial: float = float("nan")
@@ -56,6 +56,14 @@ class MixingReport:
     q_profile: list[float] = field(default_factory=list)
     x_profile: list[float] = field(default_factory=list)
     p_profile: list[float] = field(default_factory=list)
+
+    @property
+    def Cconv(self) -> bool:  # legacy alias
+        return self.Cvalid
+
+    @Cconv.setter
+    def Cconv(self, value: bool) -> None:
+        self.Cvalid = bool(value)
 
 
 def openfoam_available() -> bool:

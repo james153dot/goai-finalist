@@ -44,7 +44,7 @@ def relabel_from_profile(
     n_bins: int = DEFAULT_N_AXIAL_BINS,
 ) -> dict | None:
     """Recompute τ (and, if n_bins changes, R_spatial / compactness / Um) from stored q_mix."""
-    if not row.get("Cconv"):
+    if not row.get("Cvalid", row.get("Cconv", False)):
         return None
     q = row.get("q_profile")
     x = row.get("x_profile")
