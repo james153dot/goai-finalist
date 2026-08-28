@@ -1,20 +1,32 @@
 {
   "backend": "openfoam",
   "budget": 16,
-  "n_seeds": 3,
-  "seeds": [11, 14, 19],
+  "n_seeds": 8,
+  "seeds": [8, 11, 14, 19, 23, 26, 32, 35],
   "holdout": "artifacts/of_test.json",
-  "mean": {
-    "ai_n_unstable": 7.33,
-    "lhs_n_unstable": 4.33,
-    "ai_unstable_recall": 0.70,
-    "lhs_unstable_recall": 0.15,
-    "ai_volume_accuracy": 0.86,
-    "lhs_volume_accuracy": 0.68,
-    "ai_boundary_mae": 0.144,
-    "lhs_boundary_mae": 0.151,
-    "ai_time_to_first_unstable": 1.7,
-    "lhs_time_to_first_unstable": 1.7
+  "recall": {
+    "ai_mean": 0.681,
+    "ai_median": 0.667,
+    "ai_sd": 0.117,
+    "ai_range": [0.444, 0.889],
+    "lhs_mean": 0.333,
+    "lhs_median": 0.278,
+    "lhs_sd": 0.200,
+    "lhs_range": [0.0, 0.667]
   },
-  "note": "Each evaluation is a live OpenFOAM 14 foamRun. AI starts with a 5-point Latin hypercube then straddles σ=0 / hunts the missing class. Seed 14 LHS hold-out unstable recall is 0: the space-filling sample did not reconstruct the dangerous class."
+  "n_unstable_found": {
+    "ai_mean": 7.5,
+    "lhs_mean": 5.875
+  },
+  "per_seed": [
+    {"seed": 8, "ai_recall": 0.889, "lhs_recall": 0.667, "ai_n_u": 9, "lhs_n_u": 8},
+    {"seed": 11, "ai_recall": 0.667, "lhs_recall": 0.222, "ai_n_u": 7, "lhs_n_u": 5},
+    {"seed": 14, "ai_recall": 0.667, "lhs_recall": 0.0, "ai_n_u": 9, "lhs_n_u": 3},
+    {"seed": 19, "ai_recall": 0.778, "lhs_recall": 0.222, "ai_n_u": 6, "lhs_n_u": 5},
+    {"seed": 23, "ai_recall": 0.667, "lhs_recall": 0.222, "ai_n_u": 7, "lhs_n_u": 6},
+    {"seed": 26, "ai_recall": 0.667, "lhs_recall": 0.333, "ai_n_u": 8, "lhs_n_u": 6},
+    {"seed": 32, "ai_recall": 0.667, "lhs_recall": 0.444, "ai_n_u": 8, "lhs_n_u": 7},
+    {"seed": 35, "ai_recall": 0.444, "lhs_recall": 0.556, "ai_n_u": 6, "lhs_n_u": 7}
+  ],
+  "note": "Eight independent live OpenFOAM campaigns, budget 16. Seed 35 reverses hold-out recall and is kept. Seed 14 is the high-g interval exhibit."
 }

@@ -1,0 +1,377 @@
+{
+  "budget": 16,
+  "seed": 35,
+  "backend": "openfoam",
+  "ai_diagnostics": {
+    "n_valid": 16,
+    "n_unstable_found": 6,
+    "unstable_fraction": 0.375,
+    "time_to_first_unstable": 0,
+    "n_near_boundary": 4,
+    "frac_evals_near_edge": 0.25,
+    "mean_abs_sigma": 0.24724102243714347
+  },
+  "baseline_diagnostics": {
+    "n_valid": 16,
+    "n_unstable_found": 7,
+    "unstable_fraction": 0.4375,
+    "time_to_first_unstable": 3,
+    "n_near_boundary": 4,
+    "frac_evals_near_edge": 0.25,
+    "mean_abs_sigma": 0.330812251623278
+  },
+  "hypotheses": [
+    {
+      "id": "H_swirl_monotonic",
+      "statement": "Increasing swirl intensity analog s consistently improves stability.",
+      "status": "falsified",
+      "evidence_count": 2,
+      "note": "Higher swirl analog changed mixing delay and Rayleigh overlap enough to cross \u03c3_analog = 0, so 'more swirl is always more stable' fails on this analog map."
+    },
+    {
+      "id": "H_connected_unstable",
+      "statement": "Unstable conditions form a single connected region in the explored domain.",
+      "status": "challenged",
+      "evidence_count": 4,
+      "note": "At least two unstable evaluations sit among mostly stable neighbors. That is consistent with a nonmonotonic map, not a proof of a disconnected 5-D pocket."
+    }
+  ],
+  "discoveries": [
+    {
+      "type": "stability_window",
+      "n_stable": 10,
+      "n_unstable": 6,
+      "stable_fraction": 0.625,
+      "note": "A verified stable/unstable partition exists under the Rayleigh-from-mixing criterion."
+    },
+    {
+      "type": "boundary_structure",
+      "n_near_threshold": 4,
+      "mean_swirl_on_boundary": 0.4381410177653994,
+      "mean_spread_on_boundary": 0.5077578392201356,
+      "note": "Evaluations concentrated near \u03c3 \u2248 0 reconstruct the window edge."
+    },
+    {
+      "type": "counterexample",
+      "hypothesis": "H_swirl_monotonic",
+      "evidence_count": 2,
+      "note": "Higher swirl analog changed mixing delay and Rayleigh overlap enough to cross \u03c3_analog = 0, so 'more swirl is always more stable' fails on this analog map."
+    },
+    {
+      "type": "anomaly",
+      "hypothesis": "H_connected_unstable",
+      "evidence_count": 4,
+      "note": "At least two unstable evaluations sit among mostly stable neighbors. That is consistent with a nonmonotonic map, not a proof of a disconnected 5-D pocket."
+    }
+  ],
+  "ai": {
+    "final": {
+      "n_valid": 16,
+      "n_unstable_found": 6,
+      "unstable_fraction": 0.375,
+      "time_to_first_unstable": 0,
+      "n_near_boundary": 4,
+      "frac_evals_near_edge": 0.25,
+      "mean_abs_sigma": 0.24724102243714347,
+      "n_campaign": 16,
+      "n_test": 24,
+      "volume_accuracy": 0.7083333333333334,
+      "unstable_recall": 0.4444444444444444,
+      "stable_recall": 0.8666666666666667,
+      "boundary_mae": 0.16511503306728845,
+      "brier": 0.17802660470470733
+    },
+    "curve": [
+      {
+        "budget": 5,
+        "n_valid": 5,
+        "n_unstable_found": 3,
+        "unstable_fraction": 0.6,
+        "time_to_first_unstable": 0,
+        "n_near_boundary": 2,
+        "frac_evals_near_edge": 0.4,
+        "mean_abs_sigma": 0.12051690106530635,
+        "n_campaign": 5,
+        "n_test": 24,
+        "volume_accuracy": 0.6666666666666666,
+        "unstable_recall": 0.1111111111111111,
+        "stable_recall": 1.0,
+        "boundary_mae": 0.11958778526302932,
+        "brier": 0.2278786461210788
+      },
+      {
+        "budget": 7,
+        "n_valid": 7,
+        "n_unstable_found": 4,
+        "unstable_fraction": 0.5714285714285714,
+        "time_to_first_unstable": 0,
+        "n_near_boundary": 2,
+        "frac_evals_near_edge": 0.2857142857142857,
+        "mean_abs_sigma": 0.20063674210859508,
+        "n_campaign": 7,
+        "n_test": 24,
+        "volume_accuracy": 0.6666666666666666,
+        "unstable_recall": 0.6666666666666666,
+        "stable_recall": 0.6666666666666666,
+        "boundary_mae": 0.15614248159978666,
+        "brier": 0.2586296249361995
+      },
+      {
+        "budget": 9,
+        "n_valid": 9,
+        "n_unstable_found": 5,
+        "unstable_fraction": 0.5555555555555556,
+        "time_to_first_unstable": 0,
+        "n_near_boundary": 3,
+        "frac_evals_near_edge": 0.3333333333333333,
+        "mean_abs_sigma": 0.22780734491216814,
+        "n_campaign": 9,
+        "n_test": 24,
+        "volume_accuracy": 0.6666666666666666,
+        "unstable_recall": 0.6666666666666666,
+        "stable_recall": 0.6666666666666666,
+        "boundary_mae": 0.17640093899688283,
+        "brier": 0.24629320726717738
+      },
+      {
+        "budget": 11,
+        "n_valid": 11,
+        "n_unstable_found": 5,
+        "unstable_fraction": 0.45454545454545453,
+        "time_to_first_unstable": 0,
+        "n_near_boundary": 3,
+        "frac_evals_near_edge": 0.2727272727272727,
+        "mean_abs_sigma": 0.2533701549331573,
+        "n_campaign": 11,
+        "n_test": 24,
+        "volume_accuracy": 0.625,
+        "unstable_recall": 0.0,
+        "stable_recall": 1.0,
+        "boundary_mae": 0.12731142043312038,
+        "brier": 0.23482001111268216
+      },
+      {
+        "budget": 13,
+        "n_valid": 13,
+        "n_unstable_found": 5,
+        "unstable_fraction": 0.38461538461538464,
+        "time_to_first_unstable": 0,
+        "n_near_boundary": 3,
+        "frac_evals_near_edge": 0.23076923076923078,
+        "mean_abs_sigma": 0.243893642502999,
+        "n_campaign": 13,
+        "n_test": 24,
+        "volume_accuracy": 0.625,
+        "unstable_recall": 0.0,
+        "stable_recall": 1.0,
+        "boundary_mae": 0.1437328110710317,
+        "brier": 0.22588579333860248
+      },
+      {
+        "budget": 15,
+        "n_valid": 15,
+        "n_unstable_found": 6,
+        "unstable_fraction": 0.4,
+        "time_to_first_unstable": 0,
+        "n_near_boundary": 4,
+        "frac_evals_near_edge": 0.26666666666666666,
+        "mean_abs_sigma": 0.23063915966678933,
+        "n_campaign": 15,
+        "n_test": 24,
+        "volume_accuracy": 0.7083333333333334,
+        "unstable_recall": 0.4444444444444444,
+        "stable_recall": 0.8666666666666667,
+        "boundary_mae": 0.12562608707703216,
+        "brier": 0.1770520280613391
+      },
+      {
+        "budget": 16,
+        "n_valid": 16,
+        "n_unstable_found": 6,
+        "unstable_fraction": 0.375,
+        "time_to_first_unstable": 0,
+        "n_near_boundary": 4,
+        "frac_evals_near_edge": 0.25,
+        "mean_abs_sigma": 0.24724102243714347,
+        "n_campaign": 16,
+        "n_test": 24,
+        "volume_accuracy": 0.7083333333333334,
+        "unstable_recall": 0.4444444444444444,
+        "stable_recall": 0.8666666666666667,
+        "boundary_mae": 0.16511503306728845,
+        "brier": 0.17802660470470733
+      }
+    ],
+    "hypotheses": [
+      {
+        "id": "H_swirl_monotonic",
+        "statement": "Increasing swirl intensity analog s consistently improves stability.",
+        "status": "falsified",
+        "evidence_count": 2,
+        "note": "Higher swirl analog changed mixing delay and Rayleigh overlap enough to cross \u03c3_analog = 0, so 'more swirl is always more stable' fails on this analog map."
+      },
+      {
+        "id": "H_connected_unstable",
+        "statement": "Unstable conditions form a single connected region in the explored domain.",
+        "status": "challenged",
+        "evidence_count": 4,
+        "note": "At least two unstable evaluations sit among mostly stable neighbors. That is consistent with a nonmonotonic map, not a proof of a disconnected 5-D pocket."
+      }
+    ]
+  },
+  "baseline": {
+    "final": {
+      "n_valid": 16,
+      "n_unstable_found": 7,
+      "unstable_fraction": 0.4375,
+      "time_to_first_unstable": 3,
+      "n_near_boundary": 4,
+      "frac_evals_near_edge": 0.25,
+      "mean_abs_sigma": 0.330812251623278,
+      "n_campaign": 16,
+      "n_test": 24,
+      "volume_accuracy": 0.7916666666666666,
+      "unstable_recall": 0.5555555555555556,
+      "stable_recall": 0.9333333333333333,
+      "boundary_mae": 0.1481304495275018,
+      "brier": 0.15843034745879195
+    },
+    "curve": [
+      {
+        "budget": 5,
+        "n_valid": 5,
+        "n_unstable_found": 1,
+        "unstable_fraction": 0.2,
+        "time_to_first_unstable": 3,
+        "n_near_boundary": 0,
+        "frac_evals_near_edge": 0.0,
+        "mean_abs_sigma": 0.5298356352625511,
+        "n_campaign": 5,
+        "n_test": 24,
+        "volume_accuracy": 0.6666666666666666,
+        "unstable_recall": 0.2222222222222222,
+        "stable_recall": 0.9333333333333333,
+        "boundary_mae": 0.3260875577196889,
+        "brier": 0.234717957319724
+      },
+      {
+        "budget": 7,
+        "n_valid": 7,
+        "n_unstable_found": 3,
+        "unstable_fraction": 0.42857142857142855,
+        "time_to_first_unstable": 3,
+        "n_near_boundary": 1,
+        "frac_evals_near_edge": 0.14285714285714285,
+        "mean_abs_sigma": 0.4331127356349622,
+        "n_campaign": 7,
+        "n_test": 24,
+        "volume_accuracy": 0.75,
+        "unstable_recall": 0.4444444444444444,
+        "stable_recall": 0.9333333333333333,
+        "boundary_mae": 0.3021081121534501,
+        "brier": 0.21226314689811443
+      },
+      {
+        "budget": 9,
+        "n_valid": 9,
+        "n_unstable_found": 4,
+        "unstable_fraction": 0.4444444444444444,
+        "time_to_first_unstable": 3,
+        "n_near_boundary": 2,
+        "frac_evals_near_edge": 0.2222222222222222,
+        "mean_abs_sigma": 0.4045018813568366,
+        "n_campaign": 9,
+        "n_test": 24,
+        "volume_accuracy": 0.75,
+        "unstable_recall": 0.4444444444444444,
+        "stable_recall": 0.9333333333333333,
+        "boundary_mae": 0.30231030489883104,
+        "brier": 0.2096270275458414
+      },
+      {
+        "budget": 11,
+        "n_valid": 11,
+        "n_unstable_found": 5,
+        "unstable_fraction": 0.45454545454545453,
+        "time_to_first_unstable": 3,
+        "n_near_boundary": 2,
+        "frac_evals_near_edge": 0.18181818181818182,
+        "mean_abs_sigma": 0.3822943528293699,
+        "n_campaign": 11,
+        "n_test": 24,
+        "volume_accuracy": 0.75,
+        "unstable_recall": 0.4444444444444444,
+        "stable_recall": 0.9333333333333333,
+        "boundary_mae": 0.29803261578623313,
+        "brier": 0.20042274867600804
+      },
+      {
+        "budget": 13,
+        "n_valid": 13,
+        "n_unstable_found": 6,
+        "unstable_fraction": 0.46153846153846156,
+        "time_to_first_unstable": 3,
+        "n_near_boundary": 3,
+        "frac_evals_near_edge": 0.23076923076923078,
+        "mean_abs_sigma": 0.3411105120458184,
+        "n_campaign": 13,
+        "n_test": 24,
+        "volume_accuracy": 0.75,
+        "unstable_recall": 0.5555555555555556,
+        "stable_recall": 0.8666666666666667,
+        "boundary_mae": 0.14841376653990843,
+        "brier": 0.17636439011895258
+      },
+      {
+        "budget": 15,
+        "n_valid": 15,
+        "n_unstable_found": 7,
+        "unstable_fraction": 0.4666666666666667,
+        "time_to_first_unstable": 3,
+        "n_near_boundary": 3,
+        "frac_evals_near_edge": 0.2,
+        "mean_abs_sigma": 0.3491036968500138,
+        "n_campaign": 15,
+        "n_test": 24,
+        "volume_accuracy": 0.8333333333333334,
+        "unstable_recall": 0.6666666666666666,
+        "stable_recall": 0.9333333333333333,
+        "boundary_mae": 0.16771707530819085,
+        "brier": 0.17702256506415456
+      },
+      {
+        "budget": 16,
+        "n_valid": 16,
+        "n_unstable_found": 7,
+        "unstable_fraction": 0.4375,
+        "time_to_first_unstable": 3,
+        "n_near_boundary": 4,
+        "frac_evals_near_edge": 0.25,
+        "mean_abs_sigma": 0.330812251623278,
+        "n_campaign": 16,
+        "n_test": 24,
+        "volume_accuracy": 0.7916666666666666,
+        "unstable_recall": 0.5555555555555556,
+        "stable_recall": 0.9333333333333333,
+        "boundary_mae": 0.1481304495275018,
+        "brier": 0.15843034745879195
+      }
+    ],
+    "hypotheses": [
+      {
+        "id": "H_swirl_monotonic",
+        "statement": "Increasing swirl intensity analog s consistently improves stability.",
+        "status": "falsified",
+        "evidence_count": 1,
+        "note": "Higher swirl analog changed mixing delay and Rayleigh overlap enough to cross \u03c3_analog = 0, so 'more swirl is always more stable' fails on this analog map."
+      },
+      {
+        "id": "H_connected_unstable",
+        "statement": "Unstable conditions form a single connected region in the explored domain.",
+        "status": "challenged",
+        "evidence_count": 3,
+        "note": "At least two unstable evaluations sit among mostly stable neighbors. That is consistent with a nonmonotonic map, not a proof of a disconnected 5-D pocket."
+      }
+    ]
+  }
+}

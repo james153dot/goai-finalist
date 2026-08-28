@@ -26,7 +26,7 @@
     "matched_bounds": true,
     "ai_init_is_latin_hypercube": true
   },
-  "primary_live_seeds": [11, 14, 19],
+  "primary_live_seeds": [8, 11, 14, 19, 23, 26, 32, 35],
   "artifacts": {
     "atlas": "artifacts/mixing_atlas.json",
     "holdout": "artifacts/of_test.json",

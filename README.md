@@ -166,9 +166,9 @@ an unstable point in the high-g interval; that seed is kept.
 ### Adaptive search vs Latin hypercube
 
 A 24-seed atlas study (budget 16, scored on 24 independent OpenFOAM tests)
-establishes direction. Live `foamRun` campaigns verify that the advantage
-survives when every evaluation is a fresh solver run. Live campaigns are
-few; treat them as independent replicates, not a population estimate.
+establishes direction. Eight independent live `foamRun` campaigns (budget 16)
+check that the advantage survives when every evaluation is a fresh solver run.
+These are replicates, not a population census.
 
 Atlas (n = 24 seeds), mean:
 
@@ -179,17 +179,26 @@ Atlas (n = 24 seeds), mean:
 | Boundary MAE E_B | 0.123 | 0.167 |
 | Volume accuracy | 0.83 | 0.79 |
 
-Live OpenFOAM (budget 16). Per-seed recall is plotted as individual markers
-in `artifacts/figures/live_cfd_strip.png`. With the original three seeds
-11 / 14 / 19:
+Live OpenFOAM, n = 8 seeds, budget 16. Mean ± sd (median, range):
+
+| | AI | LHS |
+| --- | --- | --- |
+| Unstable recall | 0.68 ± 0.12 (0.67, 0.44–0.89) | 0.33 ± 0.20 (0.28, 0.00–0.67) |
+| Unstable evaluations found | 7.5 ± 1.1 | 5.9 ± 1.5 |
 
 | seed | AI recall | LHS recall | AI n_unstable | LHS n_unstable |
 | --- | --- | --- | --- | --- |
+| 8 | 0.89 | 0.67 | 9 | 8 |
 | 11 | 0.67 | 0.22 | 7 | 5 |
 | 14 | 0.67 | 0.00 | 9 | 3 |
 | 19 | 0.78 | 0.22 | 6 | 5 |
+| 23 | 0.67 | 0.22 | 7 | 6 |
+| 26 | 0.67 | 0.33 | 8 | 6 |
+| 32 | 0.67 | 0.44 | 8 | 7 |
+| 35 | 0.44 | 0.56 | 6 | 7 |
 
-Additional live seeds, if present, live in `artifacts/cfd_study_s*/`.
+Seed 35 reverses hold-out recall; it is kept. Seed 14 remains the exhibit for
+sampling both g-intervals. Markers: `artifacts/figures/live_cfd_strip.png`.
 
 The preliminary implementation evaluated adaptive exploration primarily by
 global volume reconstruction. Subsequent experiments showed that this metric
