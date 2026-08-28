@@ -279,6 +279,8 @@ def seed_study(
         summary["lhs_mean_unstable_recall"] = tmean("baseline_test", "unstable_recall")
         summary["ai_mean_boundary_mae"] = tmean("ai_test", "boundary_mae")
         summary["lhs_mean_boundary_mae"] = tmean("baseline_test", "boundary_mae")
+        summary["ai_mean_near_boundary_sigma_mae"] = tmean("ai_test", "boundary_mae")
+        summary["lhs_mean_near_boundary_sigma_mae"] = tmean("baseline_test", "boundary_mae")
         summary["ai_mean_volume_accuracy"] = tmean("ai_test", "volume_accuracy")
         summary["lhs_mean_volume_accuracy"] = tmean("baseline_test", "volume_accuracy")
     out.parent.mkdir(parents=True, exist_ok=True)

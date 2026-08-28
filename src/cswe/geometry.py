@@ -1,8 +1,8 @@
 """Nondimensional injector layout shared by OpenFOAM and the in-repo mixer.
 
-Chamber length, height, and acoustic boundaries stay frozen. Only the two
+Chamber length, height, and acoustic boundaries stay fixed. Only the two
 inlet slots move. Coordinates are SI meters for OpenFOAM; the exploration
-vector (g, d, a, s, o) remains abstract.
+vector z = (g, d, a, s, o) remains abstract.
 """
 
 from __future__ import annotations
@@ -44,7 +44,7 @@ def _lerp(g: float, low: float, mid: float, high: float) -> float:
 
 
 def jet_layout(g: float, d: float, a: float, s: float, o: float) -> JetLayout:
-    """Map the explorable vector onto two inlet slots in a frozen 2-D chamber."""
+    """Map the explorable design vector z onto two inlet slots in a fixed-geometry 2-D chamber."""
     h0 = 0.13 * H * (1.0 + 0.55 * d)
     h1 = 0.13 * H * (1.0 - 0.55 * d)
     c0 = _lerp(g, 0.22 * H, 0.28 * H, 0.50 * H)

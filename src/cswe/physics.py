@@ -1,21 +1,26 @@
-"""Frozen closed-closed 1L acoustics driven by an OpenFOAM mixing field.
+"""Closed-closed 1L acoustics driven by an OpenFOAM mixing field.
 
-OpenFOAM determines spatial and temporal mixing features. The acoustic model
-converts those features into a hypothesis-level Rayleigh stability indicator
-σ_analog. The project therefore evaluates an autonomous exploration method for
+OpenFOAM determines spatial and temporal mixing features from a fixed-geometry
+2-D laminar dual-jet mixing environment. The acoustic model converts those
+features into a hypothesis-level Rayleigh stability indicator σ_analog(z).
+The project therefore evaluates an autonomous exploration method for
 combustion-stability *analogs*, not predictive stability of a real rocket
 combustor.
 
-Heat-release proxy q_proxy(x) is the cross-stream variance of mixture fraction.
-Large Var_y[T] means the two streams are still unmixed at that station, so
-mixing-limited reaction could still occur there. Fully mixed stations
-(Var → 0) contribute no further proxy heat release. This is not a finite-rate
-flame.
+The design / exploration vector is z = [g, d, a, s, o]. Axial chamber
+position is x. Pipeline: z → OpenFOAM → q_proxy(x) → σ_analog(z).
 
-The chamber pressure mode is the frozen first longitudinal of a closed-closed
-duct, p(x) = cos(π x / L), so the injector face is a pressure antinode.
-R_spatial = ∫ q_proxy p dx / ∫ q_proxy dx. The same field supplies the
-convective delay τ = L_mix / U. There is no planted island.
+Heat-release proxy q_proxy(x) = Var_y[Z](x) is the cross-stream variance of
+mixture fraction Z (OpenFOAM field name: T). Large Var_y[Z] means the two
+streams are still unmixed at that station, so mixing-limited reaction could
+still occur there. Fully mixed stations (Var → 0) contribute no further
+proxy heat release. This is not a finite-rate flame.
+
+The chamber pressure mode is the declared first longitudinal of a
+closed-closed duct, p(x) = cos(π x / L), so the injector face is a pressure
+antinode. R_spatial = ∫ q_proxy p dx / ∫ q_proxy dx. Mixing delay τ is
+defined from the same field (first axial bin with Var_y[Z] < 0.045, then
+τ = x_m / U_b). There is no planted island.
 """
 
 from __future__ import annotations
@@ -38,7 +43,7 @@ PARAM_BOUNDS = {
     "o": (0.0, 1.0),
 }
 
-# Frozen chamber: closed-closed 1L analog. ω is not an explorable.
+# Fixed chamber acoustics: closed-closed 1L analog. ω is not an explorable.
 CHAMBER_OMEGA = 11.0
 ACOUSTIC_DAMPING = 0.08
 STABILITY_THRESHOLD = 1.0  # S(σ=0) = 1; the agent level-set is σ = 0

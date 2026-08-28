@@ -33,3 +33,17 @@ def test_score_against_test_handles_tiny_campaign():
     out = score_against_test(camp, test)
     assert out["n_unstable_found"] == 1
     assert out["volume_accuracy"] is None  # too few points to fit a GP
+    assert out["near_boundary_sigma_mae"] is None
+    assert out["boundary_mae"] is None
+
+
+def test_near_boundary_mae_aliases_boundary_mae():
+    camp = [_row(i, -0.3 + 0.12 * i, g=0.08 * i, s=0.1 * (i % 3)) for i in range(8)]
+    test = [
+        _row(0, 0.05, g=0.2, s=0.1),
+        _row(1, -0.10, g=0.4, s=0.2),
+        _row(2, 0.40, g=0.8, s=0.5),
+    ]
+    out = score_against_test(camp, test)
+    assert out["near_boundary_sigma_mae"] is not None
+    assert out["boundary_mae"] == out["near_boundary_sigma_mae"]

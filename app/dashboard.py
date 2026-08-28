@@ -108,7 +108,7 @@ def progress_curve(ai: pd.DataFrame, base: pd.DataFrame) -> go.Figure:
 
 st.title("AI-guided combustion-stability windows")
 st.caption(
-    "GOAI Track 3 · Type II · OpenFOAM 14 dual-jet mixing + frozen closed-closed 1L Rayleigh analog. "
+    "GOAI Track 3 · Type II · OpenFOAM 14 dual-jet mixing + declared closed-closed 1L Rayleigh analog. "
     "This is not a rocket engine. The scoring object is the environment and whether adaptive search "
     "spends expensive solver calls on the unstable window."
 )
@@ -136,6 +136,7 @@ for p in sorted((ROOT / "artifacts").glob("cfd_study_s*/cfd_comparison.json")):
     payload = _load_json(p)
     if payload:
         cfd_studies.append(payload)
+cfd_studies.sort(key=lambda d: d.get("seed", 0))
 
 with tabs[0]:
     st.markdown(
@@ -159,14 +160,15 @@ The agent fits a Gaussian process to **σ_analog** (level set σ_analog = 0) and
         c1.caption(f"LHS {s['lhs_mean_unstable_recall']:.2f}")
         c2.metric("Unstable evals per campaign", f"{s['ai_mean_n_unstable']:.1f}")
         c2.caption(f"LHS {s['lhs_mean_n_unstable']:.1f}")
-        c3.metric("Hold-out boundary MAE", f"{s['ai_mean_boundary_mae']:.3f}")
-        c3.caption(f"LHS {s['lhs_mean_boundary_mae']:.3f}")
+        c3.metric("Near-boundary σ MAE", f"{s['ai_mean_boundary_mae']:.3f}")
+        c3.caption(f"LHS {s['lhs_mean_boundary_mae']:.3f}  ·  E_σ,boundary, not contour distance")
         c4.metric("Volume accuracy", f"{s['ai_mean_volume_accuracy']:.2f}")
         c4.caption(f"LHS {s['lhs_mean_volume_accuracy']:.2f}")
         st.caption(
             "Atlas campaigns scored on an independent 24-case OpenFOAM hold-out (`artifacts/of_test.json`). "
             "Volume accuracy is the weak metric — space-filling already tiles the majority class. "
-            "Recall of the dangerous class and error on the σ ≈ 0 contour are the claim."
+            "Recall of the dangerous class is the claim. Near-boundary σ MAE is prediction error in "
+            "σ_analog among hold-out points with |σ| < 0.20, not Hausdorff distance to a contour."
         )
         recs = pd.DataFrame(
             [
@@ -197,26 +199,51 @@ The agent fits a Gaussian process to **σ_analog** (level set σ_analog = 0) and
         st.info("Run `cswe seed-study` to populate the 24-seed comparison.")
 
     st.subheader("Confirmation: each evaluation is a live OpenFOAM run")
+    live_summary = _load_json(ROOT / "artifacts" / "cfd_live_summary.json")
+    seed14_fig = ROOT / "artifacts" / "figures" / "seed14_both_g_intervals.png"
+    if seed14_fig.exists():
+        st.markdown(
+            "**Primary exhibit — seed 14.** The adaptive campaign independently evaluated "
+            "unstable conditions at both ends of pattern class *g* "
+            "(g = 0.10, σ = +0.32 and g = 1.80, σ = +0.06; later g = 1.92, σ = +0.40). "
+            "The later one-dimensional sweep characterized that observation rather than manufacturing it."
+        )
+        st.image(str(seed14_fig), use_container_width=True)
+    if live_summary:
+        paired = live_summary.get("paired", {})
+        st.markdown(
+            f"Across eight matched live-CFD campaigns, adaptive exploration achieved higher "
+            f"unstable recall than LHS in **{paired.get('ai_higher_unstable_recall', '7/8')}** seeds "
+            f"and sampled more unstable conditions in **{paired.get('ai_more_unstable_evaluations', '7/8')}**. "
+            "The one reversal (seed 35) is retained. Near-boundary growth-rate MAE is a mean tie; "
+            "AI is lower in only 3/8. Adaptive sampling is for rare-regime recovery, not every metric."
+        )
     if cfd_studies:
         rows = []
         for p in cfd_studies:
             ai = p.get("ai_diagnostics") or (p.get("ai") or {}).get("final") or {}
             base = p.get("baseline_diagnostics") or (p.get("baseline") or {}).get("final") or {}
+            ai_f = (p.get("ai") or {}).get("final") or {}
+            base_f = (p.get("baseline") or {}).get("final") or {}
             rows.append(
                 {
                     "seed": p["seed"],
                     "AI unstable found": ai.get("n_unstable_found"),
                     "LHS unstable found": base.get("n_unstable_found"),
-                    "AI first unstable": ai.get("time_to_first_unstable"),
-                    "LHS first unstable": base.get("time_to_first_unstable"),
-                    "AI recall": (p.get("ai") or {}).get("final", {}).get("unstable_recall"),
-                    "LHS recall": (p.get("baseline") or {}).get("final", {}).get("unstable_recall"),
-                    "AI boundary MAE": (p.get("ai") or {}).get("final", {}).get("boundary_mae"),
-                    "LHS boundary MAE": (p.get("baseline") or {}).get("final", {}).get("boundary_mae"),
+                    "AI recall": ai_f.get("unstable_recall"),
+                    "LHS recall": base_f.get("unstable_recall"),
+                    "AI volume acc.": ai_f.get("volume_accuracy"),
+                    "LHS volume acc.": base_f.get("volume_accuracy"),
+                    "AI E_σ,boundary": ai_f.get("near_boundary_sigma_mae") or ai_f.get("boundary_mae"),
+                    "LHS E_σ,boundary": base_f.get("near_boundary_sigma_mae") or base_f.get("boundary_mae"),
                 }
             )
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
-        st.caption("Live `foamRun` campaigns, 16 evaluations per method, scored on the same OpenFOAM hold-out. Failures, if any, stay in the table.")
+        st.caption(
+            "Live `foamRun` campaigns, 16 evaluations per method, scored on the same OpenFOAM hold-out. "
+            "E_σ,boundary is near-boundary growth-rate MAE (|σ| < 0.20), not geometric contour distance. "
+            "Seed 35 reverses recall and is kept."
+        )
         fig = go.Figure()
         palette = {11: "#6ea8fe", 14: "#3dd68c", 19: "#c4b5fd"}
         for p in cfd_studies:
@@ -261,14 +288,15 @@ The agent fits a Gaussian process to **σ_analog** (level set σ_analog = 0) and
 with tabs[1]:
     st.markdown(
         """
-**Fixed chamber.** Length 80 mm, height 20 mm, laminar `incompressibleFluid`, complementary
-mixture fraction T = 0 / 1. **Explorable injector vector** `x = [g, d, a, s, o]`.
+**Fixed-geometry chamber.** Length 80 mm, height 20 mm, laminar `incompressibleFluid`, complementary
+mixture fraction Z = 0 / 1 (OpenFOAM field name `T`). **Explorable injector vector** `z = [g, d, a, s, o]`.
 
-**Heat-release analog** is the cross-stream variance of T — stations where mixing-limited
-reaction would still be active — not 4T(1−T), which peaks after the gases are already uniform.
+**Heat-release analog** is the cross-stream variance of Z — stations where mixing-limited
+reaction would still be active — not 4Z(1−Z), which peaks after the gases are already uniform.
 
-**Acoustics.** Frozen closed-closed 1L, `p(x) = cos(πx/L)`, injector face a pressure antinode.
-σ = n · R_spatial · cos(ωτ) − damping. Unstable iff σ > 0. No planted island.
+**Acoustics.** Declared closed-closed 1L, `p(x) = cos(πx/L)`, injector face a pressure antinode.
+σ_analog(z) = n · R_spatial · cos(ωτ) − damping. Unstable iff σ > 0. No planted island.
+Mixing delay τ is the first axial bin with Var_y[Z] < 0.045, then τ = x_m / U_b.
         """
     )
     cols = st.columns(3)
@@ -341,9 +369,9 @@ reaction would still be active — not 4T(1−T), which peaks after the gases ar
         fig.update_layout(
             template="plotly_dark",
             height=360,
-            title="Mixing-limited heat-release analog q(x) vs frozen 1L pressure",
-            xaxis_title="x (m)",
-            yaxis_title="q(x)  (cross-stream Var T)",
+            title="Mixing-limited heat-release analog q_proxy(x) vs closed-closed 1L pressure",
+            xaxis_title="axial position x (m)",
+            yaxis_title="q_proxy(x)  (cross-stream Var_y[Z])",
             margin=dict(l=10, r=10, t=48, b=10),
         )
         st.plotly_chart(fig, use_container_width=True)
@@ -417,7 +445,7 @@ with tabs[3]:
         st.json({"hypotheses": st.session_state["live_hyp"], "discoveries": st.session_state["live_disc"]})
 
 with tabs[4]:
-    st.write("Evaluate one nondimensional injector / operating analog. Same frozen environment the agent queries.")
+    st.write("Evaluate one nondimensional injector / operating analog. Same fixed-geometry environment the agent queries.")
     cols = st.columns(5)
     g = cols[0].slider("pattern class g", 0.0, 2.0, 0.15, 0.05)
     d = cols[1].slider("orifice spread d", 0.0, 1.0, 0.08, 0.01)
@@ -467,17 +495,20 @@ with tabs[6]:
     st.markdown(
         """
 **What this package is.** A 2-D laminar dual-jet mixing analog whose delay and spatial
-heat-release overlap drive a frozen closed-closed 1L Rayleigh criterion. Liquid-rocket
+heat-release overlap drive a declared closed-closed 1L Rayleigh criterion. Liquid-rocket
 injector *names* (like-on-like, unlike-impinging, swirl-coaxial) are geometry analogs,
 not flight hardware.
 
 **What a scientist can believe.**
 - OpenFOAM supplies mixing fields; σ_analog is a Rayleigh *indicator*, not an engine stability prediction.
-- q_proxy(x) = Var_y[T](x): unmixed fluid remaining at station x.
+- Design vector z = [g, d, a, s, o]; axial coordinate x; q_proxy(x) = Var_y[Z](x).
+- The passive scalar is denoted Z; it is stored as OpenFOAM field T.
 - Like-on-like analog: σ_analog > 0. Unlike-impinging: near the threshold. Swirl-coaxial: σ_analog < 0.
 - A fixed-low-swirl OpenFOAM g-slice has two separated unstable *intervals*, not a mapped 5-D pocket.
 - Live seed 14 independently sampled both low-g and high-g unstable regions; the g-sweep then characterized the 1-D slice.
-- Adaptive search spends matched OpenFOAM budget on the minority unstable class. All live seeds are shown as individual markers, not a population estimate.
+- Across eight matched live CFD campaigns, AI has higher unstable recall in 7/8 seeds and more unstable evaluations in 7/8. Seed 35 is the reversal and is kept.
+- Near-boundary σ MAE is a mean tie. The claim is rare-regime recovery, not dominance on every metric.
+- The high-g unstable interval is not universal within the analog; it disappears at ω + 10%.
 
 **What a scientist must not believe.**
 - This is not 3-D reacting LES, not a stability margin for a real engine, not a dimensional injector.
@@ -485,8 +516,9 @@ not flight hardware.
   Classical injectors share n-index ≈ 0.79; ordering is from OpenFOAM τ and R_spatial.
 - The atlas interpolator is smoother than a new OpenFOAM case; live foamRun campaigns exist for that reason.
 - Volume accuracy can stay high by predicting the majority stable class. Unstable recall is the metric of interest.
+- E_σ,boundary is not Hausdorff or nearest-contour distance.
 
-**Claim levels.** Observed from OpenFOAM: τ, R_spatial, q_proxy. Derived from the analog: σ_analog, stable/unstable. Inferred by the agent: reconstructed σ_analog=0 contour and predicted unstable set.
+**Claim levels.** Observed from OpenFOAM: τ, R_spatial, q_proxy(x). Derived from the analog: σ_analog(z), stable/unstable. Inferred by the agent: reconstructed σ_analog=0 contour and predicted unstable set.
 
 **Safety / dual-use.** Public outputs stay at abstract design principles. No dimensional
 flight-injector packages.

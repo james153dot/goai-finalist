@@ -6,7 +6,8 @@ Two families:
    minority unstable class is found, how many unstable evaluations the
    budget bought, how many points sit near σ = 0.
 2. Hold-out OpenFOAM scoring: a GP fit on the campaign's σ values is
-   compared to independent CFD test rows (unstable recall, boundary MAE).
+   compared to independent CFD test rows (unstable recall, near-boundary
+   growth-rate MAE E_σ,boundary, volume accuracy).
 
 Volume accuracy against a smooth interpolator is not the claim. The claim
 is that adaptive search spends expensive solver calls on the window edge.
@@ -87,12 +88,14 @@ def score_against_test(campaign_rows: list[dict], test_rows: list[dict]) -> dict
         Overall accuracy can stay high by predicting the majority stable class;
         Recall_U asks whether the reconstructed map recovers the minority regime.
 
-    Boundary MAE
+    Near-boundary growth-rate MAE, E_σ,boundary
         Let B = { i in hold-out : |σ_i| < 0.20 }. Then
-            E_B = (1/|B|) Σ_{i in B} |σ̂(x_i) − σ_i|
-        where σ̂ is the GP fit on campaign evaluations. This is the error in
-        predicted growth rate on hold-out points that already lie near the
-        analog threshold, not a Euclidean contour distance in parameter space.
+            E_σ,boundary = (1/|B|) Σ_{i in B} |σ̂(z_i) − σ_i|
+        where σ̂ is the GP fit on campaign evaluations and z is the
+        five-dimensional design vector. This is prediction error in σ_analog
+        among hold-out points already near the analog threshold. It is not
+        Hausdorff distance, nearest-contour distance, or a geometric MAE on
+        the σ_analog = 0 isosurface.
     """
     test = [r for r in test_rows if r.get("Cconv") in (1, True) and _sigma(r) == _sigma(r)]
     gp = _gp(campaign_rows)
@@ -104,7 +107,8 @@ def score_against_test(campaign_rows: list[dict], test_rows: list[dict]) -> dict
             "volume_accuracy": None,
             "unstable_recall": None,
             "stable_recall": None,
-            "boundary_mae": None,
+            "boundary_mae": None,  # alias kept for existing JSON logs
+            "near_boundary_sigma_mae": None,
             "brier": None,
         }
     )
@@ -122,9 +126,11 @@ def score_against_test(campaign_rows: list[dict], test_rows: list[dict]) -> dict
         out["stable_recall"] = float(np.mean(~pred_bin[~ybin]))
     edge = np.abs(yt) < 0.20
     if edge.any():
-        out["boundary_mae"] = float(np.mean(np.abs(mu[edge] - yt[edge])))
+        mae = float(np.mean(np.abs(mu[edge] - yt[edge])))
     else:
-        out["boundary_mae"] = float(np.mean(np.abs(mu - yt)))
+        mae = float(np.mean(np.abs(mu - yt)))
+    out["boundary_mae"] = mae
+    out["near_boundary_sigma_mae"] = mae
     # Logistic around σ = 0.
     prob_u = 1.0 / (1.0 + np.exp(-mu / 0.08))
     out["brier"] = float(np.mean((prob_u - ybin.astype(float)) ** 2))

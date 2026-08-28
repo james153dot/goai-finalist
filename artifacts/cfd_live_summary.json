@@ -2,31 +2,197 @@
   "backend": "openfoam",
   "budget": 16,
   "n_seeds": 8,
-  "seeds": [8, 11, 14, 19, 23, 26, 32, 35],
+  "seeds": [
+    8,
+    11,
+    14,
+    19,
+    23,
+    26,
+    32,
+    35
+  ],
   "holdout": "artifacts/of_test.json",
   "recall": {
-    "ai_mean": 0.681,
-    "ai_median": 0.667,
-    "ai_sd": 0.117,
-    "ai_range": [0.444, 0.889],
-    "lhs_mean": 0.333,
-    "lhs_median": 0.278,
-    "lhs_sd": 0.200,
-    "lhs_range": [0.0, 0.667]
+    "ai": {
+      "mean": 0.6805555555555556,
+      "median": 0.6666666666666666,
+      "sd": 0.1251101807177337,
+      "range": [
+        0.4444444444444444,
+        0.8888888888888888
+      ]
+    },
+    "lhs": {
+      "mean": 0.33333333333333337,
+      "median": 0.2777777777777778,
+      "sd": 0.21413869147987366,
+      "range": [
+        0.0,
+        0.6666666666666666
+      ]
+    },
+    "ai_wins": 7
   },
   "n_unstable_found": {
-    "ai_mean": 7.5,
-    "lhs_mean": 5.875
+    "ai": {
+      "mean": 7.5,
+      "median": 7.5,
+      "sd": 1.1952286093343936,
+      "range": [
+        6.0,
+        9.0
+      ]
+    },
+    "lhs": {
+      "mean": 5.875,
+      "median": 6.0,
+      "sd": 1.5526475085202969,
+      "range": [
+        3.0,
+        8.0
+      ]
+    },
+    "ai_wins": 7
+  },
+  "volume_accuracy": {
+    "ai": {
+      "mean": 0.8385416666666667,
+      "median": 0.8333333333333334,
+      "sd": 0.07195367502224156,
+      "range": [
+        0.7083333333333334,
+        0.9583333333333334
+      ]
+    },
+    "lhs": {
+      "mean": 0.7447916666666667,
+      "median": 0.7291666666666667,
+      "sd": 0.0753217305645462,
+      "range": [
+        0.625,
+        0.875
+      ]
+    },
+    "ai_wins": 7
+  },
+  "near_boundary_sigma_mae": {
+    "ai": {
+      "mean": 0.13371910125982467,
+      "median": 0.1407098376788849,
+      "sd": 0.03143478997253469,
+      "range": [
+        0.07863348828840798,
+        0.16511503306728845
+      ]
+    },
+    "lhs": {
+      "mean": 0.1338064925336909,
+      "median": 0.12193037749623109,
+      "sd": 0.045527029346250414,
+      "range": [
+        0.08271110584898303,
+        0.21833022937101612
+      ]
+    },
+    "ai_wins_lower_error": 3
+  },
+  "paired": {
+    "ai_higher_unstable_recall": "7/8",
+    "ai_more_unstable_evaluations": "7/8",
+    "ai_higher_volume_accuracy": "7/8",
+    "ai_lower_near_boundary_sigma_mae": "3/8",
+    "reversal_seed": 35
   },
   "per_seed": [
-    {"seed": 8, "ai_recall": 0.889, "lhs_recall": 0.667, "ai_n_u": 9, "lhs_n_u": 8},
-    {"seed": 11, "ai_recall": 0.667, "lhs_recall": 0.222, "ai_n_u": 7, "lhs_n_u": 5},
-    {"seed": 14, "ai_recall": 0.667, "lhs_recall": 0.0, "ai_n_u": 9, "lhs_n_u": 3},
-    {"seed": 19, "ai_recall": 0.778, "lhs_recall": 0.222, "ai_n_u": 6, "lhs_n_u": 5},
-    {"seed": 23, "ai_recall": 0.667, "lhs_recall": 0.222, "ai_n_u": 7, "lhs_n_u": 6},
-    {"seed": 26, "ai_recall": 0.667, "lhs_recall": 0.333, "ai_n_u": 8, "lhs_n_u": 6},
-    {"seed": 32, "ai_recall": 0.667, "lhs_recall": 0.444, "ai_n_u": 8, "lhs_n_u": 7},
-    {"seed": 35, "ai_recall": 0.444, "lhs_recall": 0.556, "ai_n_u": 6, "lhs_n_u": 7}
+    {
+      "seed": 8,
+      "ai_recall": 0.8888888888888888,
+      "lhs_recall": 0.6666666666666666,
+      "ai_n_u": 9,
+      "lhs_n_u": 8,
+      "ai_volume_accuracy": 0.9583333333333334,
+      "lhs_volume_accuracy": 0.875,
+      "ai_near_boundary_sigma_mae": 0.07863348828840798,
+      "lhs_near_boundary_sigma_mae": 0.10336767547583003
+    },
+    {
+      "seed": 11,
+      "ai_recall": 0.6666666666666666,
+      "lhs_recall": 0.2222222222222222,
+      "ai_n_u": 7,
+      "lhs_n_u": 5,
+      "ai_volume_accuracy": 0.875,
+      "lhs_volume_accuracy": 0.7083333333333334,
+      "ai_near_boundary_sigma_mae": 0.14726443783572118,
+      "lhs_near_boundary_sigma_mae": 0.099015274705395
+    },
+    {
+      "seed": 14,
+      "ai_recall": 0.6666666666666666,
+      "lhs_recall": 0.0,
+      "ai_n_u": 9,
+      "lhs_n_u": 3,
+      "ai_volume_accuracy": 0.8333333333333334,
+      "lhs_volume_accuracy": 0.625,
+      "ai_near_boundary_sigma_mae": 0.12546281901957332,
+      "lhs_near_boundary_sigma_mae": 0.21833022937101612
+    },
+    {
+      "seed": 19,
+      "ai_recall": 0.7777777777777778,
+      "lhs_recall": 0.2222222222222222,
+      "ai_n_u": 6,
+      "lhs_n_u": 5,
+      "ai_volume_accuracy": 0.875,
+      "lhs_volume_accuracy": 0.7083333333333334,
+      "ai_near_boundary_sigma_mae": 0.15858770190151883,
+      "lhs_near_boundary_sigma_mae": 0.1365907385810264
+    },
+    {
+      "seed": 23,
+      "ai_recall": 0.6666666666666666,
+      "lhs_recall": 0.2222222222222222,
+      "ai_n_u": 7,
+      "lhs_n_u": 6,
+      "ai_volume_accuracy": 0.7916666666666666,
+      "lhs_volume_accuracy": 0.7083333333333334,
+      "ai_near_boundary_sigma_mae": 0.16191179012805834,
+      "lhs_near_boundary_sigma_mae": 0.08271110584898303
+    },
+    {
+      "seed": 26,
+      "ai_recall": 0.6666666666666666,
+      "lhs_recall": 0.3333333333333333,
+      "ai_n_u": 8,
+      "lhs_n_u": 6,
+      "ai_volume_accuracy": 0.8333333333333334,
+      "lhs_volume_accuracy": 0.75,
+      "ai_near_boundary_sigma_mae": 0.09862230231598064,
+      "lhs_near_boundary_sigma_mae": 0.1750364503483391
+    },
+    {
+      "seed": 32,
+      "ai_recall": 0.6666666666666666,
+      "lhs_recall": 0.4444444444444444,
+      "ai_n_u": 8,
+      "lhs_n_u": 7,
+      "ai_volume_accuracy": 0.8333333333333334,
+      "lhs_volume_accuracy": 0.7916666666666666,
+      "ai_near_boundary_sigma_mae": 0.13415523752204858,
+      "lhs_near_boundary_sigma_mae": 0.10727001641143577
+    },
+    {
+      "seed": 35,
+      "ai_recall": 0.4444444444444444,
+      "lhs_recall": 0.5555555555555556,
+      "ai_n_u": 6,
+      "lhs_n_u": 7,
+      "ai_volume_accuracy": 0.7083333333333334,
+      "lhs_volume_accuracy": 0.7916666666666666,
+      "ai_near_boundary_sigma_mae": 0.16511503306728845,
+      "lhs_near_boundary_sigma_mae": 0.1481304495275018
+    }
   ],
-  "note": "Eight independent live OpenFOAM campaigns, budget 16. Seed 35 reverses hold-out recall and is kept. Seed 14 is the high-g interval exhibit."
+  "note": "Eight independent live OpenFOAM campaigns, budget 16. AI has higher unstable recall in 7 of 8 seeds and finds more unstable evaluations in 7 of 8. Seed 35 reverses both and is kept. Near-boundary growth-rate MAE is a mean tie; AI is lower in only 3/8. Seed 14 is the high-g interval exhibit."
 }

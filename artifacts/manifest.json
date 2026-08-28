@@ -12,8 +12,11 @@
       "damping": 0.08,
       "heat_release_scale": 1.45,
       "threshold": "sigma_analog = 0",
-      "q_proxy": "cross_stream_variance_of_mixture_fraction",
-      "pressure_mode": "cos(pi x / L) closed-closed 1L"
+      "q_proxy": "Var_y[Z](x); Z stored as OpenFOAM field T",
+      "pressure_mode": "cos(pi x / L) closed-closed 1L",
+      "design_vector": "z = [g, d, a, s, o]",
+      "tau": "first of 24 equal-width axial bins with Var_y[Z] < 0.045 (absolute); tau = max(1e-4, x_m / U_b); last-bin fallback; no interpolation",
+      "near_boundary_sigma_mae": "E_sigma,boundary = mean |hat_sigma(z)-sigma| on hold-out |sigma|<0.20; not Hausdorff/contour distance"
     }
   },
   "protocol": {
@@ -34,7 +37,7 @@
     "sensitivity": "artifacts/sensitivity.json",
     "g_sweep": "artifacts/g_sweep.json",
     "swirl_sweep": "artifacts/swirl_sweep.json",
-    "live_cfd_glob": "artifacts/cfd_study_s*/cfd_comparison.json",
+    "live_cfd_summary": "artifacts/cfd_live_summary.json",
     "figures": "artifacts/figures/"
   }
 }

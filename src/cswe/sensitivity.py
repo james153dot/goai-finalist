@@ -160,10 +160,10 @@ def run_sensitivity(n_seeds: int = 16, budget: int = 16, n_init: int = 5) -> dic
         "nominal_damping": ACOUSTIC_DAMPING,
         "nominal_omega0": CHAMBER_OMEGA,
         "note": (
-            "Mixing fields are frozen OpenFOAM outputs. Only analog damping D and "
-            "base frequency ω0 change. The exact σ_analog=0 contour moves; the "
-            "question is whether qualitative topology and the adaptive-search "
-            "advantage persist."
+            "Mixing fields are held fixed as OpenFOAM outputs. Only analog damping D and "
+            "base frequency ω0 change. The exact σ_analog=0 contour moves. "
+            "The high-g unstable interval is not universal within the analog; "
+            "it disappears at ω0 + 10% and therefore depends on the assumed acoustic frequency."
         ),
         "second_unstable_interval_persists_on_g_slice": topology_persistent,
         "ai_finds_more_unstables_in_every_setting": ai_still_ahead,

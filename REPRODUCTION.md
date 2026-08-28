@@ -33,8 +33,14 @@ uv run pytest
 ```
 
 Hold-out `of_test.json` is never used to train the atlas or to choose the next
-live OpenFOAM query. Analog-constant sensitivity freezes mixing fields and only
-changes D and ω0.
+live OpenFOAM query. Analog-constant sensitivity holds mixing fields fixed and
+only changes D and ω.
+
+Notation: design vector **z** = [g, d, a, s, o]; axial coordinate **x**;
+mixture fraction **Z** (OpenFOAM field name `T`). Mixing delay τ is the first
+of 24 axial bins with Var_y[Z] < 0.045, then τ = x_m / U_b. Near-boundary
+growth-rate MAE E_{σ,boundary} is hold-out |σ̂(z) − σ| among points with
+|σ| < 0.20, not geometric contour distance.
 
 Index: `artifacts/manifest.json`.
 

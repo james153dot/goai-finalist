@@ -1,10 +1,11 @@
 """Write and run a 2-D laminar dual-jet mixer in OpenFOAM 14.
 
-The chamber is frozen. Two inlet slots carry complementary mixture fraction
-T=0 and T=1. Mixing delay, unmixedness, and the Rayleigh spatial overlap are
-taken from the same steady field. Heat-release analog is the cross-stream
-mixture variance: that is where mixing-limited reaction would still be active,
-not 4T(1-T), which peaks after the gases are already uniform.
+The chamber geometry is fixed. Two inlet slots carry complementary mixture
+fraction Z=0 and Z=1 (OpenFOAM field name: T). Mixing delay, unmixedness, and
+the Rayleigh spatial overlap are taken from the same steady field.
+Heat-release analog is the cross-stream mixture variance Var_y[Z]: that is
+where mixing-limited reaction would still be active, not 4Z(1-Z), which
+peaks after the gases are already uniform.
 """
 
 from __future__ import annotations
@@ -446,9 +447,10 @@ def _metrics_from_fields(case: Path, layout: JetLayout) -> MixingReport:
             variances.append(sum((t - mu) ** 2 for t in bins[b]) / len(bins[b]))
         xmid.append(xmin + (b + 0.5) * (xmax - xmin) / nbins)
 
-# Mixing-limited heat-release *proxy*: cross-stream variance of T.
-    # Large Var_y[T] means unmixed fluid remains, so mixing-limited reaction
-    # could still occur. Fully mixed stations (Var→0) add no further q_proxy.
+    # Mixing-limited heat-release *proxy*: cross-stream variance of mixture
+    # fraction Z (OpenFOAM field name: T). Large Var_y[Z] means unmixed fluid
+    # remains, so mixing-limited reaction could still occur. Fully mixed
+    # stations (Var→0) add no further q_proxy.
     q_profile = [float(v) for v in variances]
     x_profile = [float(v) for v in xmid]
 
@@ -463,6 +465,12 @@ def _metrics_from_fields(case: Path, layout: JetLayout) -> MixingReport:
     compactness = float(q.max() / (q.mean() + 1e-12)) if q.size else 1.0
     x_q = float(np.trapezoid(q * xx, xx) / mass)
 
+    # Mixing delay. 24 equal-width axial bins of cell centres. V_b is the
+    # sample variance of Z in bin b (set to 1 if the bin has <3 cells).
+    # x_m is the bin-centre of the first bin with V_b < 0.045 (absolute
+    # variance, not V_b/V_0). If no bin meets the threshold, x_m is the last
+    # bin centre. U_b is the mean of the two inlet axial speeds.
+    # τ = max(1e-4, x_m / U_b). No interpolation between bins.
     thresh = 0.045
     L_mix = xmid[-1]
     for x, var in zip(xmid, variances):

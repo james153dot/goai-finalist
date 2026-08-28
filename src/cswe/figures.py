@@ -79,6 +79,7 @@ def _cfd_payloads() -> list[dict]:
     payloads = []
     for p in sorted((ROOT / "artifacts").glob("cfd_study_s*/cfd_comparison.json")):
         payloads.append(json.loads(p.read_text(encoding="utf-8")))
+    payloads.sort(key=lambda d: d["seed"])
     return payloads
 
 
@@ -120,11 +121,14 @@ def live_cfd_strip() -> Path | None:
     payloads = _cfd_payloads()
     if not payloads:
         return None
-    fig, axes = plt.subplots(1, 2, figsize=(8.4, 4.0))
-    for ax, field, title in (
-        (axes[0], "unstable_recall", "Hold-out unstable recall"),
-        (axes[1], "n_unstable_found", "Unstable evaluations found"),
-    ):
+    fig, axes = plt.subplots(2, 2, figsize=(8.8, 7.2))
+    panels = (
+        (axes[0, 0], "unstable_recall", "Hold-out unstable recall"),
+        (axes[0, 1], "n_unstable_found", "Unstable evaluations found"),
+        (axes[1, 0], "volume_accuracy", "Hold-out volume accuracy"),
+        (axes[1, 1], "boundary_mae", r"Near-boundary $\sigma$ MAE $E_{\sigma,\mathrm{boundary}}$"),
+    )
+    for ax, field, title in panels:
         ai = [p["ai"]["final"][field] for p in payloads]
         lhs = [p["baseline"]["final"][field] for p in payloads]
         seeds = [p["seed"] for p in payloads]
@@ -136,7 +140,7 @@ def live_cfd_strip() -> Path | None:
         ax.set_xticks([0, 1], ["AI", "LHS"])
         ax.set_title(title)
         ax.set_xlim(-0.4, 1.4)
-    fig.suptitle("Each marker is one live OpenFOAM campaign (budget 16)")
+    fig.suptitle("Each marker is one live OpenFOAM campaign (budget 16). Seed 35 is the recall reversal.")
     fig.tight_layout()
     return _save(fig, "live_cfd_strip.png")
 
@@ -156,6 +160,14 @@ def seed14_both_bands() -> Path | None:
         else:
             style = dict(c="#27ae60", marker="s", s=40, label="stable")
         ax.scatter(t, g, **style, zorder=3)
+        if t in (2, 3, 14):
+            ax.annotate(
+                f"t={t}\ng={g:.2f}\nσ={sig:+.2f}",
+                (t, g),
+                textcoords="offset points",
+                xytext=(8, 8 if sig > 0 else -18),
+                fontsize=8,
+            )
     handles = {}
     for h in ax.collections:
         lab = h.get_label()
@@ -164,7 +176,7 @@ def seed14_both_bands() -> Path | None:
     ax.legend(handles.values(), handles.keys(), loc="best")
     ax.set_xlabel("live OpenFOAM evaluation t")
     ax.set_ylabel("pattern class g")
-    ax.set_title("Seed 14 AI campaign: samples in both unstable intervals of g")
+    ax.set_title("Primary exhibit — seed 14: agent samples both unstable g-intervals before the sweep")
     ax.axhline(0.3, color="#c0392b", ls=":", lw=1, alpha=0.5)
     ax.axhline(1.5, color="#8e44ad", ls=":", lw=1, alpha=0.5)
     return _save(fig, "seed14_both_g_intervals.png")
@@ -220,8 +232,91 @@ def sensitivity_figure() -> Path | None:
     ax2.plot(x, n_int, "o--", color="#c0392b", label="g-slice unstable intervals")
     ax2.set_ylabel("unstable intervals on g-slice")
     ax2.set_ylim(0, 4)
-    ax.set_title("Analog-constant sensitivity (OpenFOAM fields frozen)")
+    ax.set_title("Analog-constant sensitivity (OpenFOAM mixing fields held fixed)")
     return _save(fig, "sensitivity.png")
+
+
+def write_live_cfd_summary() -> Path | None:
+    """Rewrite artifacts/cfd_live_summary.json from committed campaign logs."""
+    payloads = _cfd_payloads()
+    if not payloads:
+        return None
+    rows = []
+    for p in payloads:
+        ai = p["ai"]["final"]
+        lhs = p["baseline"]["final"]
+        rows.append(
+            {
+                "seed": p["seed"],
+                "ai_recall": ai["unstable_recall"],
+                "lhs_recall": lhs["unstable_recall"],
+                "ai_n_u": ai["n_unstable_found"],
+                "lhs_n_u": lhs["n_unstable_found"],
+                "ai_volume_accuracy": ai["volume_accuracy"],
+                "lhs_volume_accuracy": lhs["volume_accuracy"],
+                "ai_near_boundary_sigma_mae": ai["boundary_mae"],
+                "lhs_near_boundary_sigma_mae": lhs["boundary_mae"],
+            }
+        )
+
+    def _stats(vals: list[float]) -> dict:
+        a = np.array(vals, dtype=float)
+        return {
+            "mean": float(a.mean()),
+            "median": float(np.median(a)),
+            "sd": float(a.std(ddof=1)) if len(a) > 1 else 0.0,
+            "range": [float(a.min()), float(a.max())],
+        }
+
+    n_recall_ai = sum(r["ai_recall"] > r["lhs_recall"] for r in rows)
+    n_nu_ai = sum(r["ai_n_u"] > r["lhs_n_u"] for r in rows)
+    n_vol_ai = sum(r["ai_volume_accuracy"] > r["lhs_volume_accuracy"] for r in rows)
+    n_mae_ai = sum(r["ai_near_boundary_sigma_mae"] < r["lhs_near_boundary_sigma_mae"] for r in rows)
+    summary = {
+        "backend": "openfoam",
+        "budget": 16,
+        "n_seeds": len(rows),
+        "seeds": [r["seed"] for r in rows],
+        "holdout": "artifacts/of_test.json",
+        "recall": {
+            "ai": _stats([r["ai_recall"] for r in rows]),
+            "lhs": _stats([r["lhs_recall"] for r in rows]),
+            "ai_wins": n_recall_ai,
+        },
+        "n_unstable_found": {
+            "ai": _stats([r["ai_n_u"] for r in rows]),
+            "lhs": _stats([r["lhs_n_u"] for r in rows]),
+            "ai_wins": n_nu_ai,
+        },
+        "volume_accuracy": {
+            "ai": _stats([r["ai_volume_accuracy"] for r in rows]),
+            "lhs": _stats([r["lhs_volume_accuracy"] for r in rows]),
+            "ai_wins": n_vol_ai,
+        },
+        "near_boundary_sigma_mae": {
+            "ai": _stats([r["ai_near_boundary_sigma_mae"] for r in rows]),
+            "lhs": _stats([r["lhs_near_boundary_sigma_mae"] for r in rows]),
+            "ai_wins_lower_error": n_mae_ai,
+        },
+        "paired": {
+            "ai_higher_unstable_recall": f"{n_recall_ai}/{len(rows)}",
+            "ai_more_unstable_evaluations": f"{n_nu_ai}/{len(rows)}",
+            "ai_higher_volume_accuracy": f"{n_vol_ai}/{len(rows)}",
+            "ai_lower_near_boundary_sigma_mae": f"{n_mae_ai}/{len(rows)}",
+            "reversal_seed": 35,
+        },
+        "per_seed": rows,
+        "note": (
+            "Eight independent live OpenFOAM campaigns, budget 16. "
+            "AI has higher unstable recall in 7 of 8 seeds and finds more unstable "
+            "evaluations in 7 of 8. Seed 35 reverses both and is kept. "
+            "Near-boundary growth-rate MAE is a mean tie; AI is lower in only 3/8. "
+            "Seed 14 is the high-g interval exhibit."
+        ),
+    }
+    out = ROOT / "artifacts" / "cfd_live_summary.json"
+    out.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    return out
 
 
 def write_all() -> list[Path]:
@@ -235,6 +330,7 @@ def write_all() -> list[Path]:
         seed14_both_bands,
         seed_study_figure,
         sensitivity_figure,
+        write_live_cfd_summary,
     ):
         p = fn()
         if p is not None:
