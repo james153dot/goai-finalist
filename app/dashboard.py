@@ -153,10 +153,14 @@ level set is σ = 0, not the exponential amplitude S) and:
     if seed_study:
         s = seed_study["summary"]
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Unstable recall (24 seeds × budget 16)", f"{s['ai_mean_unstable_recall']:.2f}", f"LHS {s['lhs_mean_unstable_recall']:.2f}")
-        c2.metric("Unstable evals per campaign", f"{s['ai_mean_n_unstable']:.1f}", f"LHS {s['lhs_mean_n_unstable']:.1f}")
-        c3.metric("Hold-out boundary MAE", f"{s['ai_mean_boundary_mae']:.3f}", f"LHS {s['lhs_mean_boundary_mae']:.3f}", delta_color="inverse")
-        c4.metric("Volume accuracy", f"{s['ai_mean_volume_accuracy']:.2f}", f"LHS {s['lhs_mean_volume_accuracy']:.2f}")
+        c1.metric("Unstable recall (24 seeds × budget 16)", f"{s['ai_mean_unstable_recall']:.2f}")
+        c1.caption(f"LHS {s['lhs_mean_unstable_recall']:.2f}")
+        c2.metric("Unstable evals per campaign", f"{s['ai_mean_n_unstable']:.1f}")
+        c2.caption(f"LHS {s['lhs_mean_n_unstable']:.1f}")
+        c3.metric("Hold-out boundary MAE", f"{s['ai_mean_boundary_mae']:.3f}")
+        c3.caption(f"LHS {s['lhs_mean_boundary_mae']:.3f}")
+        c4.metric("Volume accuracy", f"{s['ai_mean_volume_accuracy']:.2f}")
+        c4.caption(f"LHS {s['lhs_mean_volume_accuracy']:.2f}")
         st.caption(
             "Atlas campaigns scored on an independent 24-case OpenFOAM hold-out (`artifacts/of_test.json`). "
             "Volume accuracy is the weak metric — space-filling already tiles the majority class. "
@@ -231,11 +235,8 @@ reaction would still be active — not 4T(1−T), which peaks after the gases ar
     rng = np.random.default_rng(0)
     for col, (name, x) in zip(cols, CLASSICAL_INJECTORS.items()):
         r = simulate(x, rng=rng, backend="atlas")
-        col.metric(
-            name.replace("_", " "),
-            "unstable" if not r.stable else "stable",
-            f"σ={r.sigma:.2f}  τ={r.tau:.3f}s  Rₓ={r.R_spatial:.2f}",
-        )
+        col.metric(name.replace("_", " "), "unstable" if not r.stable else "stable")
+        col.caption(f"σ={r.sigma:.2f}  τ={r.tau:.3f}s  Rₓ={r.R_spatial:.2f}")
     st.caption("Like-on-like is the dangerous classical analog. Unlike-impinging sits near the window. Swirl-coaxial is deep stable.")
 
     if gsweep:
