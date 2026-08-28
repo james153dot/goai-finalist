@@ -23,17 +23,17 @@
   "discoveries": [
     {
       "type": "stability_window",
-      "n_stable": 38,
-      "n_unstable": 10,
-      "stable_fraction": 0.7916666666666666,
-      "note": "A verified stable/unstable partition exists under the frozen n-\u03c4 criterion."
+      "n_stable": 37,
+      "n_unstable": 11,
+      "stable_fraction": 0.7708333333333334,
+      "note": "A verified stable/unstable partition exists under the Rayleigh-from-mixing criterion."
     },
     {
       "type": "boundary_structure",
-      "n_near_threshold": 18,
-      "mean_swirl_on_boundary": 0.4184688406780258,
-      "mean_spread_on_boundary": 0.6079459479903986,
-      "note": "Evaluations concentrated near S \u2248 1 reconstruct the window edge."
+      "n_near_threshold": 15,
+      "mean_swirl_on_boundary": 0.3779877279063947,
+      "mean_spread_on_boundary": 0.5422352910510241,
+      "note": "Evaluations concentrated near \u03c3 \u2248 0 reconstruct the window edge."
     },
     {
       "type": "anomaly",
@@ -46,6 +46,7 @@
   "fixed_environment": {
     "chamber_mode": "first_longitudinal_n_tau",
     "injector_mixing": "openfoam14_2d_laminar_dual_jet",
+    "acoustics": "rayleigh_overlap_of_mixing_limited_heat_release_on_frozen_1L_mode",
     "public_outputs": "abstract_design_principles_only"
   }
 }

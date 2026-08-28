@@ -20,6 +20,8 @@ from cswe.physics import (
 @dataclass
 class ExplorationEnv:
     seed: int = 7
+    backend: str = "atlas"
+    n_iter: int = 100
     rng: np.random.Generator = field(init=False)
     step: int = 0
 
@@ -41,7 +43,7 @@ class ExplorationEnv:
 
     def evaluate(self, x: dict[str, float]) -> SimulationResult:
         self.step += 1
-        return simulate(x, rng=self.rng)
+        return simulate(x, rng=self.rng, backend=self.backend, n_iter=self.n_iter)
 
     @staticmethod
     def bounds_array() -> np.ndarray:

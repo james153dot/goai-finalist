@@ -1,0 +1,20 @@
+{
+  "backend": "openfoam",
+  "budget": 16,
+  "n_seeds": 3,
+  "seeds": [11, 14, 19],
+  "holdout": "artifacts/of_test.json",
+  "mean": {
+    "ai_n_unstable": 7.33,
+    "lhs_n_unstable": 4.33,
+    "ai_unstable_recall": 0.70,
+    "lhs_unstable_recall": 0.15,
+    "ai_volume_accuracy": 0.86,
+    "lhs_volume_accuracy": 0.68,
+    "ai_boundary_mae": 0.144,
+    "lhs_boundary_mae": 0.151,
+    "ai_time_to_first_unstable": 1.7,
+    "lhs_time_to_first_unstable": 1.7
+  },
+  "note": "Each evaluation is a live OpenFOAM 14 foamRun. AI starts with a 5-point Latin hypercube then straddles σ=0 / hunts the missing class. Seed 14 LHS hold-out unstable recall is 0: the space-filling sample did not reconstruct the dangerous class."
+}

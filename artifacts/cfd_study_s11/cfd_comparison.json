@@ -1,0 +1,371 @@
+{
+  "budget": 16,
+  "seed": 11,
+  "backend": "openfoam",
+  "ai_diagnostics": {
+    "n_valid": 16,
+    "n_unstable_found": 7,
+    "unstable_fraction": 0.4375,
+    "time_to_first_unstable": 1,
+    "n_near_boundary": 1,
+    "frac_evals_near_edge": 0.0625,
+    "mean_abs_sigma": 0.3402908190829941
+  },
+  "baseline_diagnostics": {
+    "n_valid": 16,
+    "n_unstable_found": 5,
+    "unstable_fraction": 0.3125,
+    "time_to_first_unstable": 2,
+    "n_near_boundary": 5,
+    "frac_evals_near_edge": 0.3125,
+    "mean_abs_sigma": 0.2584763202731839
+  },
+  "hypotheses": [
+    {
+      "id": "H_swirl_monotonic",
+      "statement": "Increasing swirl intensity analog s consistently improves stability.",
+      "status": "falsified",
+      "evidence_count": 1,
+      "note": "Higher swirl analog changed mixing delay and Rayleigh overlap enough to cross \u03c3 = 0, so 'more swirl is always more stable' fails on this CFD map."
+    },
+    {
+      "id": "H_connected_unstable",
+      "statement": "Unstable conditions form a single connected region in the explored domain.",
+      "status": "not_challenged",
+      "evidence_count": 1,
+      "note": "The campaign did not isolate a disconnected pocket."
+    }
+  ],
+  "discoveries": [
+    {
+      "type": "stability_window",
+      "n_stable": 9,
+      "n_unstable": 7,
+      "stable_fraction": 0.5625,
+      "note": "A verified stable/unstable partition exists under the Rayleigh-from-mixing criterion."
+    },
+    {
+      "type": "boundary_structure",
+      "n_near_threshold": 1,
+      "mean_swirl_on_boundary": 0.03457782651130936,
+      "mean_spread_on_boundary": 0.8266076613478672,
+      "note": "Evaluations concentrated near \u03c3 \u2248 0 reconstruct the window edge."
+    },
+    {
+      "type": "counterexample",
+      "hypothesis": "H_swirl_monotonic",
+      "evidence_count": 1,
+      "note": "Higher swirl analog changed mixing delay and Rayleigh overlap enough to cross \u03c3 = 0, so 'more swirl is always more stable' fails on this CFD map."
+    }
+  ],
+  "ai": {
+    "final": {
+      "n_valid": 16,
+      "n_unstable_found": 7,
+      "unstable_fraction": 0.4375,
+      "time_to_first_unstable": 1,
+      "n_near_boundary": 1,
+      "frac_evals_near_edge": 0.0625,
+      "mean_abs_sigma": 0.3402908190829941,
+      "n_campaign": 16,
+      "n_test": 24,
+      "volume_accuracy": 0.875,
+      "unstable_recall": 0.6666666666666666,
+      "stable_recall": 1.0,
+      "boundary_mae": 0.14726443783572118,
+      "brier": 0.12591485635451846
+    },
+    "curve": [
+      {
+        "budget": 5,
+        "n_valid": 5,
+        "n_unstable_found": 1,
+        "unstable_fraction": 0.2,
+        "time_to_first_unstable": 1,
+        "n_near_boundary": 0,
+        "frac_evals_near_edge": 0.0,
+        "mean_abs_sigma": 0.3950370337471096,
+        "n_campaign": 5,
+        "n_test": 24,
+        "volume_accuracy": 0.7083333333333334,
+        "unstable_recall": 0.2222222222222222,
+        "stable_recall": 1.0,
+        "boundary_mae": 0.18626364637678097,
+        "brier": 0.21939012044185033
+      },
+      {
+        "budget": 7,
+        "n_valid": 7,
+        "n_unstable_found": 3,
+        "unstable_fraction": 0.42857142857142855,
+        "time_to_first_unstable": 1,
+        "n_near_boundary": 0,
+        "frac_evals_near_edge": 0.0,
+        "mean_abs_sigma": 0.3698223266319568,
+        "n_campaign": 7,
+        "n_test": 24,
+        "volume_accuracy": 0.7916666666666666,
+        "unstable_recall": 0.4444444444444444,
+        "stable_recall": 1.0,
+        "boundary_mae": 0.14463215528949747,
+        "brier": 0.16189200854712563
+      },
+      {
+        "budget": 9,
+        "n_valid": 9,
+        "n_unstable_found": 5,
+        "unstable_fraction": 0.5555555555555556,
+        "time_to_first_unstable": 1,
+        "n_near_boundary": 0,
+        "frac_evals_near_edge": 0.0,
+        "mean_abs_sigma": 0.3543702072246868,
+        "n_campaign": 9,
+        "n_test": 24,
+        "volume_accuracy": 0.7916666666666666,
+        "unstable_recall": 0.5555555555555556,
+        "stable_recall": 0.9333333333333333,
+        "boundary_mae": 0.13165525840417724,
+        "brier": 0.14361287364340058
+      },
+      {
+        "budget": 11,
+        "n_valid": 11,
+        "n_unstable_found": 6,
+        "unstable_fraction": 0.5454545454545454,
+        "time_to_first_unstable": 1,
+        "n_near_boundary": 1,
+        "frac_evals_near_edge": 0.09090909090909091,
+        "mean_abs_sigma": 0.3334562957750768,
+        "n_campaign": 11,
+        "n_test": 24,
+        "volume_accuracy": 0.7916666666666666,
+        "unstable_recall": 0.5555555555555556,
+        "stable_recall": 0.9333333333333333,
+        "boundary_mae": 0.17027861272772593,
+        "brier": 0.1571116906573247
+      },
+      {
+        "budget": 13,
+        "n_valid": 13,
+        "n_unstable_found": 6,
+        "unstable_fraction": 0.46153846153846156,
+        "time_to_first_unstable": 1,
+        "n_near_boundary": 1,
+        "frac_evals_near_edge": 0.07692307692307693,
+        "mean_abs_sigma": 0.3246194696877065,
+        "n_campaign": 13,
+        "n_test": 24,
+        "volume_accuracy": 0.8333333333333334,
+        "unstable_recall": 0.5555555555555556,
+        "stable_recall": 1.0,
+        "boundary_mae": 0.1668268987540479,
+        "brier": 0.15708032308451222
+      },
+      {
+        "budget": 15,
+        "n_valid": 15,
+        "n_unstable_found": 7,
+        "unstable_fraction": 0.4666666666666667,
+        "time_to_first_unstable": 1,
+        "n_near_boundary": 1,
+        "frac_evals_near_edge": 0.06666666666666667,
+        "mean_abs_sigma": 0.32118471951126104,
+        "n_campaign": 15,
+        "n_test": 24,
+        "volume_accuracy": 0.875,
+        "unstable_recall": 0.6666666666666666,
+        "stable_recall": 1.0,
+        "boundary_mae": 0.14706000487061555,
+        "brier": 0.13090036774301184
+      },
+      {
+        "budget": 16,
+        "n_valid": 16,
+        "n_unstable_found": 7,
+        "unstable_fraction": 0.4375,
+        "time_to_first_unstable": 1,
+        "n_near_boundary": 1,
+        "frac_evals_near_edge": 0.0625,
+        "mean_abs_sigma": 0.3402908190829941,
+        "n_campaign": 16,
+        "n_test": 24,
+        "volume_accuracy": 0.875,
+        "unstable_recall": 0.6666666666666666,
+        "stable_recall": 1.0,
+        "boundary_mae": 0.14726443783572118,
+        "brier": 0.12591485635451846
+      }
+    ],
+    "hypotheses": [
+      {
+        "id": "H_swirl_monotonic",
+        "statement": "Increasing swirl intensity analog s consistently improves stability.",
+        "status": "falsified",
+        "evidence_count": 1,
+        "note": "Higher swirl analog changed mixing delay and Rayleigh overlap enough to cross \u03c3 = 0, so 'more swirl is always more stable' fails on this CFD map."
+      },
+      {
+        "id": "H_connected_unstable",
+        "statement": "Unstable conditions form a single connected region in the explored domain.",
+        "status": "not_challenged",
+        "evidence_count": 1,
+        "note": "The campaign did not isolate a disconnected pocket."
+      }
+    ]
+  },
+  "baseline": {
+    "final": {
+      "n_valid": 16,
+      "n_unstable_found": 5,
+      "unstable_fraction": 0.3125,
+      "time_to_first_unstable": 2,
+      "n_near_boundary": 5,
+      "frac_evals_near_edge": 0.3125,
+      "mean_abs_sigma": 0.2584763202731839,
+      "n_campaign": 16,
+      "n_test": 24,
+      "volume_accuracy": 0.7083333333333334,
+      "unstable_recall": 0.2222222222222222,
+      "stable_recall": 1.0,
+      "boundary_mae": 0.099015274705395,
+      "brier": 0.2068621488496373
+    },
+    "curve": [
+      {
+        "budget": 5,
+        "n_valid": 5,
+        "n_unstable_found": 2,
+        "unstable_fraction": 0.4,
+        "time_to_first_unstable": 2,
+        "n_near_boundary": 1,
+        "frac_evals_near_edge": 0.2,
+        "mean_abs_sigma": 0.36312191133164784,
+        "n_campaign": 5,
+        "n_test": 24,
+        "volume_accuracy": 0.625,
+        "unstable_recall": 0.0,
+        "stable_recall": 1.0,
+        "boundary_mae": 0.11248847478205436,
+        "brier": 0.2297116040568914
+      },
+      {
+        "budget": 7,
+        "n_valid": 7,
+        "n_unstable_found": 2,
+        "unstable_fraction": 0.2857142857142857,
+        "time_to_first_unstable": 2,
+        "n_near_boundary": 1,
+        "frac_evals_near_edge": 0.14285714285714285,
+        "mean_abs_sigma": 0.3156342231585504,
+        "n_campaign": 7,
+        "n_test": 24,
+        "volume_accuracy": 0.625,
+        "unstable_recall": 0.0,
+        "stable_recall": 1.0,
+        "boundary_mae": 0.12448756738361882,
+        "brier": 0.26472477117140586
+      },
+      {
+        "budget": 9,
+        "n_valid": 9,
+        "n_unstable_found": 3,
+        "unstable_fraction": 0.3333333333333333,
+        "time_to_first_unstable": 2,
+        "n_near_boundary": 2,
+        "frac_evals_near_edge": 0.2222222222222222,
+        "mean_abs_sigma": 0.2814993956106622,
+        "n_campaign": 9,
+        "n_test": 24,
+        "volume_accuracy": 0.625,
+        "unstable_recall": 0.0,
+        "stable_recall": 1.0,
+        "boundary_mae": 0.12594052309730402,
+        "brier": 0.26715115844113974
+      },
+      {
+        "budget": 11,
+        "n_valid": 11,
+        "n_unstable_found": 4,
+        "unstable_fraction": 0.36363636363636365,
+        "time_to_first_unstable": 2,
+        "n_near_boundary": 3,
+        "frac_evals_near_edge": 0.2727272727272727,
+        "mean_abs_sigma": 0.26985320100186805,
+        "n_campaign": 11,
+        "n_test": 24,
+        "volume_accuracy": 0.625,
+        "unstable_recall": 0.0,
+        "stable_recall": 1.0,
+        "boundary_mae": 0.12377921998559309,
+        "brier": 0.26331171136734705
+      },
+      {
+        "budget": 13,
+        "n_valid": 13,
+        "n_unstable_found": 5,
+        "unstable_fraction": 0.38461538461538464,
+        "time_to_first_unstable": 2,
+        "n_near_boundary": 4,
+        "frac_evals_near_edge": 0.3076923076923077,
+        "mean_abs_sigma": 0.26519334699466973,
+        "n_campaign": 13,
+        "n_test": 24,
+        "volume_accuracy": 0.625,
+        "unstable_recall": 0.0,
+        "stable_recall": 1.0,
+        "boundary_mae": 0.12933085765443586,
+        "brier": 0.2709515382407343
+      },
+      {
+        "budget": 15,
+        "n_valid": 15,
+        "n_unstable_found": 5,
+        "unstable_fraction": 0.3333333333333333,
+        "time_to_first_unstable": 2,
+        "n_near_boundary": 5,
+        "frac_evals_near_edge": 0.3333333333333333,
+        "mean_abs_sigma": 0.2577790518925088,
+        "n_campaign": 15,
+        "n_test": 24,
+        "volume_accuracy": 0.7083333333333334,
+        "unstable_recall": 0.2222222222222222,
+        "stable_recall": 1.0,
+        "boundary_mae": 0.10396650036484797,
+        "brier": 0.21680285271914243
+      },
+      {
+        "budget": 16,
+        "n_valid": 16,
+        "n_unstable_found": 5,
+        "unstable_fraction": 0.3125,
+        "time_to_first_unstable": 2,
+        "n_near_boundary": 5,
+        "frac_evals_near_edge": 0.3125,
+        "mean_abs_sigma": 0.2584763202731839,
+        "n_campaign": 16,
+        "n_test": 24,
+        "volume_accuracy": 0.7083333333333334,
+        "unstable_recall": 0.2222222222222222,
+        "stable_recall": 1.0,
+        "boundary_mae": 0.099015274705395,
+        "brier": 0.2068621488496373
+      }
+    ],
+    "hypotheses": [
+      {
+        "id": "H_swirl_monotonic",
+        "statement": "Increasing swirl intensity analog s consistently improves stability.",
+        "status": "falsified",
+        "evidence_count": 3,
+        "note": "Higher swirl analog changed mixing delay and Rayleigh overlap enough to cross \u03c3 = 0, so 'more swirl is always more stable' fails on this CFD map."
+      },
+      {
+        "id": "H_connected_unstable",
+        "statement": "Unstable conditions form a single connected region in the explored domain.",
+        "status": "challenged",
+        "evidence_count": 5,
+        "note": "At least two unstable evaluations sit among mostly stable neighbors, which is consistent with a disconnected pocket in the CFD mixing map."
+      }
+    ]
+  }
+}

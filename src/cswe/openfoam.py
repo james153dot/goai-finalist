@@ -1,7 +1,10 @@
 """Write and run a 2-D laminar dual-jet mixer in OpenFOAM 14.
 
 The chamber is frozen. Two inlet slots carry complementary mixture fraction
-T=0 and T=1. Mixing delay and unmixedness are measured from the steady field.
+T=0 and T=1. Mixing delay, unmixedness, and the Rayleigh spatial overlap are
+taken from the same steady field. Heat-release analog is the cross-stream
+mixture variance: that is where mixing-limited reaction would still be active,
+not 4T(1-T), which peaks after the gases are already uniform.
 """
 
 from __future__ import annotations
@@ -11,8 +14,10 @@ import re
 import shutil
 import subprocess
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+
+import numpy as np
 
 from cswe.geometry import H, L, NU, T_DIFFUSIVITY, W, JetLayout, jet_layout
 
@@ -42,6 +47,12 @@ class MixingReport:
     Cconv: bool
     backend: str
     notes: str = ""
+    R_spatial: float = float("nan")
+    compactness: float = float("nan")
+    x_q: float = float("nan")
+    q_profile: list[float] = field(default_factory=list)
+    x_profile: list[float] = field(default_factory=list)
+    p_profile: list[float] = field(default_factory=list)
 
 
 def openfoam_available() -> bool:
@@ -435,6 +446,22 @@ def _metrics_from_fields(case: Path, layout: JetLayout) -> MixingReport:
             variances.append(sum((t - mu) ** 2 for t in bins[b]) / len(bins[b]))
         xmid.append(xmin + (b + 0.5) * (xmax - xmin) / nbins)
 
+    # Mixing-limited heat-release analog: cross-stream variance of T.
+    # Fully mixed stations (Var→0) contribute no further heat release.
+    q_profile = [float(v) for v in variances]
+    x_profile = [float(v) for v in xmid]
+
+    q = np.array(q_profile, dtype=float)
+    xx = np.array(x_profile, dtype=float)
+    # Closed-closed 1L analog: pressure antinodes at injector (x=0) and
+    # outlet (x=L), node at mid-chamber. Front-loaded mixing couples more.
+    xi = np.clip(xx / L, 0.0, 1.0)
+    p_mode = np.cos(np.pi * xi)
+    mass = float(np.trapezoid(np.maximum(q, 0.0), xx)) + 1e-12
+    R_spatial = float(np.trapezoid(q * p_mode, xx) / mass)
+    compactness = float(q.max() / (q.mean() + 1e-12)) if q.size else 1.0
+    x_q = float(np.trapezoid(q * xx, xx) / mass)
+
     thresh = 0.045
     L_mix = xmid[-1]
     for x, var in zip(xmid, variances):
@@ -443,13 +470,18 @@ def _metrics_from_fields(case: Path, layout: JetLayout) -> MixingReport:
             break
     u_bulk = 0.5 * (abs(layout.u0[0]) + abs(layout.u1[0]))
     tau = max(1e-4, L_mix / max(u_bulk, 1e-6))
-    # Unmixedness at a downstream flame-station analog (x ≈ 0.45 L).
     target = xmin + 0.45 * (xmax - xmin)
     j = min(range(nbins), key=lambda k: abs(xmid[k] - target))
     Um = float(max(0.0, min(1.0, 1.0 - 4.0 * variances[j])))
-    if any(v != v for v in (tau, Um, L_mix)):
+    if any(v != v for v in (tau, Um, L_mix, R_spatial)):
         return MixingReport(float("nan"), float("nan"), float("nan"), u_bulk, False, "openfoam", "nan_metric")
-    return MixingReport(float(tau), Um, float(L_mix), float(u_bulk), True, "openfoam", "")
+    return MixingReport(
+        float(tau), Um, float(L_mix), float(u_bulk), True, "openfoam", "",
+        R_spatial=R_spatial, compactness=compactness, x_q=x_q,
+        q_profile=[float(v) for v in q_profile],
+        x_profile=[float(v) for v in x_profile],
+        p_profile=[float(v) for v in p_mode],
+    )
 
 
 def run_mixer(x: dict[str, float], work: Path | None = None, n_iter: int = 280) -> MixingReport:

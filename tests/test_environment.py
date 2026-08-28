@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from cswe.environment import ExplorationEnv
-from cswe.geometry import CLASSICAL_INJECTORS, jet_layout
+from cswe.geometry import CLASSICAL_INJECTORS
 from cswe.physics import STABILITY_THRESHOLD, simulate, true_stability
 
 ATLAS = Path(__file__).resolve().parents[1] / "artifacts" / "mixing_atlas.json"
@@ -16,6 +16,7 @@ def test_simulate_returns_finite_for_interior_point():
     assert result.S > 0
     assert result.stable == (result.S < STABILITY_THRESHOLD)
     assert result.backend == "openfoam_atlas"
+    assert result.sigma == result.sigma
 
 
 def test_true_map_has_both_regimes():
@@ -35,11 +36,20 @@ def test_classical_injectors_evaluate():
         r = simulate(x)
         assert r.Cconv, name
         assert r.tau > 0
+        assert r.sigma == r.sigma
 
 
-def test_jet_slots_are_ordered():
-    layout = jet_layout(1.0, 0.2, 0.5, 0.4, 0.5)
-    assert 0 < layout.y0_lo < layout.y0_hi < layout.y1_lo < layout.y1_hi < 0.021
+def test_classical_regimes_match_cfd_story():
+    from cswe.geometry import CLASSICAL_INJECTORS
+
+    lol = simulate(CLASSICAL_INJECTORS["like_on_like"])
+    unl = simulate(CLASSICAL_INJECTORS["unlike_impinging"])
+    sw = simulate(CLASSICAL_INJECTORS["swirl_coaxial"])
+    assert not lol.stable
+    assert unl.stable
+    assert sw.stable
+    assert lol.tau < unl.tau < sw.tau
+    assert lol.R_spatial > sw.R_spatial
 
 
 def test_agent_and_baseline_same_budget():
@@ -51,3 +61,4 @@ def test_agent_and_baseline_same_budget():
     base = LatinHypercubeBaseline(ExplorationEnv(seed=4)).run(budget)
     assert len(ai.evaluations) == budget
     assert len(base.evaluations) == budget
+    assert all("sigma" in r for r in ai.evaluations)

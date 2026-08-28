@@ -1,38 +1,66 @@
 # Reproduction
 
-## Mixing atlas (OpenFOAM 14)
+OpenFOAM 14 at `/opt/openfoam14`. `FOAM_SIGFPE=0` is set by the wrapper.
+
+## 1. Mixing atlas and hold-out (OpenFOAM)
 
 ```bash
 source /opt/openfoam14/etc/bashrc
 uv sync
 uv run cswe atlas --n 32 --seed 7 --n-iter 100 --workers 4
+uv run cswe test-set --n 24 --seed 123 --n-iter 90 --workers 4
+uv run cswe atlas-report
 ```
 
-Writes `artifacts/mixing_atlas.json` (35 converged cases in the committed atlas: 32 LHS + 3 classical injectors). τ range 0.086–0.268 s.
+Atlas: 32 Latin-hypercube cases + 3 classical injector analogs →
+`artifacts/mixing_atlas.json` (35/35 converged in the committed atlas).
+Independent hold-out: `artifacts/of_test.json` (24 cases, never used to train
+the atlas or the campaigns).
 
-A single live case:
+## 2. Physics figures (live OpenFOAM)
 
 ```bash
-uv run cswe foam --g 1.0 --d 0.2 --a 0.5 --s 0.4 --o 0.5 --n-iter 120 --out artifacts/foam_case
+uv run cswe swirl-sweep --g 0.15 --n 8 --n-iter 90 --out artifacts/swirl_sweep.json
+uv run cswe g-sweep --s 0.10 --n 9 --n-iter 90 --out artifacts/g_sweep.json
+uv run cswe classical
 ```
 
-## Exploration campaigns (atlas, no solver)
+## 3. Where AI is useful (atlas, many seeds)
+
+```bash
+uv run cswe seed-study --n-seeds 24 --budget 16 --n-init 5 --out artifacts/seed_study.json
+```
+
+The agent’s first `n_init` points are themselves a Latin hypercube so the
+comparison is not “random start vs designed start.” Remaining budget is
+regime-seeking then `σ = 0` straddle. Scoring uses the OpenFOAM hold-out.
+
+## 4. Live OpenFOAM AI vs LHS
+
+```bash
+uv run cswe cfd-study --budget 16 --seed 11 --n-init 5 --n-iter 90 --out artifacts/cfd_study_s11
+uv run cswe cfd-study --budget 16 --seed 14 --n-init 5 --n-iter 90 --out artifacts/cfd_study_s14
+uv run cswe cfd-study --budget 16 --seed 19 --n-init 5 --n-iter 90 --out artifacts/cfd_study_s19
+```
+
+Each study is 16 sequential `foamRun` evaluations per method. Keep every seed.
+
+## 5. Dashboard demo campaigns (atlas, budget 48)
 
 ```bash
 uv run cswe run --budget 48 --seed 11 --out artifacts/demo
 uv run cswe run --budget 48 --seed 7 --out artifacts/seed7
 uv run cswe run --budget 48 --seed 19 --out artifacts/seed19
-uv run cswe classical
 ```
 
-Committed demo logs are seed 11. Seed 7 is a known AI Gaussian-process collapse and must be kept in the writeup.
-
-## Tests
+## 6. Tests and dashboard
 
 ```bash
 uv run pytest
+uv run streamlit run app/dashboard.py --server.port 48217 --server.address 0.0.0.0
 ```
 
-Tests skip if `artifacts/mixing_atlas.json` is missing.
+`tests/test_acoustics.py` and `tests/test_metrics.py` do not need OpenFOAM.
+Tests that call `simulate` skip if `artifacts/mixing_atlas.json` is missing.
 
 No commercial APIs. No closed-source models. No dimensional injector drawings.

@@ -1,31 +1,41 @@
 {
   "budget": 48,
   "seed": 7,
+  "claim": "Adaptive search should find the minority unstable class and the \u03c3 = 0 contour with fewer CFD evaluations than a space-filling design. Volume accuracy of a GP fit to a GP interpolator is not the claim.",
   "ai": {
     "method": "ai_level_set",
     "n_discoveries": 4,
     "first_boundary_step": 0,
+    "diagnostics": {
+      "n_valid": 48,
+      "n_unstable_found": 16,
+      "unstable_fraction": 0.3333333333333333,
+      "time_to_first_unstable": 2,
+      "n_near_boundary": 32,
+      "frac_evals_near_edge": 0.6666666666666666,
+      "mean_abs_sigma": 0.1437844713159753
+    },
     "reconstruction": {
       "n_valid": 48,
       "n_probe": 800,
-      "holdout_accuracy": 0.755,
-      "brier": 0.22823251709962747,
-      "pred_stable_fraction": 0.99875,
-      "true_stable_fraction": 0.75375
+      "holdout_accuracy": 0.975,
+      "brier": 0.03268624418593705,
+      "pred_stable_fraction": 0.7325,
+      "true_stable_fraction": 0.735
     },
     "hypotheses": [
       {
         "id": "H_swirl_monotonic",
         "statement": "Increasing swirl intensity analog s consistently improves stability.",
         "status": "falsified",
-        "evidence_count": 9,
-        "note": "Higher swirl analog changed mixing delay enough to cross the Rayleigh phase condition, so 'more swirl is always more stable' fails on this CFD map."
+        "evidence_count": 3,
+        "note": "Higher swirl analog changed mixing delay and Rayleigh overlap enough to cross \u03c3 = 0, so 'more swirl is always more stable' fails on this CFD map."
       },
       {
         "id": "H_connected_unstable",
         "statement": "Unstable conditions form a single connected region in the explored domain.",
         "status": "challenged",
-        "evidence_count": 12,
+        "evidence_count": 5,
         "note": "At least two unstable evaluations sit among mostly stable neighbors, which is consistent with a disconnected pocket in the CFD mixing map."
       }
     ]
@@ -33,14 +43,23 @@
   "baseline": {
     "method": "lhs_baseline",
     "n_discoveries": 3,
-    "first_boundary_step": 0,
+    "first_boundary_step": 2,
+    "diagnostics": {
+      "n_valid": 48,
+      "n_unstable_found": 11,
+      "unstable_fraction": 0.22916666666666666,
+      "time_to_first_unstable": 2,
+      "n_near_boundary": 15,
+      "frac_evals_near_edge": 0.3125,
+      "mean_abs_sigma": 0.29601064463330956
+    },
     "reconstruction": {
       "n_valid": 48,
       "n_probe": 800,
-      "holdout_accuracy": 0.9375,
-      "brier": 0.06435025044921171,
-      "pred_stable_fraction": 0.765,
-      "true_stable_fraction": 0.765
+      "holdout_accuracy": 0.96375,
+      "brier": 0.03486064001544971,
+      "pred_stable_fraction": 0.7475,
+      "true_stable_fraction": 0.73625
     },
     "hypotheses": [
       {

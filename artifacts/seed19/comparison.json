@@ -1,31 +1,41 @@
 {
   "budget": 48,
   "seed": 19,
+  "claim": "Adaptive search should find the minority unstable class and the \u03c3 = 0 contour with fewer CFD evaluations than a space-filling design. Volume accuracy of a GP fit to a GP interpolator is not the claim.",
   "ai": {
     "method": "ai_level_set",
     "n_discoveries": 4,
-    "first_boundary_step": 6,
+    "first_boundary_step": 9,
+    "diagnostics": {
+      "n_valid": 48,
+      "n_unstable_found": 20,
+      "unstable_fraction": 0.4166666666666667,
+      "time_to_first_unstable": 0,
+      "n_near_boundary": 26,
+      "frac_evals_near_edge": 0.5416666666666666,
+      "mean_abs_sigma": 0.18598577656414653
+    },
     "reconstruction": {
       "n_valid": 48,
       "n_probe": 800,
-      "holdout_accuracy": 0.95625,
-      "brier": 0.06925765289842642,
-      "pred_stable_fraction": 0.7475,
-      "true_stable_fraction": 0.77625
+      "holdout_accuracy": 0.98375,
+      "brier": 0.028693459319845332,
+      "pred_stable_fraction": 0.735,
+      "true_stable_fraction": 0.74625
     },
     "hypotheses": [
       {
         "id": "H_swirl_monotonic",
         "statement": "Increasing swirl intensity analog s consistently improves stability.",
         "status": "falsified",
-        "evidence_count": 4,
-        "note": "Higher swirl analog changed mixing delay enough to cross the Rayleigh phase condition, so 'more swirl is always more stable' fails on this CFD map."
+        "evidence_count": 8,
+        "note": "Higher swirl analog changed mixing delay and Rayleigh overlap enough to cross \u03c3 = 0, so 'more swirl is always more stable' fails on this CFD map."
       },
       {
         "id": "H_connected_unstable",
         "statement": "Unstable conditions form a single connected region in the explored domain.",
         "status": "challenged",
-        "evidence_count": 12,
+        "evidence_count": 7,
         "note": "At least two unstable evaluations sit among mostly stable neighbors, which is consistent with a disconnected pocket in the CFD mixing map."
       }
     ]
@@ -33,14 +43,23 @@
   "baseline": {
     "method": "lhs_baseline",
     "n_discoveries": 4,
-    "first_boundary_step": 3,
+    "first_boundary_step": 12,
+    "diagnostics": {
+      "n_valid": 48,
+      "n_unstable_found": 12,
+      "unstable_fraction": 0.25,
+      "time_to_first_unstable": 4,
+      "n_near_boundary": 9,
+      "frac_evals_near_edge": 0.1875,
+      "mean_abs_sigma": 0.31705918263355676
+    },
     "reconstruction": {
       "n_valid": 48,
       "n_probe": 800,
-      "holdout_accuracy": 0.94375,
-      "brier": 0.06142615379687575,
-      "pred_stable_fraction": 0.7675,
-      "true_stable_fraction": 0.77125
+      "holdout_accuracy": 0.97,
+      "brier": 0.03463572723248467,
+      "pred_stable_fraction": 0.7475,
+      "true_stable_fraction": 0.74
     },
     "hypotheses": [
       {
@@ -48,13 +67,13 @@
         "statement": "Increasing swirl intensity analog s consistently improves stability.",
         "status": "falsified",
         "evidence_count": 6,
-        "note": "Higher swirl analog changed mixing delay enough to cross the Rayleigh phase condition, so 'more swirl is always more stable' fails on this CFD map."
+        "note": "Higher swirl analog changed mixing delay and Rayleigh overlap enough to cross \u03c3 = 0, so 'more swirl is always more stable' fails on this CFD map."
       },
       {
         "id": "H_connected_unstable",
         "statement": "Unstable conditions form a single connected region in the explored domain.",
         "status": "challenged",
-        "evidence_count": 5,
+        "evidence_count": 6,
         "note": "At least two unstable evaluations sit among mostly stable neighbors, which is consistent with a disconnected pocket in the CFD mixing map."
       }
     ]

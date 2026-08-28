@@ -1,8 +1,11 @@
-"""Frozen Crocco n-τ acoustics on top of OpenFOAM injector mixing.
+"""Frozen closed-closed 1L acoustics driven by an OpenFOAM mixing field.
 
-The chamber mode, damping, and stability threshold are fixed. The only
-injector-dependent inputs are the CFD mixing delay τ and unmixedness Um.
-There is no planted island and no algebraic swirl counterexample.
+Heat-release analog q(x) is the cross-stream mixture variance — the stations
+where mixing-limited reaction would still be active. The chamber pressure
+mode is the frozen first longitudinal of a closed-closed duct,
+p(x) = cos(π x / L), so the injector face is a pressure antinode. The Rayleigh
+overlap is ∫ q p dx / ∫ q dx. The same field supplies the convective delay
+τ = L_mix / U. There is no planted island.
 """
 
 from __future__ import annotations
@@ -13,6 +16,7 @@ from typing import Mapping
 import numpy as np
 
 from cswe.mixing import mix as mix_cfd
+from cswe.openfoam import MixingReport, run_mixer
 
 PARAM_NAMES = ("g", "d", "a", "s", "o")
 PARAM_BOUNDS = {
@@ -23,17 +27,16 @@ PARAM_BOUNDS = {
     "o": (0.0, 1.0),
 }
 
-# Acoustic constants are frozen. TAU_REF is the typical OpenFOAM mixing delay
-# so ωτ sits near the Rayleigh sign change for this chamber.
-CHAMBER_OMEGA = 11.0  # rad/s, first-longitudinal analog of the frozen chamber
-ACOUSTIC_DAMPING = 0.07
-STABILITY_THRESHOLD = 1.0
-HEAT_RELEASE_SCALE = 1.05
+# Frozen chamber: closed-closed 1L analog. ω is not an explorable.
+CHAMBER_OMEGA = 11.0
+ACOUSTIC_DAMPING = 0.08
+STABILITY_THRESHOLD = 1.0  # S(σ=0) = 1; the agent level-set is σ = 0
+HEAT_RELEASE_SCALE = 1.45
 WALL_HEAT_BASE = 0.45
-TAU_REF = 0.18
-N_BASE = 0.40
-N_UNMIXED = 0.55
-N_LOAD = 0.20
+N_BASE = 0.50
+N_COMPACT = 0.28
+N_UNMIXED = 0.16
+N_LOAD = 0.10
 
 
 @dataclass(frozen=True)
@@ -52,6 +55,10 @@ class SimulationResult:
     stable: bool
     notes: str
     backend: str = "openfoam_atlas"
+    R_spatial: float = float("nan")
+    compactness: float = float("nan")
+    x_q: float = float("nan")
+    phase: float = float("nan")
 
     def as_dict(self) -> dict:
         return {
@@ -73,6 +80,10 @@ class SimulationResult:
             "stable": int(self.stable),
             "notes": self.notes,
             "backend": self.backend,
+            "R_spatial": self.R_spatial,
+            "compactness": self.compactness,
+            "x_q": self.x_q,
+            "phase": self.phase,
         }
 
 
@@ -89,31 +100,55 @@ def params_from_vector(v: np.ndarray) -> dict[str, float]:
     return clip_params({n: float(v[i]) for i, n in enumerate(PARAM_NAMES)})
 
 
-def _acoustics(tau: float, um: float, o: float) -> tuple[float, float, float, float, float]:
-    n_index = N_BASE + N_UNMIXED * (1.0 - um) + N_LOAD * (o - 0.5) ** 2
+def _acoustics(
+    tau: float,
+    um: float,
+    o: float,
+    R_spatial: float | None = None,
+    compactness: float | None = None,
+) -> tuple[float, float, float, float, float, float]:
+    if R_spatial is None or R_spatial != R_spatial:
+        R_spatial = 0.35
+    if compactness is None or compactness != compactness:
+        compactness = 1.4
+    n_index = (
+        N_BASE
+        + N_COMPACT * np.tanh(compactness - 1.0)
+        + N_UNMIXED * (1.0 - um)
+        + N_LOAD * (o - 0.5) ** 2
+    )
     omega = CHAMBER_OMEGA * (0.92 + 0.16 * o)
-    rayleigh = n_index * np.cos(omega * tau)
+    phase = float(np.cos(omega * tau))
+    # Spatial overlap × time-lag phase. Compact, injector-local mixing on a
+    # closed-closed 1L drives; delayed / spread mixing damps.
+    rayleigh = float(n_index * R_spatial * phase)
     sigma = HEAT_RELEASE_SCALE * rayleigh - ACOUSTIC_DAMPING
     if sigma >= 0:
         S = float(np.exp(3.2 * sigma))
     else:
         S = float(1.0 / (1.0 - 4.0 * sigma))
-    return float(n_index), float(omega), float(rayleigh), float(sigma), float(S)
+    return float(n_index), float(omega), rayleigh, float(sigma), float(S), phase
 
 
-def simulate(x: Mapping[str, float], rng: np.random.Generator | None = None) -> SimulationResult:
-    rng = rng or np.random.default_rng()
-    x = clip_params(x)
-    report = mix_cfd(x)
+def _result_from_report(
+    x: dict[str, float],
+    report: MixingReport,
+    rng: np.random.Generator,
+    noise: bool,
+) -> SimulationResult:
     if not report.Cconv:
         return SimulationResult(
             x=x, Ap=float("nan"), f_dom=float("nan"), R=float("nan"), Um=float("nan"),
             Qw=float("nan"), Cconv=False, S=float("nan"), sigma=float("nan"),
             n_index=float("nan"), tau=float("nan"), stable=False,
             notes=report.notes, backend=report.backend,
+            R_spatial=report.R_spatial, compactness=report.compactness,
+            x_q=report.x_q,
         )
-    n_index, omega, rayleigh, sigma, S = _acoustics(report.tau, report.Um, x["o"])
-    sigma_obs = float(sigma + rng.normal(0.0, 0.02))
+    n_index, omega, rayleigh, sigma, S, phase = _acoustics(
+        report.tau, report.Um, x["o"], report.R_spatial, report.compactness
+    )
+    sigma_obs = float(sigma + (rng.normal(0.0, 0.018) if noise else 0.0))
     if sigma_obs >= 0:
         Ap = float(np.exp(3.2 * sigma_obs))
     else:
@@ -124,7 +159,24 @@ def simulate(x: Mapping[str, float], rng: np.random.Generator | None = None) -> 
         Um=report.Um, Qw=Qw, Cconv=True, S=float(Ap), sigma=sigma_obs,
         n_index=n_index, tau=report.tau, stable=Ap < STABILITY_THRESHOLD,
         notes="", backend=report.backend,
+        R_spatial=report.R_spatial, compactness=report.compactness,
+        x_q=report.x_q, phase=phase,
     )
+
+
+def simulate(
+    x: Mapping[str, float],
+    rng: np.random.Generator | None = None,
+    backend: str = "atlas",
+    n_iter: int = 100,
+) -> SimulationResult:
+    rng = rng or np.random.default_rng()
+    x = clip_params(x)
+    if backend == "openfoam":
+        report = run_mixer(x, n_iter=n_iter)
+    else:
+        report = mix_cfd(x)
+    return _result_from_report(x, report, rng, noise=(backend != "openfoam"))
 
 
 def true_stability(x: Mapping[str, float]) -> bool:
@@ -132,5 +184,5 @@ def true_stability(x: Mapping[str, float]) -> bool:
     report = mix_cfd(x)
     if not report.Cconv:
         return False
-    *_, S = _acoustics(report.tau, report.Um, x["o"])
+    *rest, S, _phase = _acoustics(report.tau, report.Um, x["o"], report.R_spatial, report.compactness)
     return S < STABILITY_THRESHOLD

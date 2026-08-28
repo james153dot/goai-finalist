@@ -1,0 +1,52 @@
+{
+  "method": "ai_level_set",
+  "seed": 11,
+  "budget": 16,
+  "n_evaluations": 16,
+  "n_converged": 16,
+  "hypotheses": [
+    {
+      "id": "H_swirl_monotonic",
+      "statement": "Increasing swirl intensity analog s consistently improves stability.",
+      "status": "falsified",
+      "evidence_count": 1,
+      "note": "Higher swirl analog changed mixing delay and Rayleigh overlap enough to cross \u03c3 = 0, so 'more swirl is always more stable' fails on this CFD map."
+    },
+    {
+      "id": "H_connected_unstable",
+      "statement": "Unstable conditions form a single connected region in the explored domain.",
+      "status": "not_challenged",
+      "evidence_count": 1,
+      "note": "The campaign did not isolate a disconnected pocket."
+    }
+  ],
+  "discoveries": [
+    {
+      "type": "stability_window",
+      "n_stable": 9,
+      "n_unstable": 7,
+      "stable_fraction": 0.5625,
+      "note": "A verified stable/unstable partition exists under the Rayleigh-from-mixing criterion."
+    },
+    {
+      "type": "boundary_structure",
+      "n_near_threshold": 1,
+      "mean_swirl_on_boundary": 0.03457782651130936,
+      "mean_spread_on_boundary": 0.8266076613478672,
+      "note": "Evaluations concentrated near \u03c3 \u2248 0 reconstruct the window edge."
+    },
+    {
+      "type": "counterexample",
+      "hypothesis": "H_swirl_monotonic",
+      "evidence_count": 1,
+      "note": "Higher swirl analog changed mixing delay and Rayleigh overlap enough to cross \u03c3 = 0, so 'more swirl is always more stable' fails on this CFD map."
+    }
+  ],
+  "stability_threshold": 1.0,
+  "fixed_environment": {
+    "chamber_mode": "first_longitudinal_n_tau",
+    "injector_mixing": "openfoam14_2d_laminar_dual_jet",
+    "acoustics": "rayleigh_overlap_of_mixing_limited_heat_release_on_frozen_1L_mode",
+    "public_outputs": "abstract_design_principles_only"
+  }
+}

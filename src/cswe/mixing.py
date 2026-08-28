@@ -47,6 +47,8 @@ class MixingAtlas:
         self.rows: list[dict] = []
         self.gp_tau: GaussianProcessRegressor | None = None
         self.gp_um: GaussianProcessRegressor | None = None
+        self.gp_R: GaussianProcessRegressor | None = None
+        self.gp_c: GaussianProcessRegressor | None = None
 
     def fit(self, rows: list[dict]) -> None:
         valid = [r for r in rows if r.get("Cconv")]
@@ -54,10 +56,18 @@ class MixingAtlas:
             raise ValueError(f"Need at least 6 converged OpenFOAM cases, got {len(valid)}")
         self.rows = rows
         X = np.array([[r[n] for n in _PARAM_NAMES] for r in valid], dtype=float)
-        self.gp_tau = GaussianProcessRegressor(kernel=_kernel(), normalize_y=True, random_state=0, n_restarts_optimizer=1)
-        self.gp_um = GaussianProcessRegressor(kernel=_kernel(), normalize_y=True, random_state=1, n_restarts_optimizer=1)
+        def gp() -> GaussianProcessRegressor:
+            return GaussianProcessRegressor(
+                kernel=_kernel(), normalize_y=True, random_state=0, n_restarts_optimizer=1
+            )
+        self.gp_tau = gp()
+        self.gp_um = gp()
+        self.gp_R = gp()
+        self.gp_c = gp()
         self.gp_tau.fit(X, np.array([r["tau"] for r in valid], dtype=float))
         self.gp_um.fit(X, np.array([r["Um"] for r in valid], dtype=float))
+        self.gp_R.fit(X, np.array([r.get("R_spatial", 0.35) for r in valid], dtype=float))
+        self.gp_c.fit(X, np.array([r.get("compactness", 1.4) for r in valid], dtype=float))
 
     def predict(self, x: dict[str, float]) -> MixingReport:
         if self.gp_tau is None:
@@ -65,7 +75,13 @@ class MixingAtlas:
         v = np.array([[x[n] for n in _PARAM_NAMES]], dtype=float)
         tau = float(self.gp_tau.predict(v)[0])
         um = float(np.clip(self.gp_um.predict(v)[0], 0.0, 1.0))
-        return MixingReport(tau=max(tau, 1e-4), Um=um, L_mix=float("nan"), u_bulk=float("nan"), Cconv=True, backend="openfoam_atlas")
+        R_spatial = float(self.gp_R.predict(v)[0])
+        compactness = float(max(self.gp_c.predict(v)[0], 0.2))
+        return MixingReport(
+            tau=max(tau, 1e-4), Um=um, L_mix=float("nan"), u_bulk=float("nan"),
+            Cconv=True, backend="openfoam_atlas",
+            R_spatial=R_spatial, compactness=compactness,
+        )
 
     def save(self, path: Path = ATLAS_PATH) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -112,7 +128,21 @@ def _sample_points(n: int, seed: int) -> list[dict[str, float]]:
 def _one(x: dict[str, float], n_iter: int) -> dict:
     label = x.pop("label", "")
     report = run_mixer(x, n_iter=n_iter)
-    row = {**x, "tau": report.tau, "Um": report.Um, "L_mix": report.L_mix, "Cconv": report.Cconv, "notes": report.notes, "label": label}
+    row = {
+        **x,
+        "tau": report.tau,
+        "Um": report.Um,
+        "L_mix": report.L_mix,
+        "R_spatial": report.R_spatial,
+        "compactness": report.compactness,
+        "x_q": report.x_q,
+        "q_profile": report.q_profile,
+        "x_profile": report.x_profile,
+        "p_profile": report.p_profile,
+        "Cconv": report.Cconv,
+        "notes": report.notes,
+        "label": label,
+    }
     return row
 
 
@@ -133,4 +163,41 @@ def build_atlas(n: int = 36, seed: int = 7, n_iter: int = 120, workers: int = 4)
     atlas = MixingAtlas()
     atlas.fit(rows)
     atlas.save()
+    global _ATLAS
+    _ATLAS = atlas
     return atlas
+
+
+TEST_PATH = ROOT / "artifacts" / "of_test.json"
+
+
+def build_test_set(n: int = 20, seed: int = 123, n_iter: int = 100, workers: int = 4) -> list[dict]:
+    """Independent OpenFOAM hold-out set. Never used to train campaigns or the atlas."""
+    if not openfoam_available():
+        raise RuntimeError("OpenFOAM 14 is not available.")
+    from concurrent.futures import ProcessPoolExecutor, as_completed
+    from cswe.physics import _acoustics
+
+    sampler = qmc.LatinHypercube(d=5, seed=seed)
+    unit = sampler.random(n=n)
+    lo = np.array([_BOUNDS[k][0] for k in _PARAM_NAMES])
+    hi = np.array([_BOUNDS[k][1] for k in _PARAM_NAMES])
+    pts = [{k: float(row[i]) for i, k in enumerate(_PARAM_NAMES)} for row in qmc.scale(unit, lo, hi)]
+    rows: list[dict] = []
+    with ProcessPoolExecutor(max_workers=workers) as pool:
+        futs = [pool.submit(_one, dict(p), n_iter) for p in pts]
+        for i, fut in enumerate(as_completed(futs), 1):
+            row = fut.result()
+            n_index, omega, rayleigh, sigma, S, phase = _acoustics(
+                row["tau"], row["Um"], row["o"], row.get("R_spatial"), row.get("compactness")
+            )
+            row["S"] = S
+            row["sigma"] = sigma
+            row["stable"] = int(S < 1.0)
+            row["R"] = rayleigh
+            row["phase"] = phase
+            rows.append(row)
+            print(f"[test {i}/{n}] Cconv={row['Cconv']} S={S:.3f} stable={row['stable']}", flush=True)
+    TEST_PATH.parent.mkdir(parents=True, exist_ok=True)
+    TEST_PATH.write_text(json.dumps({"rows": rows}, indent=2), encoding="utf-8")
+    return rows

@@ -9,42 +9,42 @@
       "id": "H_swirl_monotonic",
       "statement": "Increasing swirl intensity analog s consistently improves stability.",
       "status": "falsified",
-      "evidence_count": 9,
-      "note": "Higher swirl analog changed mixing delay enough to cross the Rayleigh phase condition, so 'more swirl is always more stable' fails on this CFD map."
+      "evidence_count": 3,
+      "note": "Higher swirl analog changed mixing delay and Rayleigh overlap enough to cross \u03c3 = 0, so 'more swirl is always more stable' fails on this CFD map."
     },
     {
       "id": "H_connected_unstable",
       "statement": "Unstable conditions form a single connected region in the explored domain.",
       "status": "challenged",
-      "evidence_count": 12,
+      "evidence_count": 5,
       "note": "At least two unstable evaluations sit among mostly stable neighbors, which is consistent with a disconnected pocket in the CFD mixing map."
     }
   ],
   "discoveries": [
     {
       "type": "stability_window",
-      "n_stable": 29,
-      "n_unstable": 19,
-      "stable_fraction": 0.6041666666666666,
-      "note": "A verified stable/unstable partition exists under the frozen n-\u03c4 criterion."
+      "n_stable": 32,
+      "n_unstable": 16,
+      "stable_fraction": 0.6666666666666666,
+      "note": "A verified stable/unstable partition exists under the Rayleigh-from-mixing criterion."
     },
     {
       "type": "boundary_structure",
-      "n_near_threshold": 33,
-      "mean_swirl_on_boundary": 0.4455186929611246,
-      "mean_spread_on_boundary": 0.4807193732730365,
-      "note": "Evaluations concentrated near S \u2248 1 reconstruct the window edge."
+      "n_near_threshold": 32,
+      "mean_swirl_on_boundary": 0.37499634975090845,
+      "mean_spread_on_boundary": 0.5010190721166967,
+      "note": "Evaluations concentrated near \u03c3 \u2248 0 reconstruct the window edge."
     },
     {
       "type": "counterexample",
       "hypothesis": "H_swirl_monotonic",
-      "evidence_count": 9,
-      "note": "Higher swirl analog changed mixing delay enough to cross the Rayleigh phase condition, so 'more swirl is always more stable' fails on this CFD map."
+      "evidence_count": 3,
+      "note": "Higher swirl analog changed mixing delay and Rayleigh overlap enough to cross \u03c3 = 0, so 'more swirl is always more stable' fails on this CFD map."
     },
     {
       "type": "anomaly",
       "hypothesis": "H_connected_unstable",
-      "evidence_count": 12,
+      "evidence_count": 5,
       "note": "At least two unstable evaluations sit among mostly stable neighbors, which is consistent with a disconnected pocket in the CFD mixing map."
     }
   ],
@@ -52,6 +52,7 @@
   "fixed_environment": {
     "chamber_mode": "first_longitudinal_n_tau",
     "injector_mixing": "openfoam14_2d_laminar_dual_jet",
+    "acoustics": "rayleigh_overlap_of_mixing_limited_heat_release_on_frozen_1L_mode",
     "public_outputs": "abstract_design_principles_only"
   }
 }

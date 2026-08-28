@@ -12,6 +12,7 @@ from sklearn.gaussian_process.kernels import Matern, WhiteKernel
 import warnings
 
 from cswe.agent import CampaignRecord
+from cswe.metrics import campaign_diagnostics
 from cswe.physics import STABILITY_THRESHOLD, true_stability
 
 warnings.filterwarnings("ignore", category=ConvergenceWarning)
@@ -35,6 +36,7 @@ def save_campaign(record: CampaignRecord, out_dir: Path) -> None:
         "fixed_environment": {
             "chamber_mode": "first_longitudinal_n_tau",
             "injector_mixing": "openfoam14_2d_laminar_dual_jet",
+            "acoustics": "rayleigh_overlap_of_mixing_limited_heat_release_on_frozen_1L_mode",
             "public_outputs": "abstract_design_principles_only",
         },
     }
@@ -58,9 +60,17 @@ def boundary_error(rows: list[dict], n_probe: int = 800, seed: int = 0) -> dict:
         return {"n_valid": len(valid), "holdout_accuracy": None, "brier": None}
 
     X = np.array([[r["g"], r["d"], r["a"], r["s"], r["o"]] for r in valid], dtype=float)
-    y = np.array([r["S"] for r in valid], dtype=float)
+    y = np.array(
+        [
+            float(r["sigma"])
+            if r.get("sigma") == r.get("sigma") and r.get("sigma") is not None
+            else float(r["S"]) - 1.0
+            for r in valid
+        ],
+        dtype=float,
+    )
     gp = GaussianProcessRegressor(
-        kernel=Matern(nu=2.5) + WhiteKernel(noise_level=0.05),
+        kernel=Matern(nu=2.5) + WhiteKernel(noise_level=0.03),
         normalize_y=True,
         random_state=seed,
     )
@@ -70,7 +80,7 @@ def boundary_error(rows: list[dict], n_probe: int = 800, seed: int = 0) -> dict:
     probes = rng.random((n_probe, 5))
     probes[:, 0] *= 2.0
     mu = gp.predict(probes)
-    pred_stable = mu < STABILITY_THRESHOLD
+    pred_stable = mu <= 0.0
     true_stable = np.array(
         [
             true_stability({"g": p[0], "d": p[1], "a": p[2], "s": p[3], "o": p[4]})
@@ -78,8 +88,7 @@ def boundary_error(rows: list[dict], n_probe: int = 800, seed: int = 0) -> dict:
         ]
     )
     acc = float(np.mean(pred_stable == true_stable))
-    # Soft score: map S prediction to a probability via a logistic around the threshold.
-    prob_unstable = 1.0 / (1.0 + np.exp(-(mu - STABILITY_THRESHOLD) / 0.25))
+    prob_unstable = 1.0 / (1.0 + np.exp(-mu / 0.08))
     true_unstable = (~true_stable).astype(float)
     brier = float(np.mean((prob_unstable - true_unstable) ** 2))
     return {
@@ -92,9 +101,16 @@ def boundary_error(rows: list[dict], n_probe: int = 800, seed: int = 0) -> dict:
     }
 
 
-def first_boundary_step(rows: list[dict], band: float = 0.35) -> int | None:
+def first_boundary_step(rows: list[dict], band: float = 0.12) -> int | None:
     for r in rows:
-        if r["Cconv"] == 1 and abs(r["S"] - STABILITY_THRESHOLD) < band:
+        if r.get("Cconv") != 1:
+            continue
+        sig = r.get("sigma")
+        if sig is None or sig != sig:
+            if abs(r["S"] - STABILITY_THRESHOLD) < 0.35:
+                return int(r["t"])
+            continue
+        if abs(float(sig)) < band:
             return int(r["t"])
     return None
 
@@ -105,10 +121,16 @@ def compare_campaigns(ai: CampaignRecord, baseline: CampaignRecord) -> dict:
     return {
         "budget": ai.budget,
         "seed": ai.seed,
+        "claim": (
+            "Adaptive search should find the minority unstable class and the "
+            "σ = 0 contour with fewer CFD evaluations than a space-filling design. "
+            "Volume accuracy of a GP fit to a GP interpolator is not the claim."
+        ),
         "ai": {
             "method": ai.method,
             "n_discoveries": len(ai.discoveries),
             "first_boundary_step": first_boundary_step(ai_rows),
+            "diagnostics": campaign_diagnostics(ai_rows),
             "reconstruction": boundary_error(ai_rows, seed=ai.seed),
             "hypotheses": ai.hypotheses,
         },
@@ -116,6 +138,7 @@ def compare_campaigns(ai: CampaignRecord, baseline: CampaignRecord) -> dict:
             "method": baseline.method,
             "n_discoveries": len(baseline.discoveries),
             "first_boundary_step": first_boundary_step(base_rows),
+            "diagnostics": campaign_diagnostics(base_rows),
             "reconstruction": boundary_error(base_rows, seed=baseline.seed),
             "hypotheses": baseline.hypotheses,
         },

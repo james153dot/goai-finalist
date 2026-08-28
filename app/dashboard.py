@@ -14,6 +14,7 @@ import streamlit as st
 from cswe.agent import LevelSetAgent
 from cswe.baseline import LatinHypercubeBaseline
 from cswe.environment import ExplorationEnv
+from cswe.geometry import CLASSICAL_INJECTORS, L
 from cswe.logging_utils import compare_campaigns, load_evaluations
 from cswe.physics import PARAM_BOUNDS, STABILITY_THRESHOLD, simulate, true_stability
 
@@ -29,12 +30,18 @@ st.set_page_config(
 st.markdown(
     """
 <style>
-    .block-container { padding-top: 1.2rem; }
+    .block-container { padding-top: 1.1rem; max-width: 1400px; }
     div[data-testid="stMetric"] { background: #141414; border: 1px solid #2a2a2a; padding: 0.6rem 0.8rem; border-radius: 12px; }
 </style>
 """,
     unsafe_allow_html=True,
 )
+
+
+def _load_json(path: Path):
+    if not path.exists():
+        return None
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 @st.cache_data
@@ -59,78 +66,269 @@ def scatter_map(df: pd.DataFrame, title: str) -> go.Figure:
     valid["regime"] = np.where(valid["stable"] == 1, "stable", "unstable")
     fig = px.scatter(
         valid,
-        x="s",
-        y="d",
+        x="g",
+        y="s",
         color="regime",
-        size="S",
-        hover_data=["g", "a", "o", "S", "t"],
+        size=np.clip(np.abs(valid["sigma"]) + 0.15, 0.15, 2.0) if "sigma" in valid else valid["S"],
+        hover_data=["d", "a", "o", "S", "sigma", "tau", "t"],
         color_discrete_map={"stable": "#3dd68c", "unstable": "#ff5d5d"},
         title=title,
     )
     fig.update_layout(
         template="plotly_dark",
         height=400,
-        xaxis_title="swirl analog s",
-        yaxis_title="orifice-spread analog d",
+        xaxis_title="pattern class g",
+        yaxis_title="swirl analog s",
         legend_title="",
         margin=dict(l=10, r=10, t=48, b=10),
     )
     return fig
 
 
-def progress_curve(df: pd.DataFrame, name: str) -> go.Figure:
-    valid = df[df["Cconv"] == 1].copy()
-    if valid.empty:
-        return go.Figure()
-    valid = valid.sort_values("t")
-    near = (np.abs(valid["S"] - STABILITY_THRESHOLD) < 0.35).astype(int)
-    valid["boundary_hits"] = near.cumsum()
-    fig = px.line(valid, x="t", y="boundary_hits", title=f"{name}: cumulative near-boundary evaluations")
-    fig.update_layout(template="plotly_dark", height=320, margin=dict(l=10, r=10, t=48, b=10))
+def progress_curve(ai: pd.DataFrame, base: pd.DataFrame) -> go.Figure:
+    fig = go.Figure()
+    for df, name, color in ((ai, "AI", "#6ea8fe"), (base, "LHS", "#adb5bd")):
+        valid = df[df["Cconv"] == 1].copy()
+        if valid.empty:
+            continue
+        valid = valid.sort_values("t")
+        found = (valid["sigma"] > 0).astype(int) if "sigma" in valid else (valid["stable"] == 0).astype(int)
+        valid["n_unstable"] = found.cumsum()
+        fig.add_trace(go.Scatter(x=valid["t"], y=valid["n_unstable"], name=name, line=dict(color=color, width=2)))
+    fig.update_layout(
+        template="plotly_dark",
+        height=320,
+        title="Cumulative unstable evaluations (the dangerous class)",
+        xaxis_title="CFD / atlas evaluation t",
+        yaxis_title="unstable count",
+        margin=dict(l=10, r=10, t=48, b=10),
+    )
     return fig
 
 
 st.title("AI-guided combustion-stability windows")
 st.caption(
-    "GOAI Track 3 · Type II · OpenFOAM 14 mixing + frozen n-τ acoustics. "
-    "Injector delay and unmixedness come from 35 laminar dual-jet CFD cases. "
-    "The chamber mode and stability criterion stay fixed. Demo campaign is seed 11."
+    "GOAI Track 3 · Type II · OpenFOAM 14 dual-jet mixing + frozen closed-closed 1L Rayleigh analog. "
+    "This is not a rocket engine. The scoring object is the environment and whether adaptive search "
+    "spends expensive solver calls on the unstable window."
 )
 
 tabs = st.tabs(
-    ["Campaign results", "Run a live campaign", "Probe one condition", "True map (held-out)", "What judges should see"]
+    [
+        "Where AI is useful",
+        "CFD physics",
+        "Campaign logs",
+        "Run a live campaign",
+        "Probe one condition",
+        "Atlas slice",
+        "For a scientist judge",
+    ]
 )
 
 ai_df, base_df, comparison = load_demo()
+seed_study = _load_json(ROOT / "artifacts" / "seed_study.json")
+seeds_summary = _load_json(ROOT / "artifacts" / "seeds_summary.json")
+swirl = _load_json(ROOT / "artifacts" / "swirl_sweep.json")
+gsweep = _load_json(ROOT / "artifacts" / "g_sweep.json")
+
+cfd_studies = []
+for seed in (11, 14, 19):
+    p = ROOT / "artifacts" / f"cfd_study_s{seed}" / "cfd_comparison.json"
+    payload = _load_json(p)
+    if payload:
+        cfd_studies.append(payload)
 
 with tabs[0]:
-    if ai_df.empty:
-        st.warning("No demo logs yet. Run `cswe run --out artifacts/demo` first.")
-    else:
-        ai_valid = ai_df[ai_df["Cconv"] == 1]
-        base_valid = base_df[base_df["Cconv"] == 1]
-        c1, c2, c3, c4 = st.columns(4)
-        ai_acc = comparison.get("ai", {}).get("reconstruction", {}).get("holdout_accuracy")
-        base_acc = comparison.get("baseline", {}).get("reconstruction", {}).get("holdout_accuracy")
-        c1.metric("AI hold-out map accuracy", f"{ai_acc:.2f}" if ai_acc else "—")
-        c2.metric("LHS baseline accuracy", f"{base_acc:.2f}" if base_acc else "—")
-        c3.metric("AI first boundary step", str(comparison.get("ai", {}).get("first_boundary_step")))
-        c4.metric(
-            "AI vs baseline discoveries",
-            f"{comparison.get('ai', {}).get('n_discoveries')} / {comparison.get('baseline', {}).get('n_discoveries')}",
-        )
-        left, right = st.columns(2)
-        left.plotly_chart(scatter_map(ai_df, "AI level-set campaign (swirl × orifice spread)"), use_container_width=True)
-        right.plotly_chart(scatter_map(base_df, "Latin-hypercube baseline (same budget)"), use_container_width=True)
-        st.plotly_chart(progress_curve(ai_df, "AI"), use_container_width=True)
+    st.markdown(
+        """
+The useful job is **not** tiling a 5-D box. Unstable injectors are the minority class
+(~34% of the OpenFOAM atlas). A Latin hypercube spends most of its CFD budget confirming
+the stable majority. The agent fits a Gaussian process to the growth rate **σ** (the
+level set is σ = 0, not the exponential amplitude S) and:
 
-        st.subheader("Discovery signals (pre-registered)")
+1. hunts for the missing class if every observation so far is stable,
+2. then straddles the window edge.
+        """
+    )
+    if seed_study:
+        s = seed_study["summary"]
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Unstable recall (24 seeds × budget 16)", f"{s['ai_mean_unstable_recall']:.2f}", f"LHS {s['lhs_mean_unstable_recall']:.2f}")
+        c2.metric("Unstable evals per campaign", f"{s['ai_mean_n_unstable']:.1f}", f"LHS {s['lhs_mean_n_unstable']:.1f}")
+        c3.metric("Hold-out boundary MAE", f"{s['ai_mean_boundary_mae']:.3f}", f"LHS {s['lhs_mean_boundary_mae']:.3f}", delta_color="inverse")
+        c4.metric("Volume accuracy", f"{s['ai_mean_volume_accuracy']:.2f}", f"LHS {s['lhs_mean_volume_accuracy']:.2f}")
+        st.caption(
+            "Atlas campaigns scored on an independent 24-case OpenFOAM hold-out (`artifacts/of_test.json`). "
+            "Volume accuracy is the weak metric — space-filling already tiles the majority class. "
+            "Recall of the dangerous class and error on the σ ≈ 0 contour are the claim."
+        )
+        recs = pd.DataFrame(
+            [
+                {
+                    "seed": r["seed"],
+                    "AI n_unstable": r["ai"]["n_unstable_found"],
+                    "LHS n_unstable": r["baseline"]["n_unstable_found"],
+                    "AI first unstable": r["ai"]["time_to_first_unstable"],
+                    "LHS first unstable": r["baseline"]["time_to_first_unstable"],
+                    "AI recall": (r.get("ai_test") or {}).get("unstable_recall"),
+                    "LHS recall": (r.get("baseline_test") or {}).get("unstable_recall"),
+                }
+                for r in seed_study["records"]
+            ]
+        )
+        fig = px.scatter(
+            recs,
+            x="LHS n_unstable",
+            y="AI n_unstable",
+            hover_data=["seed", "AI recall", "LHS recall"],
+            title="Each point is one matched budget-16 campaign",
+        )
+        fig.add_shape(type="line", x0=0, y0=0, x1=12, y1=12, line=dict(color="#888", dash="dash"))
+        fig.update_layout(template="plotly_dark", height=380, margin=dict(l=10, r=10, t=48, b=10))
+        st.plotly_chart(fig, use_container_width=True)
+        st.caption("Points above the diagonal: the agent spent more of the same budget on unstable conditions.")
+    else:
+        st.info("Run `cswe seed-study` to populate the 24-seed comparison.")
+
+    st.subheader("Confirmation: each evaluation is a live OpenFOAM run")
+    if cfd_studies:
+        rows = []
+        for p in cfd_studies:
+            ai = p.get("ai_diagnostics") or (p.get("ai") or {}).get("final") or {}
+            base = p.get("baseline_diagnostics") or (p.get("baseline") or {}).get("final") or {}
+            rows.append(
+                {
+                    "seed": p["seed"],
+                    "AI unstable found": ai.get("n_unstable_found"),
+                    "LHS unstable found": base.get("n_unstable_found"),
+                    "AI first unstable": ai.get("time_to_first_unstable"),
+                    "LHS first unstable": base.get("time_to_first_unstable"),
+                    "AI recall": (p.get("ai") or {}).get("final", {}).get("unstable_recall"),
+                    "LHS recall": (p.get("baseline") or {}).get("final", {}).get("unstable_recall"),
+                    "AI boundary MAE": (p.get("ai") or {}).get("final", {}).get("boundary_mae"),
+                    "LHS boundary MAE": (p.get("baseline") or {}).get("final", {}).get("boundary_mae"),
+                }
+            )
+        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+        st.caption("Live `foamRun` campaigns, 16 evaluations per method, scored on the same OpenFOAM hold-out. Failures, if any, stay in the table.")
+    else:
+        st.info("Live OpenFOAM campaigns are still running (`cswe cfd-study`).")
+
+with tabs[1]:
+    st.markdown(
+        """
+**Fixed chamber.** Length 80 mm, height 20 mm, laminar `incompressibleFluid`, complementary
+mixture fraction T = 0 / 1. **Explorable injector vector** `x = [g, d, a, s, o]`.
+
+**Heat-release analog** is the cross-stream variance of T — stations where mixing-limited
+reaction would still be active — not 4T(1−T), which peaks after the gases are already uniform.
+
+**Acoustics.** Frozen closed-closed 1L, `p(x) = cos(πx/L)`, injector face a pressure antinode.
+σ = n · R_spatial · cos(ωτ) − damping. Unstable iff σ > 0. No planted island.
+        """
+    )
+    cols = st.columns(3)
+    rng = np.random.default_rng(0)
+    for col, (name, x) in zip(cols, CLASSICAL_INJECTORS.items()):
+        r = simulate(x, rng=rng, backend="atlas")
+        col.metric(
+            name.replace("_", " "),
+            "unstable" if not r.stable else "stable",
+            f"σ={r.sigma:.2f}  τ={r.tau:.3f}s  Rₓ={r.R_spatial:.2f}",
+        )
+    st.caption("Like-on-like is the dangerous classical analog. Unlike-impinging sits near the window. Swirl-coaxial is deep stable.")
+
+    if gsweep:
+        gdf = pd.DataFrame(gsweep["rows"])
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=gdf["g"], y=gdf["sigma"], name="σ", mode="lines+markers", line=dict(color="#ff5d5d")))
+        fig.add_hline(y=0, line_dash="dash", line_color="#888")
+        fig.add_trace(go.Scatter(x=gdf["g"], y=gdf["tau"], name="τ (s)", yaxis="y2", mode="lines+markers", line=dict(color="#6ea8fe")))
+        fig.update_layout(
+            template="plotly_dark",
+            height=380,
+            title=f"Pattern-class sweep at s={gsweep.get('s', 0.1):.2f} (live OpenFOAM)",
+            xaxis_title="pattern class g  (0 ≈ like-on-like family, 2 ≈ swirl-coaxial family)",
+            yaxis_title="growth rate σ",
+            yaxis2=dict(title="mixing delay τ (s)", overlaying="y", side="right"),
+            margin=dict(l=10, r=10, t=48, b=10),
+        )
+        st.plotly_chart(fig, use_container_width=True)
+        st.caption(
+            "On this slice the like-on-like end is unstable. The map is not monotone: "
+            "a second unstable band appears at high g with low swirl — coaxial layout without the swirl analog. "
+            "Swirl-coaxial stability on this analog needs both."
+        )
+
+    if swirl:
+        sdf = pd.DataFrame(swirl["rows"])
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=sdf["s"], y=sdf["sigma"], name="σ", mode="lines+markers", line=dict(color="#ff5d5d")))
+        fig.add_hline(y=0, line_dash="dash", line_color="#888")
+        fig.update_layout(
+            template="plotly_dark",
+            height=340,
+            title=f"Swirl analog sweep inside the like-on-like family (g={swirl.get('g', 0.15):.2f})",
+            xaxis_title="swirl analog s",
+            yaxis_title="growth rate σ",
+            margin=dict(l=10, r=10, t=48, b=10),
+        )
+        st.plotly_chart(fig, use_container_width=True)
+        st.caption(
+            "Adding swirl analog inside the like-on-like family lowers σ but does not cross the window. "
+            "You cannot swirl your way out of this family on the analog; you have to change pattern class. "
+            "That falsifies 'more swirl always stabilizes.'"
+        )
+
+    if swirl and swirl["rows"][0].get("q_profile"):
+        row0 = swirl["rows"][0]
+        row1 = swirl["rows"][-1]
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=row0["x_profile"], y=row0["q_profile"], name=f"s={row0['s']:.2f}  q(x) variance", line=dict(color="#ff5d5d")))
+        fig.add_trace(go.Scatter(x=row1["x_profile"], y=row1["q_profile"], name=f"s={row1['s']:.2f}  q(x) variance", line=dict(color="#3dd68c")))
+        if row0.get("p_profile"):
+            pmax = max(abs(v) for v in row0["p_profile"]) or 1.0
+            qmax = max(row0["q_profile"]) or 1.0
+            fig.add_trace(
+                go.Scatter(
+                    x=row0["x_profile"],
+                    y=[v / pmax * qmax for v in row0["p_profile"]],
+                    name="p(x) closed-closed 1L (scaled)",
+                    line=dict(color="#adb5bd", dash="dot"),
+                )
+            )
+        fig.update_layout(
+            template="plotly_dark",
+            height=360,
+            title="Mixing-limited heat-release analog q(x) vs frozen 1L pressure",
+            xaxis_title="x (m)",
+            yaxis_title="q(x)  (cross-stream Var T)",
+            margin=dict(l=10, r=10, t=48, b=10),
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+with tabs[2]:
+    if ai_df.empty:
+        st.warning("No demo logs yet. Run `cswe run --out artifacts/demo`.")
+    else:
+        ai_d = comparison.get("ai", {}).get("diagnostics", {})
+        base_d = comparison.get("baseline", {}).get("diagnostics", {})
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("AI unstable found (budget 48)", str(ai_d.get("n_unstable_found", "—")))
+        c2.metric("LHS unstable found", str(base_d.get("n_unstable_found", "—")))
+        c3.metric("AI first unstable step", str(ai_d.get("time_to_first_unstable", "—")))
+        c4.metric("LHS first unstable step", str(base_d.get("time_to_first_unstable", "—")))
+        left, right = st.columns(2)
+        left.plotly_chart(scatter_map(ai_df, "AI level-set campaign (pattern class × swirl)"), use_container_width=True)
+        right.plotly_chart(scatter_map(base_df, "Latin-hypercube baseline (same budget)"), use_container_width=True)
+        st.plotly_chart(progress_curve(ai_df, base_df), use_container_width=True)
+
         meta_path = DEMO_DIR / "ai" / "campaign.json"
         if meta_path.exists():
             meta = json.loads(meta_path.read_text())
             cols = st.columns(2)
             with cols[0]:
-                st.markdown("**Hypotheses**")
+                st.markdown("**Pre-registered hypotheses**")
                 for h in meta.get("hypotheses", []):
                     st.write(f"- `{h['id']}` · **{h['status']}** — {h['note']}")
             with cols[1]:
@@ -138,35 +336,25 @@ with tabs[0]:
                 for d in meta.get("discoveries", []):
                     st.write(f"- **{d['type']}** — {d['note']}")
 
+        if seeds_summary:
+            st.subheader("Three committed atlas seeds (budget 48), scored on OpenFOAM hold-out")
+            st.json(seeds_summary)
+            st.caption("All seeds are kept, including any in which the surrogate is no better than Latin hypercube.")
+
         with st.expander("Raw exploration log"):
             st.dataframe(ai_df, use_container_width=True, hide_index=True)
 
-        summary_path = ROOT / "artifacts" / "seeds_summary.json"
-        if summary_path.exists():
-            st.subheader("Three-seed summary")
-            st.json(json.loads(summary_path.read_text()))
-            st.caption("Seed 7 is a negative: the AI Gaussian process collapsed. Seeds 11 and 19 reconstruct the CFD-informed map. That variability is part of the result.")
-
-        st.subheader("Classical injector analogs (OpenFOAM mixing → n-τ)")
-        from cswe.geometry import CLASSICAL_INJECTORS
-        from cswe.physics import simulate as _sim
-        cols = st.columns(3)
-        rng = np.random.default_rng(0)
-        for col, (name, x) in zip(cols, CLASSICAL_INJECTORS.items()):
-            r = _sim(x, rng=rng)
-            col.metric(name.replace("_", " "), "stable" if r.stable else "unstable", f"S={r.S:.2f}  τ={r.tau:.3f}s")
-
-with tabs[1]:
+with tabs[3]:
     st.write(
-        "Live campaigns use a tiny budget so the dashboard stays interactive. "
-        "The committed demo logs were generated with the official CLI budget of 48."
+        "Interactive campaigns query the OpenFOAM mixing **atlas** (instant). "
+        "The committed efficiency claim uses live `foamRun` logs in `artifacts/cfd_study_s*`."
     )
-    budget = st.slider("Matched budget", min_value=12, max_value=36, value=20, step=2)
+    budget = st.slider("Matched budget", min_value=12, max_value=36, value=16, step=2)
     seed = st.number_input("Seed", min_value=0, value=11)
     if st.button("Run matched AI vs LHS campaign", type="primary"):
         with st.spinner("Exploring the stability window…"):
             env_ai = ExplorationEnv(seed=int(seed))
-            ai_rec = LevelSetAgent(env_ai, n_init=6, n_candidates=250).run(budget=int(budget))
+            ai_rec = LevelSetAgent(env_ai, n_init=5, n_candidates=400).run(budget=int(budget))
             env_b = ExplorationEnv(seed=int(seed) + 10_000)
             base_rec = LatinHypercubeBaseline(env_b).run(budget=int(budget))
             cmp = compare_campaigns(ai_rec, base_rec)
@@ -179,76 +367,91 @@ with tabs[1]:
     if "live_ai" in st.session_state:
         cmp = st.session_state["live_cmp"]
         m1, m2, m3 = st.columns(3)
-        m1.metric("AI map accuracy", f"{cmp['ai']['reconstruction']['holdout_accuracy']:.2f}")
-        m2.metric("LHS map accuracy", f"{cmp['baseline']['reconstruction']['holdout_accuracy']:.2f}")
+        m1.metric("AI unstable found", str(cmp["ai"]["diagnostics"]["n_unstable_found"]))
+        m2.metric("LHS unstable found", str(cmp["baseline"]["diagnostics"]["n_unstable_found"]))
         m3.metric("AI discoveries", str(cmp["ai"]["n_discoveries"]))
         a, b = st.columns(2)
         a.plotly_chart(scatter_map(st.session_state["live_ai"], "Live AI"), use_container_width=True)
         b.plotly_chart(scatter_map(st.session_state["live_base"], "Live LHS"), use_container_width=True)
         st.json({"hypotheses": st.session_state["live_hyp"], "discoveries": st.session_state["live_disc"]})
 
-with tabs[2]:
-    st.write("Evaluate one nondimensional injector / operating analog. This is the same frozen environment the agent queries.")
+with tabs[4]:
+    st.write("Evaluate one nondimensional injector / operating analog. Same frozen environment the agent queries.")
     cols = st.columns(5)
-    g = cols[0].slider("pattern class g", 0.0, 2.0, 1.0, 0.05)
-    d = cols[1].slider("orifice spread d", 0.0, 1.0, 0.25, 0.01)
-    a = cols[2].slider("impingement a", 0.0, 1.0, 0.45, 0.01)
-    s = cols[3].slider("swirl s", 0.0, 1.0, 0.55, 0.01)
-    o = cols[4].slider("operating analog o", 0.0, 1.0, 0.40, 0.01)
+    g = cols[0].slider("pattern class g", 0.0, 2.0, 0.15, 0.05)
+    d = cols[1].slider("orifice spread d", 0.0, 1.0, 0.08, 0.01)
+    a = cols[2].slider("impingement a", 0.0, 1.0, 0.55, 0.01)
+    s = cols[3].slider("swirl s", 0.0, 1.0, 0.08, 0.01)
+    o = cols[4].slider("operating analog o", 0.0, 1.0, 0.45, 0.01)
     result = simulate({"g": g, "d": d, "a": a, "s": s, "o": o}, rng=np.random.default_rng(0))
-    k1, k2, k3, k4 = st.columns(4)
-    k1.metric("Stability metric S", "—" if not result.Cconv else f"{result.S:.3f}")
+    k1, k2, k3, k4, k5 = st.columns(5)
+    k1.metric("Growth rate σ", "—" if not result.Cconv else f"{result.sigma:.3f}")
     k2.metric("Regime", "failed" if not result.Cconv else ("stable" if result.stable else "unstable"))
-    k3.metric("Rayleigh coupling R", "—" if not result.Cconv else f"{result.R:.3f}")
-    k4.metric("Time lag τ", f"{result.tau:.3f}")
-    st.caption(f"Threshold S_crit = {STABILITY_THRESHOLD}. S < 1 is stable. Bounds: {PARAM_BOUNDS}")
+    k3.metric("Rayleigh R_spatial", "—" if not result.Cconv else f"{result.R_spatial:.3f}")
+    k4.metric("Time lag τ", f"{result.tau:.3f} s")
+    k5.metric("Phase cos(ωτ)", "—" if result.phase != result.phase else f"{result.phase:.2f}")
+    st.caption(f"Unstable iff σ > 0 (equivalently S > {STABILITY_THRESHOLD}). Chamber length L = {L} m. Bounds: {PARAM_BOUNDS}")
     if not result.Cconv:
         st.error("Numerical non-convergence. The agent logs this and does not treat it as a discovery.")
 
-with tabs[3]:
+with tabs[5]:
     st.write(
-        "Noise-free slice of the hidden map for reviewers. The agent never sees this surface; "
+        "Noise-free slice of the **atlas interpolator**, not LES truth. The agent never sees this surface; "
         "it only receives individual simulation returns."
     )
-    slice_g = st.slider("Fixed pattern class g", 0.0, 2.0, 0.4, 0.1)
-    slice_a = st.slider("Fixed impingement a", 0.0, 1.0, 0.32, 0.02)
-    slice_o = st.slider("Fixed operating analog o", 0.0, 1.0, 0.72, 0.02)
-    n = 40
+    slice_d = st.slider("Fixed orifice spread d", 0.0, 1.0, 0.10, 0.02)
+    slice_a = st.slider("Fixed impingement a", 0.0, 1.0, 0.55, 0.02)
+    slice_o = st.slider("Fixed operating analog o", 0.0, 1.0, 0.50, 0.02)
+    n = 36
+    gg = np.linspace(0, 2, n)
     ss = np.linspace(0, 1, n)
-    dd = np.linspace(0, 1, n)
     Z = np.zeros((n, n))
-    for i, dv in enumerate(dd):
-        for j, sv in enumerate(ss):
-            Z[i, j] = 0.0 if true_stability({"g": slice_g, "d": dv, "a": slice_a, "s": sv, "o": slice_o}) else 1.0
+    for i, sv in enumerate(ss):
+        for j, gv in enumerate(gg):
+            Z[i, j] = 0.0 if true_stability({"g": float(gv), "d": slice_d, "a": slice_a, "s": float(sv), "o": slice_o}) else 1.0
     fig = px.imshow(
         Z,
         origin="lower",
-        x=ss,
-        y=dd,
+        x=gg,
+        y=ss,
         color_continuous_scale=["#3dd68c", "#ff5d5d"],
-        labels={"x": "swirl s", "y": "orifice spread d", "color": "unstable"},
-        title="True stable (green) / unstable (red) slice",
+        labels={"x": "pattern class g", "y": "swirl s", "color": "unstable"},
+        title="Atlas interpolator: stable (green) / unstable (red)",
         aspect="auto",
     )
     fig.update_layout(template="plotly_dark", height=480, coloraxis_showscale=False)
     st.plotly_chart(fig, use_container_width=True)
-    st.caption("Red = unstable. Unlike the first toy model, this slice is interpolated from OpenFOAM mixing CFD, not a planted island.")
 
-with tabs[4]:
+with tabs[6]:
     st.markdown(
         """
-**Second-round package (Type II)**
+**What this package is.** A 2-D laminar dual-jet mixing analog whose delay and spatial
+heat-release overlap drive a frozen closed-closed 1L Rayleigh criterion. Liquid-rocket
+injector *names* (like-on-like, unlike-impinging, swirl-coaxial) are geometry analogs,
+not flight hardware.
 
-1. **OpenFOAM mixing** — 35 laminar 2-D dual-jet cases (`cswe atlas`, OpenFOAM 14).
-2. **Frozen acoustics** — Crocco n-τ using CFD τ and unmixedness only. No planted island.
-3. **Runnable loop** — `cswe run` plus this dashboard.
-4. **Baselines** — budget-matched Latin hypercube **and** three classical injector analogs.
-5. **Logs** — `artifacts/demo` (seed 11) plus seeds 7 and 19.
+**What a scientist can believe.**
+- 35 converged OpenFOAM 14 mixing cases, plus an independent 24-case hold-out.
+- Heat-release analog = cross-stream mixture variance (mixing still active).
+- Pressure mode = cos(πx/L) (injector-face antinode).
+- Classical injectors: like-on-like unstable, unlike-impinging near the edge, swirl-coaxial stable.
+- Pattern class g organizes the window; swirl analog inside the like-on-like family does not stabilize it.
+- Adaptive search on σ spends matched live OpenFOAM budget on the minority
+  unstable class. Three `foamRun` campaigns, budget 16: unstable recall
+  **0.70 vs 0.15**, 7.3 vs 4.3 unstable evaluations. 24 atlas seeds confirm
+  the same direction (recall 0.62 vs 0.46). All seeds are reported, including
+  seed 14 where Latin hypercube hold-out unstable recall is zero.
 
-**In scope.** How injector analogs move a frozen chamber's stable/unstable window. Not thrust, not a flight injector.
+**What a scientist must not believe.**
+- This is not 3-D reacting LES, not a stability margin for a real engine, not a dimensional injector.
+- ω, n-index, and damping are analog constants, not measured chamber acoustics.
+- The atlas interpolator is smoother than a new OpenFOAM case; that is why live CFD campaigns exist.
+- Volume accuracy against the interpolator is the wrong score. It was the first-round trap.
 
-**What the CFD actually showed.** Like-on-like analog: unstable. Unlike-impinging and swirl-coaxial analogs: stable. Along a swirl sweep, more swirl analog *lengthened* mixing delay and moved the Rayleigh phase toward damping — the opposite of the first algebraic toy model.
+**Safety / dual-use.** Public outputs stay at abstract design principles. No dimensional
+flight-injector packages.
 
-**Safety.** Abstract design principles only. No dimensional flight-injector packages.
+**Dates.** Second-round package due 3 September. Finals (if invited) 22 September, Hangzhou.
+Type II is ranked separately from the algorithm track.
         """
     )
