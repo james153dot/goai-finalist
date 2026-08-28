@@ -346,5 +346,14 @@ def classical() -> None:
         )
 
 
+@app.command()
+def figures() -> None:
+    """Write static PNG figures from committed artifacts."""
+    from cswe.figures import write_all
+
+    for path in write_all():
+        typer.echo(str(path))
+
+
 if __name__ == "__main__":
     app()

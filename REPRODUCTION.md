@@ -56,6 +56,7 @@ uv run cswe run --budget 48 --seed 19 --out artifacts/seed19
 ## 6. Tests and dashboard
 
 ```bash
+uv run cswe figures
 uv run pytest
 uv run streamlit run app/dashboard.py --server.port 48217 --server.address 0.0.0.0
 ```

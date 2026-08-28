@@ -49,7 +49,10 @@ Per seed (AI / LHS): 11 → recall 0.67 / 0.22; 14 → 0.67 / **0.00**; 19 → 0
 Seed 14 is the exhibit: space-filling found three unstable points and still
 reconstructed a GP that predicted the hold-out unstable class as empty. The
 agent found nine unstable points and recovered two-thirds of the hold-out
-unstable set.
+unstable set. Learning curves (`artifacts/figures/live_cfd_recall_curves.png`)
+show LHS seed 19 briefly at recall 1.0 with five points, then collapsing as
+more space-filling samples flood the stable majority — the opposite of
+spending budget on the dangerous class.
 
 The same pattern holds on a larger atlas study (24 seeds, budget 16, same
 hold-out): recall 0.62 vs 0.46, 7.5 vs 4.5 unstable evaluations, boundary MAE
@@ -111,11 +114,27 @@ by bulk speed. Spatial overlap uses the same variance profile.
 
 - 2-D, laminar, non-reacting. Heat release is a mixing-variance analog, not a
   finite-rate flame.
-- `ω`, `n`, and acoustic damping are analog constants, not measured chamber data.
+- `ω`, `n`-index prefactors, and acoustic damping are **analog constants**. They
+  set the scale of σ so that both regimes exist in the box. They are not
+  measured chamber data. The *ordering* of classical injectors is not coming
+  from those constants: like-on-like, unlike-impinging, and swirl-coaxial all
+  have n-index ≈ 0.79. Discrimination is from OpenFOAM τ (Rayleigh phase) and
+  R_spatial (overlap of mixing variance with the frozen 1L mode).
 - The 35-case atlas interpolator is smoother than a new OpenFOAM case. That is
   why live `foamRun` campaigns exist.
 - Closed-closed 1L is a duct analog of an injector-face / nozzle-entrance pair,
   not a full acoustic eigenproblem.
+- The second unstable band on the g-sweep is a 9-point live slice at fixed
+  low swirl, not a fully mapped island.
+
+## Figures
+
+Written by `uv run cswe figures` into `artifacts/figures/`:
+
+- `live_cfd_recall_curves.png` — hold-out unstable recall vs live OpenFOAM budget
+- `g_sweep.png` — pattern-class sweep (not monotone)
+- `swirl_sweep.png` — swirl analog inside the like-on-like family
+- `seed_study_unstable_counts.png` — 24 atlas seeds, AI vs LHS unstable counts
 
 ## Run
 
@@ -130,6 +149,7 @@ uv run cswe g-sweep --s 0.10 --n 9
 uv run cswe seed-study --n-seeds 24 --budget 16
 uv run cswe cfd-study --budget 16 --seed 11 --out artifacts/cfd_study_s11
 uv run cswe run --budget 48 --seed 11 --out artifacts/demo
+uv run cswe figures
 uv run pytest
 uv run streamlit run app/dashboard.py --server.port 48217 --server.address 0.0.0.0
 ```

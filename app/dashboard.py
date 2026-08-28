@@ -215,6 +215,44 @@ level set is σ = 0, not the exponential amplitude S) and:
             )
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
         st.caption("Live `foamRun` campaigns, 16 evaluations per method, scored on the same OpenFOAM hold-out. Failures, if any, stay in the table.")
+        fig = go.Figure()
+        palette = {11: "#6ea8fe", 14: "#3dd68c", 19: "#c4b5fd"}
+        for p in cfd_studies:
+            seed = p["seed"]
+            color = palette.get(seed, "#adb5bd")
+            ai_c = (p.get("ai") or {}).get("curve") or []
+            base_c = (p.get("baseline") or {}).get("curve") or []
+            if ai_c:
+                fig.add_trace(
+                    go.Scatter(
+                        x=[r["budget"] for r in ai_c],
+                        y=[r.get("unstable_recall") for r in ai_c],
+                        name=f"AI seed {seed}",
+                        mode="lines+markers",
+                        line=dict(color=color, width=2),
+                    )
+                )
+            if base_c:
+                fig.add_trace(
+                    go.Scatter(
+                        x=[r["budget"] for r in base_c],
+                        y=[r.get("unstable_recall") for r in base_c],
+                        name=f"LHS seed {seed}",
+                        mode="lines+markers",
+                        line=dict(color=color, width=1, dash="dash"),
+                    )
+                )
+        fig.update_layout(
+            template="plotly_dark",
+            height=380,
+            title="Hold-out unstable recall vs live OpenFOAM budget",
+            xaxis_title="foamRun evaluations",
+            yaxis_title="unstable recall on of_test.json",
+            yaxis=dict(range=[-0.05, 1.05]),
+            margin=dict(l=10, r=10, t=48, b=10),
+        )
+        st.plotly_chart(fig, use_container_width=True)
+        st.caption("Dashed = Latin hypercube. Seed 14 LHS recall stays at 0: the space-filling GP never reconstructed the dangerous class.")
     else:
         st.info("Live OpenFOAM campaigns are still running (`cswe cfd-study`).")
 
@@ -445,7 +483,9 @@ not flight hardware.
 
 **What a scientist must not believe.**
 - This is not 3-D reacting LES, not a stability margin for a real engine, not a dimensional injector.
-- ω, n-index, and damping are analog constants, not measured chamber acoustics.
+- ω, n-index prefactors, and damping are analog constants. They set the scale of σ.
+  Like-on-like / unlike / swirl-coaxial all have n-index ≈ 0.79; the ordering is from
+  OpenFOAM τ and R_spatial, not from those constants.
 - The atlas interpolator is smoother than a new OpenFOAM case; that is why live CFD campaigns exist.
 - Volume accuracy against the interpolator is the wrong score. It was the first-round trap.
 
