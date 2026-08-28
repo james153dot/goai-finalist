@@ -1,0 +1,62 @@
+{
+  "budget": 48,
+  "seed": 7,
+  "ai": {
+    "method": "ai_level_set",
+    "n_discoveries": 3,
+    "first_boundary_step": 2,
+    "reconstruction": {
+      "n_valid": 48,
+      "n_probe": 800,
+      "holdout_accuracy": 0.95375,
+      "brier": 0.054474366949020296,
+      "pred_stable_fraction": 0.78625,
+      "true_stable_fraction": 0.8
+    },
+    "hypotheses": [
+      {
+        "id": "H_swirl_monotonic",
+        "statement": "Increasing swirl intensity analog s consistently improves stability.",
+        "status": "falsified",
+        "evidence_count": 14,
+        "note": "Higher swirl shortens the mixing lag into an in-phase heat-release band, so a common 'more swirl is always more stable' rule fails."
+      },
+      {
+        "id": "H_connected_unstable",
+        "statement": "Unstable conditions form a single connected region in the explored domain.",
+        "status": "not_challenged",
+        "evidence_count": 0,
+        "note": "The campaign did not isolate a disconnected pocket."
+      }
+    ]
+  },
+  "baseline": {
+    "method": "lhs_baseline",
+    "n_discoveries": 3,
+    "first_boundary_step": 9,
+    "reconstruction": {
+      "n_valid": 47,
+      "n_probe": 800,
+      "holdout_accuracy": 0.93625,
+      "brier": 0.0595117659430717,
+      "pred_stable_fraction": 0.7425,
+      "true_stable_fraction": 0.79375
+    },
+    "hypotheses": [
+      {
+        "id": "H_swirl_monotonic",
+        "statement": "Increasing swirl intensity analog s consistently improves stability.",
+        "status": "falsified",
+        "evidence_count": 20,
+        "note": "Higher swirl shortens the mixing lag into an in-phase heat-release band, so a common 'more swirl is always more stable' rule fails."
+      },
+      {
+        "id": "H_connected_unstable",
+        "statement": "Unstable conditions form a single connected region in the explored domain.",
+        "status": "not_challenged",
+        "evidence_count": 0,
+        "note": "The campaign did not isolate a disconnected pocket."
+      }
+    ]
+  }
+}

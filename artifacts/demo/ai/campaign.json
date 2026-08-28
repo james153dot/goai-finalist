@@ -1,0 +1,52 @@
+{
+  "method": "ai_level_set",
+  "seed": 7,
+  "budget": 48,
+  "n_evaluations": 48,
+  "n_converged": 48,
+  "hypotheses": [
+    {
+      "id": "H_swirl_monotonic",
+      "statement": "Increasing swirl intensity analog s consistently improves stability.",
+      "status": "falsified",
+      "evidence_count": 14,
+      "note": "Higher swirl shortens the mixing lag into an in-phase heat-release band, so a common 'more swirl is always more stable' rule fails."
+    },
+    {
+      "id": "H_connected_unstable",
+      "statement": "Unstable conditions form a single connected region in the explored domain.",
+      "status": "not_challenged",
+      "evidence_count": 0,
+      "note": "The campaign did not isolate a disconnected pocket."
+    }
+  ],
+  "discoveries": [
+    {
+      "type": "stability_window",
+      "n_stable": 35,
+      "n_unstable": 13,
+      "stable_fraction": 0.7291666666666666,
+      "note": "A verified stable/unstable partition exists under the frozen n-\u03c4 criterion."
+    },
+    {
+      "type": "boundary_structure",
+      "n_near_threshold": 29,
+      "mean_swirl_on_boundary": 0.7498657308321568,
+      "mean_spread_on_boundary": 0.4809566284091783,
+      "note": "Evaluations concentrated near S \u2248 1 reconstruct the window edge."
+    },
+    {
+      "type": "counterexample",
+      "hypothesis": "H_swirl_monotonic",
+      "evidence_count": 14,
+      "note": "Higher swirl shortens the mixing lag into an in-phase heat-release band, so a common 'more swirl is always more stable' rule fails."
+    }
+  ],
+  "stability_threshold": 1.0,
+  "fixed_environment": {
+    "chamber_mode": "first_longitudinal_nondim",
+    "model": "crocco_n_tau",
+    "propellant_family": "abstract_LOX_fuel_analog",
+    "public_outputs": "abstract_design_principles_only"
+  }
+}

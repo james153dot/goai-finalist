@@ -1,0 +1,36 @@
+[project]
+name = "cswe"
+version = "0.1.0"
+description = "AI-guided exploration of liquid-rocket combustion-stability windows for GOAI Track 3 Type II."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Dave Lu" }]
+keywords = ["combustion-stability", "active-learning", "ai-for-science", "goai"]
+dependencies = [
+  "numpy>=2.0",
+  "scikit-learn>=1.5",
+  "scipy>=1.13",
+  "matplotlib>=3.9",
+  "plotly>=5.24",
+  "pandas>=2.2",
+  "streamlit>=1.38",
+  "typer>=0.12",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3"]
+
+[project.scripts]
+cswe = "cswe.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cswe"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
