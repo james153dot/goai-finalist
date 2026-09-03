@@ -177,13 +177,15 @@ def _assess_hypotheses(record: CampaignRecord) -> list[dict]:
     h1 = {
         "id": "H_swirl_monotonic",
         "statement": "Increasing swirl intensity analog s consistently improves stability.",
-        "status": "falsified" if counterexamples else "not_falsified",
+        "status": "challenged" if counterexamples else "not_challenged",
         "evidence_count": len(counterexamples),
         "note": (
-            "Higher swirl analog changed mixing delay and Rayleigh overlap enough "
-            "to cross σ_analog = 0, so 'more swirl is always more stable' fails on this analog map."
+            "Sparse 5-D comparisons challenge a globally monotonic swirl-stability "
+            "relationship. Other design coordinates also vary, so this is not a "
+            "controlled one-factor causal falsification; use the fixed-family swirl "
+            "sweep for follow-up."
             if counterexamples
-            else "No clear counterexample in this budget."
+            else "No clear challenge to the global monotonicity hypothesis in this budget."
         ),
     }
 

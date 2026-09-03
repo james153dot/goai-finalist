@@ -25,6 +25,7 @@ def save_campaign(record: CampaignRecord, out_dir: Path) -> None:
         for row in record.evaluations:
             fh.write(json.dumps(row) + "\n")
     meta = {
+        "schema_version": 2,
         "method": record.method,
         "seed": record.seed,
         "budget": record.budget,
@@ -34,6 +35,10 @@ def save_campaign(record: CampaignRecord, out_dir: Path) -> None:
         "hypotheses": record.hypotheses,
         "discoveries": record.discoveries,
         "stability_threshold": STABILITY_THRESHOLD,
+        "interpretation_policy": {
+            "sparse_multivariate_hypotheses": "challenge_not_causal_falsification",
+            "connectivity": "neighbor_anomaly_not_proof_of_5d_topology",
+        },
         "fixed_environment": {
             "chamber_mode": "first_longitudinal_n_tau",
             "injector_mixing": "openfoam14_2d_laminar_dual_jet",

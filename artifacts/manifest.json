@@ -2,11 +2,21 @@
   "project": {
     "name": "cswe",
     "version": "0.1.0",
-    "track": "GOAI Track 3 Type II"
+    "track": "GOAI Track 3",
+    "subtrack": "Open Exploration / Type II"
+  },
+  "submission_contract": {
+    "minimal_runnable_environment": "src/cswe/ with committed OpenFOAM mixing atlas",
+    "complete_exploration_logs": "artifacts/cfd_study_s*/ai/exploration.jsonl and matched baseline logs",
+    "reference_frame": "matched-budget Latin hypercube baseline; random baseline additionally retained in atlas studies",
+    "readme": "README.md",
+    "reproduction": "REPRODUCTION.md",
+    "self_check": "GOAI_OPEN_EXPLORATION_CHECKLIST.md"
   },
   "environment": {
     "openfoam": "14",
     "python": ">=3.11",
+    "python_lock": "uv.lock",
     "analog": {
       "omega0": 11.0,
       "damping": 0.08,
@@ -29,7 +39,9 @@
     "atlas_n": 35,
     "atlas_seed": 7,
     "matched_bounds": true,
-    "ai_init_is_latin_hypercube": true
+    "ai_init_is_latin_hypercube": true,
+    "holdout_used_for_training": false,
+    "holdout_used_for_query_selection": false
   },
   "primary_live_seeds": [8, 11, 14, 19, 23, 26, 32, 35],
   "artifacts": {
@@ -41,6 +53,33 @@
     "g_sweep": "artifacts/g_sweep.json",
     "swirl_sweep": "artifacts/swirl_sweep.json",
     "live_cfd_summary": "artifacts/cfd_live_summary.json",
+    "live_campaign_glob": "artifacts/cfd_study_s*/",
     "figures": "artifacts/figures/"
+  },
+  "artifact_provenance": {
+    "audited_base_commit": "28328f1407d9a28c64b80a4f8b1ca2a4642a6062",
+    "raw_numerical_artifacts_preserved": true,
+    "legacy_validity_field": "Cconv",
+    "current_validity_field": "Cvalid",
+    "reader_policy": "row.get('Cvalid', row.get('Cconv', False))",
+    "interpretation_revision": "Sparse multivariate neighbor evidence challenges hypotheses but is not treated as a controlled causal falsification or proof of 5-D topology.",
+    "details": "ARTIFACT_PROVENANCE.md"
+  },
+  "disclosure": {
+    "external_datasets": [],
+    "external_trained_models": [],
+    "commercial_apis": [],
+    "proprietary_engine_geometry_or_measurements": false,
+    "generated_data": "synthetic 2-D OpenFOAM mixing fields produced for this project",
+    "direct_dependencies": "pyproject.toml",
+    "resolved_dependencies": "uv.lock",
+    "third_party_licenses": "THIRD_PARTY.md",
+    "project_license": "MIT"
+  },
+  "judge_entrypoints": {
+    "minimum_reproduction": "uv run cswe reproduce",
+    "submission_check": "uv run python tools/check_open_exploration.py",
+    "tests": "uv run pytest",
+    "dashboard": "uv run streamlit run app/dashboard.py --server.port 48217 --server.address 0.0.0.0"
   }
 }

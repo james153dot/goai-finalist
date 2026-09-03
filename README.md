@@ -412,19 +412,79 @@ uv run cswe figures
 
 Machine-readable index: `artifacts/manifest.json`.
 
-## Scoring object for GOAI Type II
+## Artifact provenance and schema
 
-Problem / environment 45% — fixed-geometry chamber, explorable injector,
-OpenFOAM mixing fields, Rayleigh analog with declared constants, classical
-injector analogs, limitations.
+The committed numerical CFD evaluations are preserved rather than rewritten to
+look newer than they are. Some historical JSONL rows use the legacy validity
+field `Cconv`; current code writes `Cvalid` and accepts `Cconv` as a backward-
+compatibility alias. The numerical values, solver outputs, matched budgets,
+and hold-out scores are not changed by this compliance pass.
 
-Exploration signal 35% — adaptive search on σ_analog = 0, pre-registered
-signals, minority-class efficiency, unstable conditions at both low and high g in live seed 14.
+The source code now treats sparse multivariate evidence conservatively: a
+neighbor-based observation can **challenge** a global monotonicity or
+connectedness hypothesis, but it is not presented as a controlled causal
+falsification or as proof of 5-D topology. The controlled one-factor sweeps
+remain the follow-up evidence. See `ARTIFACT_PROVENANCE.md` for the exact
+scope of the interpretation/schema revision.
 
-Verifiability 15% — JSONL logs, seeds, hold-out OpenFOAM test set, analog and
-τ-definition sensitivity, `pytest`, `cswe reproduce`.
+## Follow-up research paths
 
-Open-source 5% — MIT, no APIs, no closed models.
+1. Replace the non-reacting mixing proxy with finite-rate reacting CFD and
+   test whether the observed window topology survives.
+2. Replace the frozen closed-closed 1L assumption with independently solved
+   acoustic modes and quantify movement of `σ_analog = 0`.
+3. Run mesh, iteration, and solver-convergence studies concentrated on
+   candidate boundary and high-`g` cases.
+4. Extend the injector analog to three dimensions and test whether adaptive
+   exploration retains its rare-regime advantage.
+5. Compare alternative autonomous exploration policies under the same
+   OpenFOAM budget and independent hold-out protocol.
+6. Treat sensitivity-driven disappearances of the high-`g` interval as
+   targets for controlled mechanistic follow-up rather than universal design
+   conclusions.
+
+## Mapping to the GOAI Open Exploration judging dimensions
+
+The semifinal guide lists four Open Exploration judging dimensions. This
+repository does **not** assign unofficial percentage weights to them.
+
+**Problem Definition & Environment Design Quality.** The problem boundary,
+fixed components, explorable coordinates, feedback, and claim levels are
+declared in this README and implemented in `src/cswe/`.
+
+**Exploration Process & Scientific/Research Signals.** Predeclared discovery
+signals, adaptive search, the seed-14 follow-up, the retained reversal seed,
+nonmonotonic slice, and sensitivity-driven negative results are committed as
+inspectable artifacts.
+
+**Inspectability & Continuability.** `REPRODUCTION.md`, JSON/JSONL logs, the
+independent hold-out set, `artifacts/manifest.json`,
+`ARTIFACT_PROVENANCE.md`, tests, the dashboard, and the follow-up paths form
+an extendable problem/environment package.
+
+**Open-source Contributions.** Code is MIT licensed. The exploration
+environment, baseline, artifact pipeline, dashboard, and data-processing code
+are reusable. Third-party software, external data/model/API use, and licenses
+are disclosed in `THIRD_PARTY.md`.
+
+A requirement-by-requirement self-check is in
+`GOAI_OPEN_EXPLORATION_CHECKLIST.md`. Judges can also run:
+
+```bash
+uv run python tools/check_open_exploration.py
+```
+
+## External resources and licenses
+
+- External datasets: **none**.
+- External trained models: **none**.
+- Commercial APIs: **none**.
+- Proprietary engine geometry or measurements: **none**.
+- CFD artifacts: synthetic 2-D OpenFOAM mixing cases generated for this
+  project.
+- Exact resolved Python dependency versions: `uv.lock`.
+- Direct dependencies and upstream licenses: `THIRD_PARTY.md`.
+- Project code license: **MIT**.
 
 ## License
 
