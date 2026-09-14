@@ -1,0 +1,73 @@
+{
+  "status": "PENDING",
+  "reason": "OpenFOAM 14 is not available. Independent final CFD hold-out was not generated. Atlas predictions are not substituted for this validation.",
+  "frozen": {
+    "frozen_statement": "The algorithm, constants, discovery criteria, and evaluation metrics were frozen before the final validation set was generated.",
+    "analog_constants": {
+      "alpha": 1.45,
+      "D": 0.08,
+      "omega0": 11.0,
+      "n_base": 0.5,
+      "n_compact": 0.28,
+      "n_unmixed": 0.16,
+      "n_load": 0.1,
+      "omega_scale": {
+        "base": 0.92,
+        "o_coef": 0.16
+      },
+      "sigma_threshold": 0.0,
+      "S_threshold": 1.0,
+      "V_crit": 0.045,
+      "N_bins": 24,
+      "wall_heat_base": 0.45
+    },
+    "acquisition": {
+      "class": "LevelSetAgent",
+      "policy": "full",
+      "n_init": 5,
+      "n_candidates": 700,
+      "epsilon": 0.1,
+      "straddle": "1.96 * std - |mu - 0|",
+      "missing_class_hunt": true
+    },
+    "parameter_bounds": {
+      "g": [
+        0.0,
+        2.0
+      ],
+      "d": [
+        0.0,
+        1.0
+      ],
+      "a": [
+        0.0,
+        1.0
+      ],
+      "s": [
+        0.0,
+        1.0
+      ],
+      "o": [
+        0.0,
+        1.0
+      ]
+    },
+    "final_validation_seed": 101,
+    "holdout_size": 48,
+    "budget": 16,
+    "n_iter": 90,
+    "methods": [
+      "LevelSetAgent(policy=full)",
+      "LatinHypercubeBaseline",
+      "RandomBaseline"
+    ],
+    "scoring": "Identical GP scoring as metrics.score_against_test on the new hold-out. No tuning after the hold-out is generated.",
+    "holdout_path": "artifacts/final_validation_holdout.json",
+    "existing_holdout_not_reused": "artifacts/of_test.json is not the final-validation set."
+  },
+  "results": null,
+  "timestamp_utc": "2026-09-14T23:47:25+00:00",
+  "git_commit_sha": "34f7fc5cc5c8240657993f426ea4b308ed20f0d7",
+  "working_tree_dirty": true,
+  "openfoam_executed": false
+}

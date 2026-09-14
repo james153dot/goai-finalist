@@ -1,7 +1,7 @@
 [project]
 name = "cswe"
 version = "0.1.0"
-description = "AI-guided exploration of liquid-rocket combustion-stability windows for GOAI Track 3 Type II."
+description = "AI-guided exploration of a combustion-stability analog for GOAI Track 3 Type II."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }

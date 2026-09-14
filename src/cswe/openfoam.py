@@ -141,17 +141,39 @@ def _write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def _ny(span: float) -> int:
-    return max(4, int(round(28 * span / H)))
+def _ny(span: float, mesh_scale: float = 1.0) -> int:
+    return max(4, int(round(28 * span / H * float(mesh_scale))))
 
 
-def write_case(case: Path, layout: JetLayout, n_iter: int = 280) -> None:
+def _nxs(mesh_scale: float = 1.0) -> int:
+    return max(16, int(round(48 * float(mesh_scale))))
+
+
+def _y_levels(layout: JetLayout) -> list[float]:
     y = [0.0, layout.y0_lo, layout.y0_hi, layout.y1_lo, layout.y1_hi, H]
     for i in range(1, len(y)):
         if y[i] <= y[i - 1] + 1e-6:
             y[i] = y[i - 1] + 1.5e-4
     if y[-1] < H:
         y[-1] = H
+    return y
+
+
+def mesh_plan(layout: JetLayout, mesh_scale: float = 1.0) -> dict:
+    """Cell counts for a relative mesh scale. scale=1.0 is the committed default."""
+    y = _y_levels(layout)
+    nxs = _nxs(mesh_scale)
+    nys = [_ny(y[i + 1] - y[i], mesh_scale) for i in range(5)]
+    return {
+        "mesh_scale": float(mesh_scale),
+        "nxs": int(nxs),
+        "nys": [int(v) for v in nys],
+        "n_cells": int(nxs * sum(nys)),
+    }
+
+
+def write_case(case: Path, layout: JetLayout, n_iter: int = 280, mesh_scale: float = 1.0) -> dict:
+    y = _y_levels(layout)
 
     # 6 y-levels × 2 x × 2 z
     xs = (0.0, L)
@@ -166,9 +188,10 @@ def write_case(case: Path, layout: JetLayout, n_iter: int = 280) -> None:
         return iz * 12 + iy * 2 + ix
 
     blocks = []
-    nxs = 48
+    plan = mesh_plan(layout, mesh_scale)
+    nxs = plan["nxs"]
     for iy in range(5):
-        nys = _ny(y[iy + 1] - y[iy])
+        nys = plan["nys"][iy]
         hex_ids = [
             v(0, iy, 0),
             v(1, iy, 0),
@@ -422,6 +445,7 @@ boundaryField
 }
 """,
     )
+    return plan
 
 
 def _foam_cmd(cmd: str, cwd: Path, timeout: int = 180) -> subprocess.CompletedProcess:
@@ -552,13 +576,18 @@ def _metrics_from_fields(case: Path, layout: JetLayout) -> MixingReport:
     )
 
 
-def run_mixer(x: dict[str, float], work: Path | None = None, n_iter: int = 280) -> MixingReport:
+def run_mixer(
+    x: dict[str, float],
+    work: Path | None = None,
+    n_iter: int = 280,
+    mesh_scale: float = 1.0,
+) -> MixingReport:
     if not openfoam_available():
         return MixingReport(float("nan"), float("nan"), float("nan"), float("nan"), False, "openfoam", "openfoam_missing")
     layout = jet_layout(x["g"], x["d"], x["a"], x["s"], x["o"])
     tmp = Path(work) if work else Path(tempfile.mkdtemp(prefix="cswe_of_"))
     tmp.mkdir(parents=True, exist_ok=True)
-    write_case(tmp, layout, n_iter=n_iter)
+    write_case(tmp, layout, n_iter=n_iter, mesh_scale=mesh_scale)
     mesh = _foam_cmd("blockMesh", tmp, timeout=60)
     if mesh.returncode != 0:
         return MixingReport(float("nan"), float("nan"), float("nan"), float("nan"), False, "openfoam", "blockMesh_failed:" + mesh.stderr[-400:])

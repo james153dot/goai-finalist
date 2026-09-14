@@ -1,19 +1,31 @@
 # AI-Guided Discovery of Combustion-Stability Windows
 
-GOAI Track 3 · Type II open exploration · second-round package.
+[![CI](https://github.com/james153dot/goai-semi/actions/workflows/ci.yml/badge.svg)](https://github.com/james153dot/goai-semi/actions/workflows/ci.yml)
+
+GOAI Track 3 · Type II Open Exploration · **2026 finalist package**.
 Author: James "Dave" Lu.
 
-OpenFOAM determines spatial and temporal mixing features from a fixed-geometry
-2-D laminar dual-jet mixing environment. An acoustic model converts those
-features into a hypothesis-level Rayleigh stability indicator. The project
-therefore evaluates an **autonomous exploration methodology for
-combustion-stability analogs**, not predictive stability of a real rocket
-combustor.
+Historical semifinal / second-round artifacts remain in the tree as provenance.
+
+**Problem.** Expensive scientific simulations make exhaustive exploration impractical.
+
+**Question.** Can an autonomous agent allocate a fixed CFD budget better than non-adaptive sampling?
+
+**Testbed.** A declared OpenFOAM-informed combustion-stability analog.
+
+**Finding.** Across eight live OpenFOAM campaigns, AI unstable-regime recall was approximately **0.68 vs 0.33** for Latin hypercube, with similar mean precision (0.86 vs 0.85). AI had higher recall in **7 of 8** seeds. Seed 35 is the reversal and is kept. No p-value is claimed on n = 8.
+
+**Scientific discovery.** The adaptive campaign exposed nonmonotonic structure that motivated a controlled follow-up sweep.
+
+**Boundary.** This is a methodological demonstration of autonomous exploration, not a predictive rocket-engine model.
 
 OpenFOAM supplies physically generated mixing fields from which the stability
 analog is constructed. It does not predict combustion instability.
 
 Public outputs stay at abstract design principles.
+
+Judge entry: `FINAL_ONE_PAGER.md`, `FINAL_DEFENSE.md`, Streamlit tab
+**Final Demo — 90 seconds**.
 
 ## Claim levels
 
@@ -361,6 +373,64 @@ global volume reconstruction. Subsequent experiments showed that this metric
 favors space-filling designs and does not directly measure recovery of rare
 unstable regimes.
 
+## Sample efficiency
+
+The central competition claim is that **AI recovers the scientifically
+important minority regime using fewer expensive solver evaluations**.
+
+The eight committed live campaigns were **not rerun**. Their existing
+hold-out recall curves are aggregated in
+`artifacts/figures/sample_efficiency_live.png` and
+`artifacts/sample_efficiency_live.json`.
+
+- Mean and median Recall_U versus live CFD evaluations, with sample sd
+- n = 8 is labeled on the figure
+- Area under the mean recall-vs-budget curve on the stored range [5, 16]
+- Evaluations required to reach specified recall levels **only when a seed
+  actually reached that level** inside budget 16
+
+No extrapolation past budget 16. The language is solver calls saved on this
+protocol, not “AI is better at everything.” Precision remains a mean near-tie;
+near-boundary σ MAE is a mean tie; seed 35 loses.
+
+## Which part of the AI policy actually creates the advantage?
+
+`cswe ablation-study` compares, on the inexpensive committed atlas and the
+same hold-out / budget / seed set / GP scoring:
+
+- full current `LevelSetAgent`
+- straddle-only acquisition
+- uncertainty-only acquisition
+- no missing-regime-hunt
+- Latin hypercube
+- uniform random
+
+This is a **policy-component ablation**. It can show which ingredient is
+associated with the atlas-level advantage. It does not identify a unique
+causal mechanism and it is not a new live-CFD claim.
+
+On 16 atlas seeds (budget 16, committed hold-out):
+
+| Policy | Recall_U | F1_U | n_unstable | Time to first unstable |
+| --- | ---: | ---: | ---: | ---: |
+| full LevelSetAgent | 0.64 | 0.74 | 7.4 | 1.4 |
+| straddle only | 0.64 | 0.74 | 7.4 | 1.4 |
+| no missing-regime hunt | 0.64 | 0.74 | 7.4 | 1.4 |
+| uncertainty only | 0.63 | 0.73 | 6.3 | 1.4 |
+| Latin hypercube | 0.49 | 0.63 | 4.4 | 2.3 |
+| uniform random | 0.44 | 0.54 | 4.1 | 2.4 |
+
+The adaptive policies share the same LHS initialization, so time-to-first
+unstable is identical. On these seeds the initialization already observed
+both classes, so disabling the missing-regime hunt did not change the
+16-seed means. Uncertainty-only recovered a similar hold-out map but found
+fewer unstable evaluations. The contrast with LHS/Random is therefore
+associated with **adaptive selection after the shared start**, not with a
+demonstrated unique contribution of the hunt term on this particular seed
+set.
+
+Artifacts: `artifacts/ablation_study.json`, `artifacts/figures/ablation_study.png`.
+
 ### Why LHS hold-out recall can fall as the budget grows
 
 The scoring GP is refit on the campaign so far. It is not a monotone
@@ -386,11 +456,27 @@ under a small budget.
 
 Committed atlas, hold-out, and campaign logs are enough for the dashboard
 and atlas campaigns. OpenFOAM 14 is required only to rebuild CFD or to run
-live `foamRun` studies.
+live `foamRun` studies. `cswe reproduce` skips the live foam case when
+OpenFOAM is missing.
+
+Standard pip path (uv is optional):
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install --upgrade pip
+python3 -m pip install -e ".[dev]"
+python3 -m pytest
+cswe reproduce
+python3 tools/check_open_exploration.py
+streamlit run app/dashboard.py --server.port 48217 --server.address 0.0.0.0
+```
+
+uv path, if you have it:
 
 ```bash
 uv sync
-uv run cswe reproduce          # one foam case if present, short campaigns, figures
+uv run cswe reproduce
 uv run pytest
 uv run streamlit run app/dashboard.py --server.port 48217 --server.address 0.0.0.0
 ```
@@ -445,8 +531,10 @@ scope of the interpretation/schema revision.
 
 ## Mapping to the GOAI Open Exploration judging dimensions
 
-The semifinal guide lists four Open Exploration judging dimensions. This
+The Open Exploration judging guide lists four dimensions. This
 repository does **not** assign unofficial percentage weights to them.
+This tree is the **finalist** package; older semifinal wording in
+historical artifacts is left in place as provenance.
 
 **Problem Definition & Environment Design Quality.** The problem boundary,
 fixed components, explorable coordinates, feedback, and claim levels are
@@ -471,7 +559,7 @@ A requirement-by-requirement self-check is in
 `GOAI_OPEN_EXPLORATION_CHECKLIST.md`. Judges can also run:
 
 ```bash
-uv run python tools/check_open_exploration.py
+python3 tools/check_open_exploration.py
 ```
 
 ## External resources and licenses

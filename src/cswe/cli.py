@@ -425,6 +425,68 @@ def sensitivity(
 
 
 @app.command()
+def verify(
+    out: Path = typer.Option(Path("artifacts/verification.json")),
+) -> None:
+    """Mesh / iteration V&V on three committed classical analogs. PENDING if OpenFOAM is absent."""
+    from cswe.verification import run_verification, write_figure
+
+    payload = run_verification(out=out)
+    fig = write_figure(payload)
+    typer.echo(json.dumps({k: payload[k] for k in ("status", "openfoam_executed", "reason") if k in payload}, indent=2))
+    if fig is not None:
+        typer.echo(f"Wrote {fig}")
+    typer.echo(f"Wrote {out}")
+
+
+@app.command("final-validation")
+def final_validation(
+    seed: int = typer.Option(101, help="Frozen final-validation seed (independent of live n=8)."),
+    holdout_size: int = typer.Option(48),
+    budget: int = typer.Option(16),
+    out: Path = typer.Option(Path("artifacts/final_validation.json")),
+) -> None:
+    """One-shot post-development CFD validation. PENDING if OpenFOAM is absent. Do not tune after."""
+    from cswe.final_validation import run_final_validation
+
+    payload = run_final_validation(seed=seed, holdout_size=holdout_size, budget=budget, out=out)
+    typer.echo(payload["frozen"]["frozen_statement"])
+    typer.echo(json.dumps({k: payload.get(k) for k in ("status", "openfoam_executed", "reason")}, indent=2))
+    typer.echo(f"Wrote {out}")
+
+
+@app.command("ablation-study")
+def ablation_study(
+    n_seeds: int = typer.Option(16, help="Atlas seeds; inexpensive committed interpolator only."),
+    budget: int = typer.Option(16),
+    n_init: int = typer.Option(5),
+    out: Path = typer.Option(Path("artifacts/ablation_study.json")),
+) -> None:
+    """Policy-component ablation on the committed atlas. No live CFD."""
+    from cswe.ablation import run_ablation, write_figure
+
+    seeds = list(range(n_seeds))
+    payload = run_ablation(seeds=seeds, budget=budget, n_init=n_init, out=out)
+    fig = write_figure(payload)
+    typer.echo(json.dumps(payload["summary"], indent=2))
+    if fig is not None:
+        typer.echo(f"Wrote {fig}")
+    typer.echo(f"Wrote {out}")
+
+
+@app.command("sample-efficiency")
+def sample_efficiency() -> None:
+    """Aggregate live n=8 recall-vs-budget curves. Does not rewrite campaign logs."""
+    from cswe.sample_efficiency import analyze_live_sample_efficiency, write_figure
+
+    payload = analyze_live_sample_efficiency()
+    fig = write_figure(payload)
+    typer.echo(json.dumps(payload["area_under_mean_recall_curve"], indent=2))
+    if fig is not None:
+        typer.echo(f"Wrote {fig}")
+
+
+@app.command()
 def reproduce() -> None:
     """Minimum end-to-end path: one foam case (if present), short matched campaigns, figures."""
     from cswe.figures import write_all

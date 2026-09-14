@@ -1,6 +1,6 @@
 # Third-Party, Data, Model, API, and License Disclosure
 
-This disclosure is provided for the GOAI Open Exploration semifinal package.
+This disclosure is provided for the GOAI Open Exploration finalist package.
 It distinguishes project-authored code/data from external software used to run
 the environment.
 

@@ -53,7 +53,7 @@ class MixingAtlas:
     def fit(self, rows: list[dict]) -> None:
         valid = [r for r in rows if r.get("Cvalid", r.get("Cconv", False))]
         if len(valid) < 6:
-            raise ValueError(f"Need at least 6 converged OpenFOAM cases, got {len(valid)}")
+            raise ValueError(f"Need at least 6 solver-valid OpenFOAM cases, got {len(valid)}")
         self.rows = rows
         X = np.array([[r[n] for n in _PARAM_NAMES] for r in valid], dtype=float)
         def gp() -> GaussianProcessRegressor:

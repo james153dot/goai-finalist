@@ -1,4 +1,4 @@
-"""Streamlit dashboard for the GOAI second-round exploration environment."""
+"""Streamlit dashboard for the GOAI 2026 Open Exploration finalist package."""
 
 from __future__ import annotations
 
@@ -32,6 +32,10 @@ st.markdown(
 <style>
     .block-container { padding-top: 1.1rem; max-width: 1400px; }
     div[data-testid="stMetric"] { background: #141414; border: 1px solid #2a2a2a; padding: 0.6rem 0.8rem; border-radius: 12px; }
+    .demo-q { font-size: 1.55rem; line-height: 1.35; font-weight: 600; margin: 0.2rem 0 1.0rem 0; }
+    .demo-h { font-size: 1.25rem; font-weight: 650; margin: 1.15rem 0 0.35rem 0; }
+    .demo-line { font-size: 1.15rem; line-height: 1.45; margin: 0.15rem 0; }
+    .demo-take { font-size: 1.35rem; line-height: 1.4; font-weight: 650; margin: 0.8rem 0 0.2rem 0; }
 </style>
 """,
     unsafe_allow_html=True,
@@ -121,13 +125,15 @@ def progress_curve(ai: pd.DataFrame, base: pd.DataFrame) -> go.Figure:
 
 st.title("AI-guided combustion-stability windows")
 st.caption(
-    "GOAI Track 3 · Type II · OpenFOAM 14 dual-jet mixing + declared closed-closed 1L Rayleigh analog. "
+    "GOAI Track 3 · Type II · 2026 finalist package. "
+    "OpenFOAM 14 dual-jet mixing + declared closed-closed 1L Rayleigh analog. "
     "This is not a rocket engine. The scoring object is the environment and whether adaptive search "
     "spends expensive solver calls on the unstable window."
 )
 
 tabs = st.tabs(
     [
+        "Final Demo — 90 seconds",
         "Where AI is useful",
         "CFD physics",
         "Campaign logs",
@@ -152,6 +158,77 @@ for p in sorted((ROOT / "artifacts").glob("cfd_study_s*/cfd_comparison.json")):
 cfd_studies.sort(key=lambda d: d.get("seed", 0))
 
 with tabs[0]:
+    st.markdown('<p class="demo-h">A. Scientific question</p>', unsafe_allow_html=True)
+    st.markdown(
+        '<p class="demo-q">Given only 16 expensive numerical experiments, can an AI scientist '
+        "choose which simulations to run so that rare instability regimes are discovered "
+        "faster than blind space-filling?</p>",
+        unsafe_allow_html=True,
+    )
+
+    st.markdown('<p class="demo-h">B. Pipeline</p>', unsafe_allow_html=True)
+    st.markdown(
+        '<p class="demo-line">design variables <b>z = [g, d, a, s, o]</b> '
+        "→ OpenFOAM mixing simulation → extracted mixing quantities "
+        r"($\tau$, $R_{\mathrm{spatial}}$, $q_{\mathrm{mix}}$) "
+        r"→ declared stability analog $\sigma_{\mathrm{analog}}$ "
+        "→ AI selects next experiment</p>",
+        unsafe_allow_html=True,
+    )
+    st.caption("Offline demo. Committed artifacts only. No OpenFOAM. No internet.")
+
+    st.markdown('<p class="demo-h">C. Main live result · eight OpenFOAM campaigns · budget 16</p>', unsafe_allow_html=True)
+    m1, m2, m3, m4, m5 = st.columns(5)
+    m1.metric("AI unstable recall", "0.68")
+    m2.metric("LHS unstable recall", "0.33")
+    m3.metric("AI F1", "0.76")
+    m4.metric("LHS F1", "0.46")
+    m5.metric("AI higher recall", "7/8")
+    st.markdown(
+        '<p class="demo-line">Mean precision is a near-tie (0.86 vs 0.85). '
+        "Seed 35 is the reversal and is kept. No p-value on n = 8.</p>",
+        unsafe_allow_html=True,
+    )
+
+    st.markdown('<p class="demo-h">D. Sample efficiency</p>', unsafe_allow_html=True)
+    se_fig = ROOT / "artifacts" / "figures" / "sample_efficiency_live.png"
+    if se_fig.exists():
+        st.image(str(se_fig), use_container_width=True)
+        st.caption("Mean / median hold-out unstable recall vs live CFD evaluations. Shaded band: sample sd. n = 8. No extrapolation past budget 16.")
+    else:
+        st.info("Generate with `cswe sample-efficiency` from the committed live campaigns.")
+
+    st.markdown('<p class="demo-h">E. Discovery story · seed 14</p>', unsafe_allow_html=True)
+    st.markdown(
+        '<p class="demo-line">AI independently encountered unstable samples at low and high <b>g</b> '
+        "(t=2, g=0.10, σ=+0.32 and t=3, g=1.80, σ=+0.06). That motivated the controlled g-sweep.</p>",
+        unsafe_allow_html=True,
+    )
+    st.caption("Do not read this as the agent mapping two full 5-D disconnected regions.")
+    seed14_fig = ROOT / "artifacts" / "figures" / "seed14_both_g_intervals.png"
+    if seed14_fig.exists():
+        st.image(str(seed14_fig), use_container_width=True)
+
+    st.markdown('<p class="demo-h">F. Scientific skepticism</p>', unsafe_allow_html=True)
+    s1, s2 = st.columns(2)
+    with s1:
+        st.markdown('<p class="demo-line"><b>Seed 35 reversal.</b> LHS recall 0.56 vs AI 0.44.</p>', unsafe_allow_html=True)
+        st.caption("The adaptive policy can lose. The seed is retained.")
+    with s2:
+        st.markdown(
+            '<p class="demo-line"><b>High-g interval disappears</b> at ω+10% and at V_crit = 0.035.</p>',
+            unsafe_allow_html=True,
+        )
+        st.caption("Topology is conditional on analog / τ assumptions.")
+    st.caption("Negative and conditional results are retained.")
+
+    st.markdown(
+        '<p class="demo-take">G. Final takeaway — AI does not replace the simulator. '
+        "It decides which expensive scientific experiment should be performed next.</p>",
+        unsafe_allow_html=True,
+    )
+
+with tabs[1]:
     st.markdown(
         """
 The useful job is recovering the minority unstable class with a small solver budget.
@@ -180,8 +257,8 @@ The agent fits a Gaussian process to **σ_analog** (level set σ_analog = 0) and
         st.caption(
             "Atlas campaigns scored on an independent 24-case OpenFOAM hold-out (`artifacts/of_test.json`). "
             "Volume accuracy is the weak metric — space-filling already tiles the majority class. "
-            "Recall of the dangerous class is the claim. Atlas precision is essentially "
-            "tied (0.92 vs 0.91); F1 follows recall. Near-boundary growth-rate MAE "
+            "Recall of the dangerous class is the claim. Atlas precision is "
+            "0.88 vs 0.91; F1 follows recall. Near-boundary growth-rate MAE "
             "E_σ,boundary is prediction error in σ_analog among hold-out points with |σ| < 0.20, "
             "not Hausdorff distance to a contour."
         )
@@ -308,7 +385,7 @@ The agent fits a Gaussian process to **σ_analog** (level set σ_analog = 0) and
     else:
         st.info("Live OpenFOAM campaigns are still running (`cswe cfd-study`).")
 
-with tabs[1]:
+with tabs[2]:
     st.markdown(
         """
 **Fixed-geometry chamber.** Length 80 mm, height 20 mm, laminar `incompressibleFluid`, complementary
@@ -411,7 +488,7 @@ Mixing delay τ is the first axial bin with Var_y[Z] < 0.045, then τ = x_m / U_
         )
         st.plotly_chart(fig, use_container_width=True)
 
-with tabs[2]:
+with tabs[3]:
     if ai_df.empty:
         st.warning("No demo logs yet. Run `cswe run --out artifacts/demo`.")
     else:
@@ -448,7 +525,7 @@ with tabs[2]:
         with st.expander("Raw exploration log"):
             st.dataframe(ai_df, use_container_width=True, hide_index=True)
 
-with tabs[3]:
+with tabs[4]:
     st.write(
         "Interactive campaigns query the OpenFOAM mixing **atlas** (instant). "
         "The committed efficiency claim uses live `foamRun` logs in `artifacts/cfd_study_s*`."
@@ -479,7 +556,7 @@ with tabs[3]:
         b.plotly_chart(scatter_map(st.session_state["live_base"], "Live LHS"), use_container_width=True)
         st.json({"hypotheses": st.session_state["live_hyp"], "discoveries": st.session_state["live_disc"]})
 
-with tabs[4]:
+with tabs[5]:
     st.write("Evaluate one nondimensional injector / operating analog. Same fixed-geometry environment the agent queries.")
     cols = st.columns(5)
     g = cols[0].slider("pattern class g", 0.0, 2.0, 0.15, 0.05)
@@ -498,7 +575,7 @@ with tabs[4]:
     if not result.Cvalid:
         st.error("OpenFOAM run was not solver-valid (missing fields or non-finite metrics). The agent logs this and does not treat it as a discovery.")
 
-with tabs[5]:
+with tabs[6]:
     st.write(
         "Noise-free slice of the **atlas interpolator**, not LES truth. The agent never sees this surface; "
         "it only receives individual simulation returns."
@@ -526,7 +603,7 @@ with tabs[5]:
     fig.update_layout(template="plotly_dark", height=480, coloraxis_showscale=False)
     st.plotly_chart(fig, use_container_width=True)
 
-with tabs[6]:
+with tabs[7]:
     st.markdown(
         """
 **What this package is.** A 2-D laminar dual-jet mixing analog whose delay and

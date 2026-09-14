@@ -1,0 +1,193 @@
+{
+  "status": "PENDING",
+  "reason": "OpenFOAM 14 is not available; no numerical verification cases were executed.",
+  "configuration": {
+    "conditions": [
+      {
+        "name": "like_on_like",
+        "role": "clearly_analog_unstable",
+        "x": {
+          "g": 0.15,
+          "d": 0.08,
+          "a": 0.55,
+          "s": 0.08,
+          "o": 0.45
+        },
+        "mesh_plans": {
+          "0.7": {
+            "mesh_scale": 0.7,
+            "nxs": 34,
+            "nys": [
+              4,
+              4,
+              4,
+              4,
+              10
+            ],
+            "n_cells": 884
+          },
+          "1.0": {
+            "mesh_scale": 1.0,
+            "nxs": 48,
+            "nys": [
+              4,
+              4,
+              4,
+              4,
+              14
+            ],
+            "n_cells": 1440
+          },
+          "1.4": {
+            "mesh_scale": 1.4,
+            "nxs": 67,
+            "nys": [
+              6,
+              5,
+              4,
+              5,
+              19
+            ],
+            "n_cells": 2613
+          }
+        }
+      },
+      {
+        "name": "unlike_impinging",
+        "role": "near_sigma_analog_zero",
+        "x": {
+          "g": 1.0,
+          "d": 0.08,
+          "a": 0.78,
+          "s": 0.1,
+          "o": 0.5
+        },
+        "mesh_plans": {
+          "0.7": {
+            "mesh_scale": 0.7,
+            "nxs": 34,
+            "nys": [
+              4,
+              4,
+              6,
+              4,
+              4
+            ],
+            "n_cells": 748
+          },
+          "1.0": {
+            "mesh_scale": 1.0,
+            "nxs": 48,
+            "nys": [
+              6,
+              4,
+              9,
+              4,
+              6
+            ],
+            "n_cells": 1392
+          },
+          "1.4": {
+            "mesh_scale": 1.4,
+            "nxs": 67,
+            "nys": [
+              8,
+              5,
+              13,
+              5,
+              8
+            ],
+            "n_cells": 2613
+          }
+        }
+      },
+      {
+        "name": "swirl_coaxial",
+        "role": "clearly_analog_stable",
+        "x": {
+          "g": 1.85,
+          "d": 0.1,
+          "a": 0.28,
+          "s": 0.82,
+          "o": 0.55
+        },
+        "mesh_plans": {
+          "0.7": {
+            "mesh_scale": 0.7,
+            "nxs": 34,
+            "nys": [
+              7,
+              4,
+              6,
+              4,
+              4
+            ],
+            "n_cells": 850
+          },
+          "1.0": {
+            "mesh_scale": 1.0,
+            "nxs": 48,
+            "nys": [
+              10,
+              4,
+              9,
+              4,
+              4
+            ],
+            "n_cells": 1488
+          },
+          "1.4": {
+            "mesh_scale": 1.4,
+            "nxs": 67,
+            "nys": [
+              14,
+              5,
+              12,
+              5,
+              4
+            ],
+            "n_cells": 2680
+          }
+        }
+      }
+    ],
+    "mesh_scales": [
+      0.7,
+      1.0,
+      1.4
+    ],
+    "iteration_caps": [
+      40,
+      90,
+      160
+    ],
+    "default_mesh_scale": 1.0,
+    "default_nxs": 48,
+    "note": "mesh_scale=1.0 reproduces the committed default (nxs=48, _ny unchanged). No new injector geometries are introduced."
+  },
+  "analog_constants": {
+    "alpha": 1.45,
+    "D": 0.08,
+    "omega0": 11.0,
+    "n_base": 0.5,
+    "n_compact": 0.28,
+    "n_unmixed": 0.16,
+    "n_load": 0.1,
+    "omega_scale": {
+      "base": 0.92,
+      "o_coef": 0.16
+    },
+    "sigma_threshold": 0.0,
+    "S_threshold": 1.0,
+    "V_crit": 0.045,
+    "N_bins": 24,
+    "wall_heat_base": 0.45
+  },
+  "random_seed": 0,
+  "results": [],
+  "classification_robustness": null,
+  "timestamp_utc": "2026-09-14T23:47:24+00:00",
+  "git_commit_sha": "34f7fc5cc5c8240657993f426ea4b308ed20f0d7",
+  "working_tree_dirty": true,
+  "openfoam_executed": false
+}

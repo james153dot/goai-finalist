@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Tests
+        run: python -m pytest
+      - name: Open Exploration self-check
+        run: python tools/check_open_exploration.py
+      - name: Import smoke test
+        run: |
+          python -c "from cswe import analog_import_smoke" 2>/dev/null || python -c "from cswe.agent import LevelSetAgent; from cswe.metrics import score_against_test; from cswe.verification import planned_configuration; from cswe.final_validation import frozen_record; print('ok')"

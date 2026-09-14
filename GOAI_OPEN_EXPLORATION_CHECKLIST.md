@@ -1,7 +1,8 @@
-# GOAI Open Exploration Semifinal Self-Check
+# GOAI Open Exploration Finalist Self-Check
 
-Basis: 2026 GOAI Track 3 `AI for Research` Semi-Final Participation Guide,
-Open Exploration sub-track.
+Basis: 2026 GOAI Track 3 `AI for Research` Open Exploration sub-track
+(historical semi-final participation guide plus the finalist package
+additions in this repository).
 
 The guide's core submission principle is that the work must be inspectable,
 verifiable, and reproducible. For Open Exploration it requests a complete
@@ -63,7 +64,13 @@ models, commercial APIs, dependencies, and licenses.
 - [x] Historical schema/interpretation drift is disclosed in
   `ARTIFACT_PROVENANCE.md` instead of hidden.
 - [x] Follow-up research paths are explicit.
-- [x] `tools/check_open_exploration.py` checks the repository package itself.
+- [x] `tools/check_open_exploration.py` checks the repository package itself
+  and distinguishes mandatory source/docs from optional OpenFOAM products.
+- [x] Finalist extras: `FINAL_DEFENSE.md`, `FINAL_ONE_PAGER.md`,
+  `VERIFICATION.md`, `FINAL_VALIDATION.md`, `FAILURE_ANALYSIS.md`,
+  `cswe verify`, `cswe final-validation`, `cswe ablation-study`,
+  sample-efficiency figure from committed live curves, Final Demo tab,
+  pip install path, and `.github/workflows/ci.yml`.
 
 ## Judging dimension: Open-source Contributions
 

@@ -1,0 +1,325 @@
+{
+  "status": "COMPLETE",
+  "n_seeds": 8,
+  "seeds": [
+    8,
+    11,
+    14,
+    19,
+    23,
+    26,
+    32,
+    35
+  ],
+  "budget_max": 16,
+  "source": "existing artifacts/cfd_study_s*/cfd_comparison.json curves; not rerun",
+  "historical_campaigns_rewritten": false,
+  "ai": {
+    "budget": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "mean": [
+      0.16666666666666669,
+      0.24305555555555555,
+      0.3194444444444444,
+      0.37499999999999994,
+      0.4305555555555556,
+      0.4513888888888889,
+      0.4722222222222222,
+      0.4930555555555556,
+      0.5138888888888888,
+      0.5833333333333334,
+      0.6527777777777778,
+      0.6805555555555556
+    ],
+    "median": [
+      0.05555555555555555,
+      0.25,
+      0.2777777777777778,
+      0.3611111111111111,
+      0.5,
+      0.5,
+      0.6111111111111112,
+      0.6111111111111112,
+      0.6111111111111112,
+      0.638888888888889,
+      0.6666666666666666,
+      0.6666666666666666
+    ],
+    "sd": [
+      0.2656063576298653,
+      0.2536114805539825,
+      0.32223590556606013,
+      0.2651910229619623,
+      0.23335222901570088,
+      0.21910009148374043,
+      0.3071746425454544,
+      0.3176710610021573,
+      0.33034373632170494,
+      0.21618791225200376,
+      0.1384914949731361,
+      0.1251101807177337
+    ]
+  },
+  "lhs": {
+    "budget": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "mean": [
+      0.1527777777777778,
+      0.15277777777777776,
+      0.15277777777777776,
+      0.1597222222222222,
+      0.16666666666666666,
+      0.16666666666666669,
+      0.16666666666666669,
+      0.1875,
+      0.20833333333333334,
+      0.2847222222222222,
+      0.36111111111111105,
+      0.33333333333333337
+    ],
+    "median": [
+      0.0,
+      0.0,
+      0.0,
+      0.027777777777777776,
+      0.05555555555555555,
+      0.05555555555555555,
+      0.05555555555555555,
+      0.1388888888888889,
+      0.16666666666666666,
+      0.2777777777777778,
+      0.3333333333333333,
+      0.2777777777777778
+    ],
+    "sd": [
+      0.3510503262634361,
+      0.29806844378117336,
+      0.25845491250688535,
+      0.2544792725869178,
+      0.25197631533948484,
+      0.23570226039551587,
+      0.2222222222222222,
+      0.20560381243934742,
+      0.21771217022770165,
+      0.21707836343821987,
+      0.22809695020952245,
+      0.21413869147987366
+    ]
+  },
+  "area_under_mean_recall_curve": {
+    "ai": 4.958333333333334,
+    "lhs": 2.25,
+    "difference_ai_minus_lhs": 2.708333333333334,
+    "integration": "trapezoid of mean recall vs budget on [5, 16]"
+  },
+  "evals_to_recall_level": {
+    "0.25": {
+      "ai_n_reached": 8,
+      "lhs_n_reached": 5,
+      "n": 8,
+      "ai_mean_evals_when_reached": 8.75,
+      "lhs_mean_evals_when_reached": 11.0,
+      "note": "Reported only for seeds that actually reached the level within budget 16. No extrapolation."
+    },
+    "0.5": {
+      "ai_n_reached": 8,
+      "lhs_n_reached": 3,
+      "n": 8,
+      "ai_mean_evals_when_reached": 9.75,
+      "lhs_mean_evals_when_reached": 11.0,
+      "note": "Reported only for seeds that actually reached the level within budget 16. No extrapolation."
+    },
+    "0.67": {
+      "ai_n_reached": 4,
+      "lhs_n_reached": 1,
+      "n": 8,
+      "ai_mean_evals_when_reached": 11.5,
+      "lhs_mean_evals_when_reached": 5.0,
+      "note": "Reported only for seeds that actually reached the level within budget 16. No extrapolation."
+    }
+  },
+  "per_seed": [
+    {
+      "seed": 8,
+      "ai_final_recall": 0.8888888888888888,
+      "lhs_final_recall": 0.6666666666666666,
+      "evals_to_recall": {
+        "0.25": {
+          "ai": 9,
+          "lhs": 13
+        },
+        "0.5": {
+          "ai": 11,
+          "lhs": 15
+        },
+        "0.67": {
+          "ai": 15,
+          "lhs": null
+        }
+      }
+    },
+    {
+      "seed": 11,
+      "ai_final_recall": 0.6666666666666666,
+      "lhs_final_recall": 0.2222222222222222,
+      "evals_to_recall": {
+        "0.25": {
+          "ai": 7,
+          "lhs": null
+        },
+        "0.5": {
+          "ai": 9,
+          "lhs": null
+        },
+        "0.67": {
+          "ai": null,
+          "lhs": null
+        }
+      }
+    },
+    {
+      "seed": 14,
+      "ai_final_recall": 0.6666666666666666,
+      "lhs_final_recall": 0.0,
+      "evals_to_recall": {
+        "0.25": {
+          "ai": 15,
+          "lhs": null
+        },
+        "0.5": {
+          "ai": 15,
+          "lhs": null
+        },
+        "0.67": {
+          "ai": null,
+          "lhs": null
+        }
+      }
+    },
+    {
+      "seed": 19,
+      "ai_final_recall": 0.7777777777777778,
+      "lhs_final_recall": 0.2222222222222222,
+      "evals_to_recall": {
+        "0.25": {
+          "ai": 11,
+          "lhs": 5
+        },
+        "0.5": {
+          "ai": 11,
+          "lhs": 5
+        },
+        "0.67": {
+          "ai": 13,
+          "lhs": 5
+        }
+      }
+    },
+    {
+      "seed": 23,
+      "ai_final_recall": 0.6666666666666666,
+      "lhs_final_recall": 0.2222222222222222,
+      "evals_to_recall": {
+        "0.25": {
+          "ai": 5,
+          "lhs": null
+        },
+        "0.5": {
+          "ai": 5,
+          "lhs": null
+        },
+        "0.67": {
+          "ai": 5,
+          "lhs": null
+        }
+      }
+    },
+    {
+      "seed": 26,
+      "ai_final_recall": 0.6666666666666666,
+      "lhs_final_recall": 0.3333333333333333,
+      "evals_to_recall": {
+        "0.25": {
+          "ai": 7,
+          "lhs": 15
+        },
+        "0.5": {
+          "ai": 7,
+          "lhs": null
+        },
+        "0.67": {
+          "ai": 13,
+          "lhs": null
+        }
+      }
+    },
+    {
+      "seed": 32,
+      "ai_final_recall": 0.6666666666666666,
+      "lhs_final_recall": 0.4444444444444444,
+      "evals_to_recall": {
+        "0.25": {
+          "ai": 9,
+          "lhs": 15
+        },
+        "0.5": {
+          "ai": 13,
+          "lhs": null
+        },
+        "0.67": {
+          "ai": null,
+          "lhs": null
+        }
+      }
+    },
+    {
+      "seed": 35,
+      "ai_final_recall": 0.4444444444444444,
+      "lhs_final_recall": 0.5555555555555556,
+      "evals_to_recall": {
+        "0.25": {
+          "ai": 7,
+          "lhs": 7
+        },
+        "0.5": {
+          "ai": 7,
+          "lhs": 13
+        },
+        "0.67": {
+          "ai": null,
+          "lhs": null
+        }
+      }
+    }
+  ],
+  "claim": "AI recovers the scientifically important minority regime using fewer expensive solver evaluations than Latin hypercube on these eight live campaigns.",
+  "timestamp_utc": "2026-09-14T23:47:22+00:00",
+  "git_commit_sha": "34f7fc5cc5c8240657993f426ea4b308ed20f0d7",
+  "working_tree_dirty": true,
+  "openfoam_executed": false,
+  "random_seed": null
+}

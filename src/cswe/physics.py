@@ -179,6 +179,25 @@ def _acoustics(
     return float(n_index), float(omega), rayleigh, float(sigma), float(S), phase
 
 
+def analog_constant_record() -> dict[str, float | dict[str, float]]:
+    """Frozen analog constants. Do not edit to chase a score."""
+    return {
+        "alpha": HEAT_RELEASE_SCALE,
+        "D": ACOUSTIC_DAMPING,
+        "omega0": CHAMBER_OMEGA,
+        "n_base": N_BASE,
+        "n_compact": N_COMPACT,
+        "n_unmixed": N_UNMIXED,
+        "n_load": N_LOAD,
+        "omega_scale": {"base": 0.92, "o_coef": 0.16},
+        "sigma_threshold": 0.0,
+        "S_threshold": STABILITY_THRESHOLD,
+        "V_crit": 0.045,
+        "N_bins": 24,
+        "wall_heat_base": WALL_HEAT_BASE,
+    }
+
+
 @contextmanager
 def analog_constants(*, damping: float | None = None, omega0: float | None = None) -> Iterator[None]:
     """Temporarily replace analog damping / base frequency. Mixing fields stay fixed."""

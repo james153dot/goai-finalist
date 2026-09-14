@@ -401,13 +401,29 @@ def write_live_cfd_summary() -> Path | None:
     return out
 
 
-def write_all() -> list[Path]:
-    _style()
-    from cswe.tau_sensitivity import run_tau_sensitivity
+def sample_efficiency_figure() -> Path | None:
+    from cswe.sample_efficiency import analyze_live_sample_efficiency, write_figure
 
-    run_tau_sensitivity()
+    try:
+        payload = analyze_live_sample_efficiency()
+    except RuntimeError:
+        return None
+    return write_figure(payload)
+
+
+def ablation_figure() -> Path | None:
+    path = ROOT / "artifacts" / "ablation_study.json"
+    if not path.exists():
+        return None
+    from cswe.ablation import write_figure
+
+    return write_figure(json.loads(path.read_text(encoding="utf-8")))
+
+
+def write_all() -> list[Path]:
+    """Write figures from committed artifacts. Does not rewrite historical campaign JSON."""
+    _style()
     written = []
-    written.extend(rescore_cfd_studies())
     for fn in (
         g_sweep_figure,
         swirl_sweep_figure,
@@ -417,7 +433,8 @@ def write_all() -> list[Path]:
         seed_study_figure,
         sensitivity_figure,
         tau_sensitivity_figure,
-        write_live_cfd_summary,
+        sample_efficiency_figure,
+        ablation_figure,
     ):
         p = fn()
         if p is not None:

@@ -66,11 +66,15 @@ class LevelSetAgent:
         n_init: int = 6,
         n_candidates: int = 700,
         epsilon: float = 0.10,
+        policy: str = "full",
     ) -> None:
+        if policy not in {"full", "straddle", "uncertainty", "no_regime_hunt"}:
+            raise ValueError(f"unknown LevelSetAgent policy: {policy}")
         self.env = env
         self.n_init = n_init
         self.n_candidates = n_candidates
         self.epsilon = epsilon
+        self.policy = policy
         self.gp = GaussianProcessRegressor(
             kernel=_kernel(),
             normalize_y=True,
@@ -101,26 +105,33 @@ class LevelSetAgent:
         return [self.env.from_vector(row) for row in scaled]
 
     def _choose(self, rng: np.random.Generator) -> tuple[dict[str, float], float | None]:
-        if len(self.y) < 3 or rng.random() < self.epsilon:
+        epsilon = 0.0 if self.policy == "straddle" else self.epsilon
+        if len(self.y) < 3 or rng.random() < epsilon:
             return self.env.sample_uniform(), None
         self._fit()
         cand = self._sample_candidates(rng)
         mu, std = self.gp.predict(cand, return_std=True)
         y = np.array(self.y, dtype=float)
-        seen_unstable = np.any(y > SIGMA_THRESHOLD)
-        seen_stable = np.any(y <= SIGMA_THRESHOLD)
-        if not seen_unstable:
-            # Only stables so far: hunt the missing unstable class (UCB on σ).
-            scores = mu + 1.9 * std
-        elif not seen_stable:
-            scores = -(mu - 1.9 * std)
-        else:
+        if self.policy == "uncertainty":
+            scores = std
+        elif self.policy in {"straddle", "no_regime_hunt"}:
             scores = self._straddle(mu, std)
+        else:
+            seen_unstable = np.any(y > SIGMA_THRESHOLD)
+            seen_stable = np.any(y <= SIGMA_THRESHOLD)
+            if not seen_unstable:
+                # Only stables so far: hunt the missing unstable class (UCB on σ).
+                scores = mu + 1.9 * std
+            elif not seen_stable:
+                scores = -(mu - 1.9 * std)
+            else:
+                scores = self._straddle(mu, std)
         idx = int(np.argmax(scores))
         return self.env.from_vector(cand[idx]), float(scores[idx])
 
     def run(self, budget: int) -> CampaignRecord:
-        record = CampaignRecord(method="ai_level_set", seed=self.env.seed, budget=budget)
+        method = "ai_level_set" if self.policy == "full" else f"ai_{self.policy}"
+        record = CampaignRecord(method=method, seed=self.env.seed, budget=budget)
         rng = self.env.rng
 
         for x in self._init_design(min(self.n_init, budget)):

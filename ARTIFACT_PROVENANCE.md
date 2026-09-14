@@ -1,6 +1,6 @@
 # Artifact Provenance and Compatibility Notes
 
-This document exists to keep the semifinal package auditable. It records where
+This document exists to keep the finalist package auditable. It records where
 the committed numerical evidence predates later naming/interpretation cleanup
 instead of silently rewriting that history.
 
@@ -70,3 +70,16 @@ A full live-CFD regeneration is intentionally **not** performed merely to
 change prose/status labels. If numerical artifacts are regenerated later, the
 new commit SHA, OpenFOAM version, seed, budget, iteration cap, and output path
 should be recorded in this file or the manifest.
+
+## Finalist-package numerical products
+
+New commands write run metadata (timestamp, git SHA, dirty tree,
+`openfoam_executed`) on every newly generated numerical artifact.
+
+- `artifacts/verification.json` and `artifacts/final_validation.json` are
+  **PENDING** unless OpenFOAM actually ran. They must not be filled with
+  atlas-substituted CFD claims.
+- `artifacts/sample_efficiency_live.json` is derived from the eight
+  committed live campaign **curves**. Those `cfd_comparison.json` files are
+  not rewritten.
+- `artifacts/ablation_study.json` is an atlas-only policy-component study.
