@@ -263,12 +263,17 @@ with tabs[0]:
             st.image(str(exp_fig), use_container_width=True)
         if pooled:
             p = pooled.get("pooled") or {}
-            pr = (p.get("recall") or {})
-            st.caption(
-                "Pooled original+expansion is additional evidence, not a replacement for n = 8. "
-                f"Pooled AI recall {(pr.get('ai') or {}).get('mean')} vs LHS {(pr.get('lhs') or {}).get('mean')} "
-                f"({(p.get('paired_ai_vs_lhs') or {}).get('ai_higher_unstable_recall')})."
-            )
+            pr = p.get("recall") or {}
+            ai_p = (pr.get("ai") or {}).get("mean")
+            lhs_p = (pr.get("lhs") or {}).get("mean")
+            wins = (p.get("paired_ai_vs_lhs") or {}).get("ai_higher_unstable_recall")
+            if ai_p is not None and lhs_p is not None:
+                st.caption(
+                    "Pooled original+expansion is additional evidence, not a replacement for n = 8. "
+                    f"Pooled AI recall {ai_p:.2f} vs LHS {lhs_p:.2f} ({wins})."
+                )
+            else:
+                st.caption("Pooled original+expansion is additional evidence, not a replacement for n = 8.")
     elif exp and exp.get("status") == "PARTIAL":
         st.info(
             f"Expansion is PARTIAL ({len((exp.get('summary') or {}).get('seeds') or [])} of "
@@ -280,10 +285,16 @@ with tabs[0]:
             "The primary live study remains the frozen n = 8."
         )
     if gsv and gsv.get("status") == "COMPLETE":
-        st.caption(
-            "g-slice mesh check: two analog-unstable intervals on every tested mesh = "
-            f"{gsv.get('two_intervals_on_every_tested_mesh')}. `g_sweep.json` was not rewritten."
-        )
+        if gsv.get("two_intervals_on_every_tested_mesh"):
+            st.caption(
+                "g-slice mesh check: two analog-unstable intervals on every tested mesh. "
+                "`g_sweep.json` was not rewritten."
+            )
+        else:
+            st.caption(
+                "g-slice mesh check: the high-g interval is absent at mesh_scale 0.70; "
+                "mesh 1.00 and 1.40 still show two intervals. `g_sweep.json` was not rewritten."
+            )
         gsv_fig = ROOT / "artifacts" / "figures" / "g_sweep_mesh_verification.png"
         if gsv_fig.exists():
             st.image(str(gsv_fig), use_container_width=True)
