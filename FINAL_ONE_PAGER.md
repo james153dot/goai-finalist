@@ -34,17 +34,18 @@ The agent did not map two full five-dimensional disconnected regions.
 
 ## Negative result
 
-Seed 35 reverses: LHS recall 0.56 vs AI 0.44. Separately, the high-g
-interval disappears under ω + 10% and under a tighter mixing-delay
-threshold V_crit = 0.035. Both are retained.
+Seed 35 reverses: LHS recall 0.56 vs AI 0.44. A later frozen one-shot
+hold-out (seed 101) also had higher LHS recall (0.76 vs 0.59) while AI
+found more unstables. The high-g interval disappears under ω + 10% and
+under V_crit = 0.035. Near-threshold unlike-impinging analog labels flip
+at a 40-iteration solver cap. All of these are retained.
 
 ## Reproducibility
 
-Committed atlas, hold-out, and campaign logs are enough to inspect results
-without OpenFOAM. Install with a standard venv / pip path or with uv.
-`cswe reproduce` skips live foam when OpenFOAM is missing.
-`cswe final-validation` and `cswe verify` record PENDING rather than
-inventing CFD. Historical JSONL is not rewritten.
+Committed atlas, hold-out, campaign logs, V&V, and the frozen final-validation
+set are inspectable from the repository. Install with a standard venv / pip
+path or with uv. `cswe reproduce` skips live foam when OpenFOAM is missing
+and does not invent CFD. Historical JSONL is not rewritten.
 
 ## Broader significance
 

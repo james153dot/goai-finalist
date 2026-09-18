@@ -86,6 +86,8 @@ cswe final-validation
 ```
 
 `verify` and `final-validation` write **PENDING** JSON if OpenFOAM is absent.
+Committed COMPLETE live runs are already in `artifacts/verification.json`
+and `artifacts/final_validation.json` (`openfoam_executed: true`).
 They do not invent CFD numbers.
 
 ### Expected outputs

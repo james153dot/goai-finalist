@@ -48,6 +48,11 @@ Committed live n = 8, `artifacts/cfd_live_summary.json`:
 
 No p-value is claimed on n = 8.
 
+A later frozen one-shot OpenFOAM hold-out (seed 101, 48 new cases) is in
+`FINAL_VALIDATION.md`. On that single draw LHS hold-out recall was higher
+(0.76 vs 0.59) while AI found more unstables (7 vs 4). It was not used to
+retune. Mesh/iteration V&V is in `VERIFICATION.md`.
+
 ## Why AI is necessary
 
 Space-filling wastes calls on the majority stable class. The scientific
@@ -111,9 +116,10 @@ showed two intervals on that slice.
 **Is n = 8 significant?**
 Not claimed. Report 7/8 paired comparisons and means ± sample sd.
 
-**Why no final CFD validation numbers?**
-`cswe final-validation` is implemented and frozen. If OpenFOAM is absent
-the JSON is PENDING. Atlas is not substituted.
+**What did the frozen final CFD validation show?**
+Seed 101, 48 new OpenFOAM tests, budget 16: AI recall 0.59, LHS 0.76,
+Random 0.53. AI found 7 unstables vs 4 for each baseline. Not used to retune.
+The n = 8 live study remains the multi-seed CFD evidence.
 
 **Cconv vs Cvalid?**
 Historical rows use Cconv. Current code writes Cvalid (solver-valid, not a
@@ -125,10 +131,12 @@ residual certificate) and reads `row.get("Cvalid", row.get("Cconv", False))`.
 - High-g interval is assumption-dependent
 - Atlas interpolator is smoother than a new foamRun
 - n = 8 live seeds; no population inference
-- No mesh V&V numbers until OpenFOAM executes `cswe verify`
+- Near-threshold unlike-impinging analog labels flip at a 40-iteration cap
+- One frozen hold-out (seed 101) had higher LHS recall than AI
 
 ## Next scientific experiment
 
-Run the frozen `cswe final-validation` hold-out on a machine with OpenFOAM 14,
-without retuning. In parallel, test a minority-class refresh after a
-reconstructed-recall collapse (atlas first; see `FAILURE_ANALYSIS.md`).
+Keep the frozen policy. Test a minority-class refresh after a reconstructed
+recall collapse on atlas seeds first (`FAILURE_ANALYSIS.md`), then a new
+live OpenFOAM seed that is not 35 or 101. Separately, require iteration
+caps ≥ 90 for near-threshold analog claims, as the V&V study showed.

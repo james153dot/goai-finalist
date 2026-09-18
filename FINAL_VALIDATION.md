@@ -37,6 +37,24 @@ That is the honest result. Inspect committed live n=8 campaigns for the
 historical CFD evidence; do not treat PENDING as a pass or a fail of the
 method.
 
+## Executed result (not used for tuning)
+
+A COMPLETE live run is committed: seed **101**, hold-out **48** new
+`foamRun` cases (17 analog-unstable), budget **16**, n_iter **90**.
+Hold-out file: `artifacts/final_validation_holdout.json`.
+`artifacts/of_test.json` was not reused.
+
+| Method | Recall_U | Precision_U | F1_U | Unstable evals found | E_σ,boundary |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Frozen AI | 0.59 | 0.83 | 0.69 | 7 | 0.102 |
+| LHS | 0.76 | 0.87 | 0.81 | 4 | 0.123 |
+| Random | 0.53 | 1.00 | 0.69 | 4 | 0.131 |
+
+On this **one** frozen draw, Latin hypercube has higher hold-out unstable
+recall than the frozen agent, while the agent sampled more analog-unstable
+conditions. That split is retained. It does not replace the eight-seed live
+study, and it was **not** used to change constants, acquisition, or metrics.
+
 ```bash
 cswe final-validation
 ```

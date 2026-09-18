@@ -36,12 +36,13 @@ def _pending_or_missing_of_artifact(warnings: list[str], rel: str) -> None:
         return
     status = payload.get("status")
     executed = payload.get("openfoam_executed")
+    if status == "COMPLETE" and executed is True:
+        print(f"PASS: {rel} is COMPLETE with openfoam_executed=true")
+        return
     if status == "PENDING" or executed is False:
         warnings.append(
             f"PENDING/WARNING: {rel} status={status!r} openfoam_executed={executed!r}"
         )
-        return
-    if status == "COMPLETE" and executed is True:
         return
     warnings.append(f"WARNING: {rel} has unexpected status={status!r} openfoam_executed={executed!r}")
 

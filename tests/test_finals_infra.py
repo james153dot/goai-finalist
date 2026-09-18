@@ -42,6 +42,36 @@ def test_verify_is_pending_without_openfoam(tmp_path):
     assert out.exists()
 
 
+def test_committed_verification_complete_when_executed():
+    import json
+
+    root = Path(__file__).resolve().parents[1]
+    payload = json.loads((root / "artifacts" / "verification.json").read_text(encoding="utf-8"))
+    if payload.get("status") != "COMPLETE":
+        return
+    assert payload["openfoam_executed"] is True
+    assert len(payload["results"]) == 27
+    rob = payload["classification_robustness"]["per_condition"]
+    assert rob["like_on_like"]["classification_constant"] is True
+    assert rob["swirl_coaxial"]["classification_constant"] is True
+    assert rob["unlike_impinging"]["classification_constant"] is False
+    assert (root / "artifacts" / "figures" / "numerical_verification.png").exists()
+
+
+def test_committed_final_validation_complete_when_executed():
+    import json
+
+    root = Path(__file__).resolve().parents[1]
+    payload = json.loads((root / "artifacts" / "final_validation.json").read_text(encoding="utf-8"))
+    if payload.get("status") != "COMPLETE":
+        return
+    assert payload["openfoam_executed"] is True
+    assert payload["frozen"]["frozen_statement"] == FROZEN_STATEMENT
+    assert payload["results"]["holdout_n"] == 48
+    assert (root / "artifacts" / "final_validation_holdout.json").exists()
+    # One-shot check: do not require AI to beat LHS.
+
+
 def test_agent_default_policy_is_full_and_reproducible():
     a = LevelSetAgent(ExplorationEnv(seed=3), n_init=4, n_candidates=80)
     b = LevelSetAgent(ExplorationEnv(seed=3), n_init=4, n_candidates=80, policy="full")

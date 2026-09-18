@@ -58,7 +58,8 @@
     "sample_efficiency": "artifacts/sample_efficiency_live.json",
     "ablation": "artifacts/ablation_study.json",
     "verification": "artifacts/verification.json",
-    "final_validation": "artifacts/final_validation.json"
+    "final_validation": "artifacts/final_validation.json",
+    "final_validation_holdout": "artifacts/final_validation_holdout.json"
   },
   "artifact_provenance": {
     "audited_base_commit": "28328f1407d9a28c64b80a4f8b1ca2a4642a6062",

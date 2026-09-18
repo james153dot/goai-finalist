@@ -220,6 +220,19 @@ with tabs[0]:
             unsafe_allow_html=True,
         )
         st.caption("Topology is conditional on analog / τ assumptions.")
+    s3, s4 = st.columns(2)
+    with s3:
+        st.markdown(
+            '<p class="demo-line"><b>Near-threshold V&amp;V.</b> Unlike-impinging flips label at 40 iterations.</p>',
+            unsafe_allow_html=True,
+        )
+        st.caption("Live setting (default mesh, 90 iters) stays analog-stable.")
+    with s4:
+        st.markdown(
+            '<p class="demo-line"><b>Frozen hold-out (seed 101).</b> LHS recall 0.76 vs AI 0.59; AI found more unstables (7 vs 4).</p>',
+            unsafe_allow_html=True,
+        )
+        st.caption("One-shot post-development check. Not used to retune.")
     st.caption("Negative and conditional results are retained.")
 
     st.markdown(

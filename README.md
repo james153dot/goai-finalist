@@ -393,6 +393,38 @@ No extrapolation past budget 16. The language is solver calls saved on this
 protocol, not “AI is better at everything.” Precision remains a mean near-tie;
 near-boundary σ MAE is a mean tie; seed 35 loses.
 
+## Frozen one-shot final validation
+
+After the method was frozen, `cswe final-validation` generated a **new**
+48-case OpenFOAM hold-out (seed 101; 17 analog-unstable) and scored the
+already-frozen AI, LHS, and Random campaigns (budget 16). Atlas predictions
+were not substituted.
+
+On that single draw, hold-out unstable recall was **0.59 (AI) vs 0.76 (LHS)
+vs 0.53 (Random)**. AI found more unstable evaluations (7 vs 4 vs 4). No
+constant or policy was changed after seeing this. The eight-seed live study
+remains the multi-seed CFD evidence.
+
+Artifacts: `artifacts/final_validation.json`,
+`artifacts/final_validation_holdout.json`.
+
+## Numerical verification
+
+`cswe verify` reran the three committed classical analogs at three relative
+meshes and three iteration caps (27 live `foamRun` cases).
+
+- Like-on-like stayed analog-unstable in all 9 settings.
+- Swirl-coaxial stayed analog-stable in all 9 settings.
+- Unlike-impinging (near σ_analog = 0) **changed label** at 40 iterations
+  on the default and finer meshes. At the live setting (default mesh, 90
+  iterations) it remains analog-stable.
+
+Near-threshold analog classifications are therefore sensitive to
+under-iteration. This is not combustor validation.
+
+Artifacts: `artifacts/verification.json`,
+`artifacts/figures/numerical_verification.png`.
+
 ## Which part of the AI policy actually creates the advantage?
 
 `cswe ablation-study` compares, on the inexpensive committed atlas and the
@@ -451,6 +483,10 @@ under a small budget.
 - The 35-case atlas interpolator is smoother than a new OpenFOAM case.
 - Closed-closed 1L is a duct analog, not a full acoustic eigenproblem.
 - The second unstable interval is a 9-point live g-slice at fixed low swirl.
+- Near-threshold unlike-impinging analog labels are not robust to a 40-iteration
+  solver cap (see Numerical verification).
+- One frozen post-development hold-out (seed 101) had higher LHS recall than
+  AI; that draw was not used for tuning.
 
 ## Run
 

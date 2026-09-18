@@ -41,16 +41,34 @@ numerically fragile. It does **not** ask whether σ_analog predicts combustion
 instability in a rocket engine. OpenFOAM here is a 2-D laminar mixer. The
 acoustic map is a hypothesis-level Rayleigh analog.
 
-## Robustness (once real results exist)
+## Robustness (executed OpenFOAM 14)
 
 Classification robustness is defined narrowly: for each condition, do all
 solver-valid mesh / iteration settings keep the same analog-stable /
 analog-unstable label?
 
-Until OpenFOAM is executed, `artifacts/verification.json` is **PENDING**.
-No fabricated σ_analog values or figures are committed in that state.
-Once a COMPLETE run exists, read `classification_robustness` in the JSON
-and the figure. Do not pre-declare robustness in prose without those data.
+A COMPLETE live run is in `artifacts/verification.json`
+(`openfoam_executed: true`, 27 solver-valid cases) and
+`artifacts/figures/numerical_verification.png`.
+
+| Condition | Role | Labels across 9 settings | Robust? |
+| --- | --- | --- | --- |
+| like-on-like | clearly analog-unstable | unstable in all 9 | yes |
+| swirl-coaxial | clearly analog-stable | stable in all 9 | yes |
+| unlike-impinging | near σ_analog = 0 | stable *and* unstable | **no** |
+
+Unlike-impinging flips to analog-unstable only at the **40-iteration** cap
+on the default and finer meshes (`mesh_scale` 1.0 and 1.4). At the live
+campaign setting (`mesh_scale` 1.0, 90 iterations) it remains analog-stable
+(σ_analog ≈ −0.06), consistent with the committed classical table. Coarse
+mesh at 40 iterations stays analog-stable.
+
+σ_analog still moves with mesh and iteration even when the label is constant
+(like-on-like ranges about +0.37 to +0.66). Under-iterated solves are not a
+reliable classifier for a near-threshold analog.
+
+This is numerical robustness of the declared analog, **not** validation
+against a real combustor.
 
 ```bash
 cswe verify

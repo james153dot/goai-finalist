@@ -1,6 +1,5 @@
 {
-  "status": "PENDING",
-  "reason": "OpenFOAM 14 is not available. Independent final CFD hold-out was not generated. Atlas predictions are not substituted for this validation.",
+  "status": "COMPLETE",
   "frozen": {
     "frozen_statement": "The algorithm, constants, discovery criteria, and evaluation metrics were frozen before the final validation set was generated.",
     "analog_constants": {
@@ -65,9 +64,104 @@
     "holdout_path": "artifacts/final_validation_holdout.json",
     "existing_holdout_not_reused": "artifacts/of_test.json is not the final-validation set."
   },
-  "results": null,
-  "timestamp_utc": "2026-09-14T23:50:14+00:00",
-  "git_commit_sha": "b2334cea8ef58904d2b7aed10ceb638cf2d95d2b",
+  "results": {
+    "ai": {
+      "diagnostics": {
+        "n_valid": 16,
+        "n_unstable_found": 7,
+        "unstable_fraction": 0.4375,
+        "time_to_first_unstable": 0,
+        "n_near_boundary": 1,
+        "frac_evals_near_edge": 0.0625,
+        "mean_abs_sigma": 0.29049499134953005
+      },
+      "holdout": {
+        "n_valid": 16,
+        "n_unstable_found": 7,
+        "unstable_fraction": 0.4375,
+        "time_to_first_unstable": 0,
+        "n_near_boundary": 1,
+        "frac_evals_near_edge": 0.0625,
+        "mean_abs_sigma": 0.29049499134953005,
+        "n_campaign": 16,
+        "n_test": 48,
+        "volume_accuracy": 0.8125,
+        "unstable_recall": 0.5882352941176471,
+        "unstable_precision": 0.8333333333333334,
+        "unstable_f1": 0.6896551724137931,
+        "stable_recall": 0.9354838709677419,
+        "boundary_mae": 0.10179304593116109,
+        "near_boundary_sigma_mae": 0.10179304593116109,
+        "brier": 0.1627332709036933
+      }
+    },
+    "lhs": {
+      "diagnostics": {
+        "n_valid": 16,
+        "n_unstable_found": 4,
+        "unstable_fraction": 0.25,
+        "time_to_first_unstable": 1,
+        "n_near_boundary": 4,
+        "frac_evals_near_edge": 0.25,
+        "mean_abs_sigma": 0.34156434896621857
+      },
+      "holdout": {
+        "n_valid": 16,
+        "n_unstable_found": 4,
+        "unstable_fraction": 0.25,
+        "time_to_first_unstable": 1,
+        "n_near_boundary": 4,
+        "frac_evals_near_edge": 0.25,
+        "mean_abs_sigma": 0.34156434896621857,
+        "n_campaign": 16,
+        "n_test": 48,
+        "volume_accuracy": 0.875,
+        "unstable_recall": 0.7647058823529411,
+        "unstable_precision": 0.8666666666666667,
+        "unstable_f1": 0.8125,
+        "stable_recall": 0.9354838709677419,
+        "boundary_mae": 0.12252104092774772,
+        "near_boundary_sigma_mae": 0.12252104092774772,
+        "brier": 0.11034644436132997
+      }
+    },
+    "random": {
+      "diagnostics": {
+        "n_valid": 16,
+        "n_unstable_found": 4,
+        "unstable_fraction": 0.25,
+        "time_to_first_unstable": 8,
+        "n_near_boundary": 0,
+        "frac_evals_near_edge": 0.0,
+        "mean_abs_sigma": 0.4530703160808404
+      },
+      "holdout": {
+        "n_valid": 16,
+        "n_unstable_found": 4,
+        "unstable_fraction": 0.25,
+        "time_to_first_unstable": 8,
+        "n_near_boundary": 0,
+        "frac_evals_near_edge": 0.0,
+        "mean_abs_sigma": 0.4530703160808404,
+        "n_campaign": 16,
+        "n_test": 48,
+        "volume_accuracy": 0.8333333333333334,
+        "unstable_recall": 0.5294117647058824,
+        "unstable_precision": 1.0,
+        "unstable_f1": 0.6923076923076924,
+        "stable_recall": 1.0,
+        "boundary_mae": 0.13059054864319028,
+        "near_boundary_sigma_mae": 0.13059054864319028,
+        "brier": 0.09852136249440957
+      }
+    },
+    "holdout_n": 48,
+    "holdout_n_valid": 48,
+    "holdout_n_unstable": 17,
+    "note": "Frozen methods were evaluated once. Do not retune from this result."
+  },
+  "timestamp_utc": "2026-09-18T02:54:22+00:00",
+  "git_commit_sha": "1d164c7bc3c4b7acf9212c09d4f3ddf5fdf42b14",
   "working_tree_dirty": true,
-  "openfoam_executed": false
+  "openfoam_executed": true
 }
