@@ -87,7 +87,11 @@ New commands write run metadata (timestamp, git SHA, dirty tree,
   not rewritten.
 - `artifacts/ablation_study.json` is an atlas-only policy-component study.
 - `artifacts/cfd_live_expansion.json` and `artifacts/cfd_expansion_s*` are
-  post-development extra live seeds. They do not rewrite `cfd_study_s*` and
-  were not used to retune constants or acquisition.
-- `artifacts/g_sweep_mesh_verification.json` re-runs the committed g-slice
-  at several meshes. `artifacts/g_sweep.json` is not overwritten.
+  post-development extra live seeds (`openfoam_executed: true`, n = 16).
+  They do not rewrite `cfd_study_s*` and were not used to retune constants
+  or acquisition. Mean expansion recall 0.65 (AI) vs 0.50 (LHS) vs 0.49
+  (Random); AI higher recall in 11/16.
+- `artifacts/g_sweep_mesh_verification.json` re-ran the committed g-slice
+  at several meshes. Two analog-unstable intervals at mesh 1.00 and 1.40;
+  the high-g interval is absent at mesh 0.70. `artifacts/g_sweep.json` is
+  not overwritten.

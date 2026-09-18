@@ -25,7 +25,9 @@ recall was approximately **0.68 (AI) vs 0.33 (LHS)**, with similar mean
 precision (0.86 vs 0.85) and F1 0.76 vs 0.46. AI had higher recall in
 **7 of 8** seeds. No statistical significance is claimed on n = 8.
 A later 16-seed live expansion is additional post-development evidence
-and was not used to retune; n = 8 remains the primary live study.
+(AI recall 0.65 vs LHS 0.50 vs Random 0.49; 11/16) and was not used to
+retune; n = 8 remains the primary live study. The high-g 1-D interval is
+absent on a coarser mesh.
 
 ## Discovery
 

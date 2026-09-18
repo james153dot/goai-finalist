@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "method": "lhs_baseline",
+  "seed": 10062,
+  "budget": 16,
+  "n_evaluations": 16,
+  "n_valid": 16,
+  "n_converged": 16,
+  "hypotheses": [
+    {
+      "id": "H_swirl_monotonic",
+      "statement": "Increasing swirl intensity analog s consistently improves stability.",
+      "status": "challenged",
+      "evidence_count": 3,
+      "note": "Sparse 5-D comparisons challenge a globally monotonic swirl-stability relationship. Other design coordinates also vary, so this is not a controlled one-factor causal falsification; use the fixed-family swirl sweep for follow-up."
+    },
+    {
+      "id": "H_connected_unstable",
+      "statement": "Unstable conditions form a single connected region in the explored domain.",
+      "status": "challenged",
+      "evidence_count": 5,
+      "note": "At least two unstable evaluations sit among mostly stable neighbors. That is consistent with a nonmonotonic map, not a proof of a disconnected 5-D pocket."
+    }
+  ],
+  "discoveries": [
+    {
+      "type": "stability_window",
+      "n_stable": 8,
+      "n_unstable": 8,
+      "stable_fraction": 0.5,
+      "note": "A verified stable/unstable partition exists under the Rayleigh-from-mixing criterion."
+    },
+    {
+      "type": "boundary_structure",
+      "n_near_threshold": 4,
+      "mean_swirl_on_boundary": 0.5961118997376054,
+      "mean_spread_on_boundary": 0.6200467718645372,
+      "note": "Evaluations concentrated near \u03c3 \u2248 0 reconstruct the window edge."
+    },
+    {
+      "type": "anomaly",
+      "hypothesis": "H_swirl_monotonic",
+      "evidence_count": 3,
+      "note": "Sparse 5-D comparisons challenge a globally monotonic swirl-stability relationship. Other design coordinates also vary, so this is not a controlled one-factor causal falsification; use the fixed-family swirl sweep for follow-up."
+    },
+    {
+      "type": "anomaly",
+      "hypothesis": "H_connected_unstable",
+      "evidence_count": 5,
+      "note": "At least two unstable evaluations sit among mostly stable neighbors. That is consistent with a nonmonotonic map, not a proof of a disconnected 5-D pocket."
+    }
+  ],
+  "stability_threshold": 1.0,
+  "interpretation_policy": {
+    "sparse_multivariate_hypotheses": "challenge_not_causal_falsification",
+    "connectivity": "neighbor_anomaly_not_proof_of_5d_topology"
+  },
+  "fixed_environment": {
+    "chamber_mode": "first_longitudinal_n_tau",
+    "injector_mixing": "openfoam14_2d_laminar_dual_jet",
+    "acoustics": "rayleigh_overlap_of_q_mix_on_declared_closed_closed_1L_mode",
+    "public_outputs": "abstract_design_principles_only"
+  }
+}

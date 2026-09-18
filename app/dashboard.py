@@ -255,6 +255,9 @@ with tabs[0]:
             f"n = {s.get('n_seeds', 0)} extra live seeds under `artifacts/cfd_expansion_s*`. "
             "The frozen n = 8 study is unchanged. Constants and acquisition were not retuned."
         )
+        rows = s.get("per_seed") or []
+        if rows:
+            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
         exp_fig = ROOT / "artifacts" / "figures" / "live_cfd_expansion_recall.png"
         if exp_fig.exists():
             st.image(str(exp_fig), use_container_width=True)
@@ -686,6 +689,7 @@ are geometry analogs, not flight hardware.
 - Live seed 14 independently found unstable 5-D samples at both low and high g; that motivated the later slice.
 - Across eight matched live CFD campaigns, AI has higher unstable recall in 7/8 and higher F1 in 7/8. Mean precision is a near-tie. Seed 35 is the reversal and is kept.
 - A later 16-seed live expansion (AI vs LHS vs Random) is additional post-development evidence. It was not used to retune. The frozen n=8 study remains the primary live CFD claim.
+- The high-g 1-D interval is present at mesh_scale 1.00 and 1.40 and absent at 0.70. `g_sweep.json` was not rewritten.
 - Near-boundary growth-rate MAE E_σ,boundary is a mean tie. The claim is rare-regime recovery, not dominance on every metric.
 - The high-g unstable interval is not universal within the analog; it disappears at ω + 10% and at V_crit = 0.035.
 

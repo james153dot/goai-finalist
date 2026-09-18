@@ -1,0 +1,58 @@
+{
+  "schema_version": 2,
+  "method": "ai_level_set",
+  "seed": 74,
+  "budget": 16,
+  "n_evaluations": 16,
+  "n_valid": 16,
+  "n_converged": 16,
+  "hypotheses": [
+    {
+      "id": "H_swirl_monotonic",
+      "statement": "Increasing swirl intensity analog s consistently improves stability.",
+      "status": "challenged",
+      "evidence_count": 1,
+      "note": "Sparse 5-D comparisons challenge a globally monotonic swirl-stability relationship. Other design coordinates also vary, so this is not a controlled one-factor causal falsification; use the fixed-family swirl sweep for follow-up."
+    },
+    {
+      "id": "H_connected_unstable",
+      "statement": "Unstable conditions form a single connected region in the explored domain.",
+      "status": "not_challenged",
+      "evidence_count": 1,
+      "note": "The campaign did not isolate a disconnected region."
+    }
+  ],
+  "discoveries": [
+    {
+      "type": "stability_window",
+      "n_stable": 5,
+      "n_unstable": 11,
+      "stable_fraction": 0.3125,
+      "note": "A verified stable/unstable partition exists under the Rayleigh-from-mixing criterion."
+    },
+    {
+      "type": "boundary_structure",
+      "n_near_threshold": 1,
+      "mean_swirl_on_boundary": 0.004494022092357497,
+      "mean_spread_on_boundary": 0.7299070730051624,
+      "note": "Evaluations concentrated near \u03c3 \u2248 0 reconstruct the window edge."
+    },
+    {
+      "type": "anomaly",
+      "hypothesis": "H_swirl_monotonic",
+      "evidence_count": 1,
+      "note": "Sparse 5-D comparisons challenge a globally monotonic swirl-stability relationship. Other design coordinates also vary, so this is not a controlled one-factor causal falsification; use the fixed-family swirl sweep for follow-up."
+    }
+  ],
+  "stability_threshold": 1.0,
+  "interpretation_policy": {
+    "sparse_multivariate_hypotheses": "challenge_not_causal_falsification",
+    "connectivity": "neighbor_anomaly_not_proof_of_5d_topology"
+  },
+  "fixed_environment": {
+    "chamber_mode": "first_longitudinal_n_tau",
+    "injector_mixing": "openfoam14_2d_laminar_dual_jet",
+    "acoustics": "rayleigh_overlap_of_q_mix_on_declared_closed_closed_1L_mode",
+    "public_outputs": "abstract_design_principles_only"
+  }
+}

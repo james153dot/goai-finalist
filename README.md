@@ -403,20 +403,83 @@ seed is budget-16 AI vs LHS vs Random, scored on the original
 `artifacts/of_test.json`.
 
 Report **n = 8 as the primary live study**. Expansion and pooled numbers are
-additional evidence. Commands:
+additional evidence. No p-value is claimed.
+
+Live OpenFOAM expansion, n = 16 seeds, budget 16. Mean ± sample sd:
+
+| | AI | LHS | Random |
+| --- | --- | --- | --- |
+| Unstable recall | 0.65 ± 0.24 | 0.50 ± 0.25 | 0.49 ± 0.25 |
+| Unstable precision | 0.85 ± 0.12 | 0.94 ± 0.08 | 0.88 ± 0.12 |
+| Unstable F1 | 0.70 ± 0.20 | 0.61 ± 0.23 | 0.59 ± 0.21 |
+| Unstable evaluations found | 8.1 ± 1.4 | 5.8 ± 1.5 | 5.6 ± 2.2 |
+
+AI had higher hold-out unstable recall than LHS in **11/16** seeds, higher F1
+in **10/16**, and more analog-unstable evaluations in **15/16**. The original
+7/8 split does **not** reappear at the same magnitude. Seeds 50 and 56 reverse
+on recall; seed 41 has AI recall 0.22 while Random reaches 0.78. Those seeds
+are kept. Mean precision is higher for LHS: adaptive search still spends more
+of the budget on the minority class (8.1 vs 5.8 unstable evaluations) without
+being a hold-out recall lock.
+
+Pooled original + expansion (n = 24, Random only on the 16 new seeds):
+
+| | AI | LHS |
+| --- | --- | --- |
+| Unstable recall | 0.66 ± 0.20 | 0.44 ± 0.25 |
+| Unstable F1 | 0.72 ± 0.17 | 0.56 ± 0.24 |
+| AI higher recall | 18/24 |  |
+
+Sample-efficiency AUC of mean recall vs budget on [5, 16]: expansion AI 4.33
+vs LHS 3.42 vs Random 3.98; pooled AI 4.54 vs LHS 3.03. The frozen n = 8 AUC
+(AI 4.96 vs LHS 2.25) is unchanged.
+
+Per-seed expansion recall:
+
+| seed | AI R | LHS R | Random R | AI n_u | LHS n_u |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 38 | 0.67 | 0.67 | 0.56 | 8 | 7 |
+| 41 | 0.22 | 0.11 | 0.78 | 7 | 5 |
+| 44 | 0.67 | 0.33 | 0.33 | 7 | 3 |
+| 47 | 0.67 | 0.33 | 0.22 | 6 | 5 |
+| 50 | 0.11 | 0.33 | 0.78 | 9 | 4 |
+| 53 | 0.56 | 0.22 | 0.22 | 9 | 5 |
+| 56 | 0.44 | 0.78 | 0.44 | 6 | 8 |
+| 59 | 0.78 | 0.11 | 0.44 | 8 | 5 |
+| 62 | 0.89 | 0.78 | 0.78 | 9 | 8 |
+| 65 | 0.89 | 0.78 | 0.11 | 7 | 6 |
+| 68 | 0.67 | 0.33 | 0.78 | 9 | 6 |
+| 71 | 0.56 | 0.56 | 0.56 | 7 | 6 |
+| 74 | 0.89 | 0.56 | 0.78 | 11 | 4 |
+| 77 | 0.67 | 0.56 | 0.22 | 9 | 8 |
+| 80 | 0.67 | 0.67 | 0.22 | 8 | 5 |
+| 83 | 1.00 | 0.89 | 0.67 | 10 | 7 |
+
+`cswe g-sweep-verify` re-ran the committed g-slice at relative meshes
+0.70 / 1.00 / 1.40. It did **not** overwrite `artifacts/g_sweep.json`.
+
+| mesh_scale | analog-unstable intervals on the 1-D slice |
+| ---: | --- |
+| 0.70 | 1 (like-on-like family only; high-g interval absent) |
+| 1.00 | 2 (same qualitative structure as the committed sweep) |
+| 1.40 | 2 (intervals wider than at mesh 1.00) |
+
+The high-g interval is therefore mesh-sensitive, consistent with it also
+disappearing under ω + 10% and V_crit = 0.035. That is a 1-D slice statement,
+not a 5-D topology proof.
+
+Commands:
 
 ```bash
 cswe live-expansion --budget 16 --n-init 5 --n-iter 90 --workers 2
 cswe g-sweep-verify
 ```
 
-`cswe g-sweep-verify` re-runs the committed g-slice at relative meshes
-0.70 / 1.00 / 1.40 and writes `artifacts/g_sweep_mesh_verification.json`.
-It does **not** overwrite `artifacts/g_sweep.json`.
-
-If those artifacts are present, numbers are in
-`artifacts/cfd_live_expansion.json` and `artifacts/cfd_live_pooled.json`.
-If they are PENDING, OpenFOAM was not available; do not fabricate CFD.
+Artifacts: `artifacts/cfd_live_expansion.json`,
+`artifacts/cfd_live_pooled.json`,
+`artifacts/g_sweep_mesh_verification.json`,
+`artifacts/figures/live_cfd_expansion_recall.png`,
+`artifacts/figures/g_sweep_mesh_verification.png`.
 
 ## Frozen one-shot final validation
 

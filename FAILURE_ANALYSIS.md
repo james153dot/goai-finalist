@@ -121,3 +121,16 @@ reconstructed map.
    whether the collapse is transient.
 4. Log GP length-scales and predicted unstable volume after every query so
    the collapse is inspectable without refitting from JSONL.
+
+## Expansion reversals (not used to retune)
+
+A later 16-seed live expansion (`artifacts/cfd_expansion_s*`) also contains
+hold-out recall reversals. They are kept. Analog constants were not changed.
+
+| seed | AI recall | LHS recall | Random recall | note |
+| ---: | ---: | ---: | ---: | --- |
+| 50 | 0.11 | 0.33 | 0.78 | AI sampled 9 unstables but the reconstructed map missed the hold-out minority |
+| 56 | 0.44 | 0.78 | 0.44 | LHS recall win; AI found fewer unstables (6 vs 8) |
+| 41 | 0.22 | 0.11 | 0.78 | AI beats LHS but Random wins this seed |
+
+The frozen n = 8 study, including seed 35, was not rewritten.

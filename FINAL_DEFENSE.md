@@ -49,9 +49,16 @@ Committed live n = 8, `artifacts/cfd_live_summary.json`:
 No p-value is claimed on n = 8.
 
 A later sixteen-seed live expansion (AI vs LHS vs Random) is additional
-post-development evidence in `artifacts/cfd_live_expansion.json`. It was
-not used to retune. The frozen n = 8 study remains the primary live CFD
-claim.
+post-development evidence in `artifacts/cfd_live_expansion.json`. Mean
+unstable recall was 0.65 (AI) vs 0.50 (LHS) vs 0.49 (Random); AI was higher
+than LHS in 11/16 seeds and found more unstables in 15/16. It was not used
+to retune. The frozen n = 8 study (0.68 vs 0.33, 7/8) remains the primary
+live CFD claim.
+
+The committed g-slice has two analog-unstable intervals at the live mesh
+and at mesh_scale 1.40. The high-g interval is absent at mesh_scale 0.70.
+`artifacts/g_sweep.json` was not rewritten. That is a 1-D mesh check, not
+a 5-D topology proof.
 
 A later frozen one-shot OpenFOAM hold-out (seed 101, 48 new cases) is in
 `FINAL_VALIDATION.md`. On that single draw LHS hold-out recall was higher

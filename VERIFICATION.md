@@ -70,6 +70,20 @@ reliable classifier for a near-threshold analog.
 This is numerical robustness of the declared analog, **not** validation
 against a real combustor.
 
+## g-slice mesh check (does not rewrite g_sweep.json)
+
+`cswe g-sweep-verify` re-ran the committed 1-D g-slice (fixed d, a, s, o)
+at mesh_scale 0.70 / 1.00 / 1.40 and live n_iter = 90. Artifact:
+`artifacts/g_sweep_mesh_verification.json`.
+
+- mesh 0.70: **one** analog-unstable interval (like-on-like family only)
+- mesh 1.00: **two** intervals, matching the committed sweep qualitatively
+- mesh 1.40: **two** intervals, wider than at mesh 1.00
+
+The high-g interval is mesh-sensitive. This is consistent with it also
+disappearing under ω + 10% and V_crit = 0.035. It is not a 5-D topology
+proof. `artifacts/g_sweep.json` was not overwritten.
+
 ```bash
 cswe verify
 ```

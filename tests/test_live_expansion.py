@@ -49,3 +49,27 @@ def test_cli_exposes_expansion_commands():
     text = (ROOT / "src" / "cswe" / "cli.py").read_text(encoding="utf-8")
     assert "live-expansion" in text
     assert "g-sweep-verify" in text
+
+
+def test_committed_expansion_complete_and_isolated():
+    import json
+
+    exp_path = ROOT / "artifacts" / "cfd_live_expansion.json"
+    if not exp_path.exists():
+        return
+    payload = json.loads(exp_path.read_text(encoding="utf-8"))
+    if payload.get("status") != "COMPLETE":
+        return
+    assert payload["openfoam_executed"] is True
+    assert payload["summary"]["n_seeds"] == 16
+    assert payload["summary"]["seeds"] == EXPANSION_SEEDS
+    frozen = sorted((ROOT / "artifacts").glob("cfd_study_s*/cfd_comparison.json"))
+    assert len(frozen) == 8
+    gv_path = ROOT / "artifacts" / "g_sweep_mesh_verification.json"
+    if gv_path.exists():
+        gv = json.loads(gv_path.read_text(encoding="utf-8"))
+        if gv.get("status") == "COMPLETE":
+            assert gv["original_g_sweep_not_rewritten"] is True
+            assert gv["openfoam_executed"] is True
+            assert (ROOT / "artifacts" / "g_sweep.json").exists()
+            assert gv_path.name != "g_sweep.json"
