@@ -486,6 +486,54 @@ def sample_efficiency() -> None:
         typer.echo(f"Wrote {fig}")
 
 
+@app.command("live-expansion")
+def live_expansion(
+    budget: int = typer.Option(16),
+    n_init: int = typer.Option(5),
+    n_iter: int = typer.Option(90),
+    workers: int = typer.Option(2, help="Concurrent expansion seeds. Each seed still runs OpenFOAM sequentially."),
+) -> None:
+    """Post-development live OpenFOAM seeds. Does not rewrite artifacts/cfd_study_s*."""
+    from cswe.live_expansion import run_expansion, write_derived_artifacts
+
+    payload = run_expansion(budget=budget, n_init=n_init, n_iter=n_iter, workers=workers)
+    summary = payload.get("summary") or {}
+    typer.echo(
+        json.dumps(
+            {
+                "status": payload.get("status"),
+                "planned_seeds": payload.get("planned_seeds"),
+                "completed_seeds": summary.get("seeds"),
+                "paired_ai_vs_lhs": summary.get("paired_ai_vs_lhs"),
+            },
+            indent=2,
+        )
+    )
+    for path in write_derived_artifacts():
+        typer.echo(str(path))
+
+
+@app.command("g-sweep-verify")
+def g_sweep_verify() -> None:
+    """Re-run the committed g-slice at several meshes. Does not overwrite g_sweep.json."""
+    from cswe.live_expansion import run_g_sweep_mesh_verification, write_expansion_figures
+
+    payload = run_g_sweep_mesh_verification()
+    typer.echo(
+        json.dumps(
+            {
+                "status": payload.get("status"),
+                "two_intervals_on_every_tested_mesh": payload.get("two_intervals_on_every_tested_mesh"),
+                "original_g_sweep_not_rewritten": payload.get("original_g_sweep_not_rewritten"),
+                "cases": payload.get("cases"),
+            },
+            indent=2,
+        )
+    )
+    for path in write_expansion_figures():
+        typer.echo(str(path))
+
+
 @app.command()
 def reproduce() -> None:
     """Minimum end-to-end path: one foam case (if present), short matched campaigns, figures."""

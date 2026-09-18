@@ -135,6 +135,8 @@ def main() -> int:
     require(errors, "def verify" in cli, "CLI lacks cswe verify")
     require(errors, "final-validation" in cli, "CLI lacks cswe final-validation")
     require(errors, "ablation-study" in cli, "CLI lacks cswe ablation-study")
+    require(errors, "live-expansion" in cli, "CLI lacks cswe live-expansion")
+    require(errors, "g-sweep-verify" in cli, "CLI lacks cswe g-sweep-verify")
     require(errors, "3.11" in ci, "CI workflow is not pinned to Python 3.11")
     require(errors, "pip install -e" in ci, "CI does not pip-install the package")
     require(errors, "pytest" in ci, "CI does not run pytest")
@@ -149,11 +151,26 @@ def main() -> int:
     require(errors, not manifest["disclosure"].get("commercial_apis"), "manifest declares commercial APIs unexpectedly")
 
     live_dirs = sorted((ROOT / "artifacts").glob("cfd_study_s*"))
-    require(errors, len(live_dirs) >= 1, "no live CFD study directory found")
+    frozen_names = {f"cfd_study_s{s}" for s in (8, 11, 14, 19, 23, 26, 32, 35)}
+    require(errors, len(live_dirs) == 8, f"expected 8 frozen live CFD study dirs, found {len(live_dirs)}")
+    require(
+        errors,
+        {d.name for d in live_dirs} == frozen_names,
+        f"frozen live CFD dirs drifted: {[d.name for d in live_dirs]}",
+    )
     for directory in live_dirs:
         require(errors, (directory / "ai" / "exploration.jsonl").exists(), f"missing AI exploration log in {directory.name}")
         require(errors, (directory / "baseline" / "exploration.jsonl").exists(), f"missing baseline exploration log in {directory.name}")
         require(errors, (directory / "cfd_comparison.json").exists(), f"missing comparison in {directory.name}")
+    expansion_dirs = sorted((ROOT / "artifacts").glob("cfd_expansion_s*"))
+    for directory in expansion_dirs:
+        require(
+            errors,
+            not directory.name.startswith("cfd_study_"),
+            f"expansion directory collides with frozen glob: {directory.name}",
+        )
+    _pending_or_missing_of_artifact(warnings, "artifacts/cfd_live_expansion.json")
+    _pending_or_missing_of_artifact(warnings, "artifacts/g_sweep_mesh_verification.json")
 
     # Atlas ablation + sample-efficiency are generated from committed data (no new CFD).
     require(errors, (ROOT / "src/cswe/ablation.py").exists(), "missing ablation infrastructure")

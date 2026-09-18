@@ -86,3 +86,8 @@ New commands write run metadata (timestamp, git SHA, dirty tree,
   committed live campaign **curves**. Those `cfd_comparison.json` files are
   not rewritten.
 - `artifacts/ablation_study.json` is an atlas-only policy-component study.
+- `artifacts/cfd_live_expansion.json` and `artifacts/cfd_expansion_s*` are
+  post-development extra live seeds. They do not rewrite `cfd_study_s*` and
+  were not used to retune constants or acquisition.
+- `artifacts/g_sweep_mesh_verification.json` re-runs the committed g-slice
+  at several meshes. `artifacts/g_sweep.json` is not overwritten.

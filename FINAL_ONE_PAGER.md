@@ -24,6 +24,8 @@ Across eight live OpenFOAM campaigns (budget 16), mean hold-out unstable
 recall was approximately **0.68 (AI) vs 0.33 (LHS)**, with similar mean
 precision (0.86 vs 0.85) and F1 0.76 vs 0.46. AI had higher recall in
 **7 of 8** seeds. No statistical significance is claimed on n = 8.
+A later 16-seed live expansion is additional post-development evidence
+and was not used to retune; n = 8 remains the primary live study.
 
 ## Discovery
 

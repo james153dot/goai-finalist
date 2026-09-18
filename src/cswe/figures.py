@@ -420,6 +420,12 @@ def ablation_figure() -> Path | None:
     return write_figure(json.loads(path.read_text(encoding="utf-8")))
 
 
+def expansion_figures() -> list[Path]:
+    from cswe.live_expansion import write_expansion_figures
+
+    return write_expansion_figures()
+
+
 def write_all() -> list[Path]:
     """Write figures from committed artifacts. Does not rewrite historical campaign JSON."""
     _style()
@@ -439,4 +445,5 @@ def write_all() -> list[Path]:
         p = fn()
         if p is not None:
             written.append(p)
+    written.extend(expansion_figures())
     return written

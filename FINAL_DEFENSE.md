@@ -48,6 +48,11 @@ Committed live n = 8, `artifacts/cfd_live_summary.json`:
 
 No p-value is claimed on n = 8.
 
+A later sixteen-seed live expansion (AI vs LHS vs Random) is additional
+post-development evidence in `artifacts/cfd_live_expansion.json`. It was
+not used to retune. The frozen n = 8 study remains the primary live CFD
+claim.
+
 A later frozen one-shot OpenFOAM hold-out (seed 101, 48 new cases) is in
 `FINAL_VALIDATION.md`. On that single draw LHS hold-out recall was higher
 (0.76 vs 0.59) while AI found more unstables (7 vs 4). It was not used to

@@ -69,6 +69,7 @@ models, commercial APIs, dependencies, and licenses.
 - [x] Finalist extras: `FINAL_DEFENSE.md`, `FINAL_ONE_PAGER.md`,
   `VERIFICATION.md`, `FINAL_VALIDATION.md`, `FAILURE_ANALYSIS.md`,
   `cswe verify`, `cswe final-validation`, `cswe ablation-study`,
+  `cswe live-expansion`, `cswe g-sweep-verify`,
   sample-efficiency figure from committed live curves, Final Demo tab,
   pip install path, and `.github/workflows/ci.yml`.
 

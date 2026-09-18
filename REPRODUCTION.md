@@ -85,10 +85,21 @@ cswe verify
 cswe final-validation
 ```
 
-`verify` and `final-validation` write **PENDING** JSON if OpenFOAM is absent.
+`cswe verify` and `cswe final-validation` write **PENDING** JSON if OpenFOAM is absent.
 Committed COMPLETE live runs are already in `artifacts/verification.json`
 and `artifacts/final_validation.json` (`openfoam_executed: true`).
 They do not invent CFD numbers.
+
+Post-development extra live seeds (do **not** rewrite `cfd_study_s*`):
+
+```bash
+cswe live-expansion --budget 16 --n-init 5 --n-iter 90 --workers 2
+cswe g-sweep-verify
+```
+
+Expansion campaigns are written to `artifacts/cfd_expansion_s*`. The frozen
+n = 8 study remains the primary live CFD claim. `g-sweep-verify` does not
+overwrite `artifacts/g_sweep.json`.
 
 ### Expected outputs
 
@@ -140,6 +151,10 @@ The committed primary live study contains eight seeds
 `cswe cfd-study` once per seed with the same budget, initialization count,
 and iteration cap. `artifacts/cfd_live_summary.json` records the aggregate
 results. Do not rewrite those historical logs merely to refresh wording.
+
+Additional post-development live seeds use `cswe live-expansion` and write
+`artifacts/cfd_expansion_s*`. They are not a substitute for the frozen n = 8
+study and must not be used to retune constants.
 
 ## Configuration and result definitions
 

@@ -393,6 +393,31 @@ No extrapolation past budget 16. The language is solver calls saved on this
 protocol, not “AI is better at everything.” Precision remains a mean near-tie;
 near-boundary σ MAE is a mean tie; seed 35 loses.
 
+## Post-development live expansion
+
+After the frozen n = 8 study and the one-shot seed-101 validation, sixteen
+additional live OpenFOAM campaigns were run **without rewriting**
+`artifacts/cfd_study_s*` and **without retuning** analog constants or the
+acquisition. New logs live under `artifacts/cfd_expansion_s*`. Each expansion
+seed is budget-16 AI vs LHS vs Random, scored on the original
+`artifacts/of_test.json`.
+
+Report **n = 8 as the primary live study**. Expansion and pooled numbers are
+additional evidence. Commands:
+
+```bash
+cswe live-expansion --budget 16 --n-init 5 --n-iter 90 --workers 2
+cswe g-sweep-verify
+```
+
+`cswe g-sweep-verify` re-runs the committed g-slice at relative meshes
+0.70 / 1.00 / 1.40 and writes `artifacts/g_sweep_mesh_verification.json`.
+It does **not** overwrite `artifacts/g_sweep.json`.
+
+If those artifacts are present, numbers are in
+`artifacts/cfd_live_expansion.json` and `artifacts/cfd_live_pooled.json`.
+If they are PENDING, OpenFOAM was not available; do not fabricate CFD.
+
 ## Frozen one-shot final validation
 
 After the method was frozen, `cswe final-validation` generated a **new**
@@ -560,7 +585,9 @@ scope of the interpretation/schema revision.
 4. Extend the injector analog to three dimensions and test whether adaptive
    exploration retains its rare-regime advantage.
 5. Compare alternative autonomous exploration policies under the same
-   OpenFOAM budget and independent hold-out protocol.
+   OpenFOAM budget and independent hold-out protocol. A 16-seed live
+   expansion (`cswe live-expansion`) already adds Random beside AI and LHS
+   without rewriting the frozen n = 8 study.
 6. Treat sensitivity-driven disappearances of the high-`g` interval as
    targets for controlled mechanistic follow-up rather than universal design
    conclusions.

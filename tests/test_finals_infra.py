@@ -121,3 +121,5 @@ def test_sample_efficiency_reads_eight_campaigns_without_rewrite(tmp_path):
 def test_dashboard_has_final_demo_tab():
     text = Path(__file__).resolve().parents[1].joinpath("app/dashboard.py").read_text(encoding="utf-8")
     assert "Final Demo — 90 seconds" in text
+    assert "Post-development expansion" in text
+    assert "not used to retune" in text

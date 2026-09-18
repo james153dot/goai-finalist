@@ -235,8 +235,60 @@ with tabs[0]:
         st.caption("One-shot post-development check. Not used to retune.")
     st.caption("Negative and conditional results are retained.")
 
+    st.markdown('<p class="demo-h">G. Post-development expansion · not used to retune</p>', unsafe_allow_html=True)
+    exp = _load_json(ROOT / "artifacts" / "cfd_live_expansion.json")
+    pooled = _load_json(ROOT / "artifacts" / "cfd_live_pooled.json")
+    gsv = _load_json(ROOT / "artifacts" / "g_sweep_mesh_verification.json")
+    if exp and exp.get("status") == "COMPLETE":
+        s = exp.get("summary") or {}
+        rec = s.get("recall") or {}
+        paired = s.get("paired_ai_vs_lhs") or {}
+        e1, e2, e3, e4 = st.columns(4)
+        ai_r = (rec.get("ai") or {}).get("mean")
+        lhs_r = (rec.get("lhs") or {}).get("mean")
+        rnd_r = (rec.get("random") or {}).get("mean")
+        e1.metric("Expansion AI recall", "—" if ai_r is None else f"{ai_r:.2f}")
+        e2.metric("Expansion LHS recall", "—" if lhs_r is None else f"{lhs_r:.2f}")
+        e3.metric("Expansion Random recall", "—" if rnd_r is None else f"{rnd_r:.2f}")
+        e4.metric("AI higher recall", paired.get("ai_higher_unstable_recall", "—"))
+        st.caption(
+            f"n = {s.get('n_seeds', 0)} extra live seeds under `artifacts/cfd_expansion_s*`. "
+            "The frozen n = 8 study is unchanged. Constants and acquisition were not retuned."
+        )
+        exp_fig = ROOT / "artifacts" / "figures" / "live_cfd_expansion_recall.png"
+        if exp_fig.exists():
+            st.image(str(exp_fig), use_container_width=True)
+        if pooled:
+            p = pooled.get("pooled") or {}
+            pr = (p.get("recall") or {})
+            st.caption(
+                "Pooled original+expansion is additional evidence, not a replacement for n = 8. "
+                f"Pooled AI recall {(pr.get('ai') or {}).get('mean')} vs LHS {(pr.get('lhs') or {}).get('mean')} "
+                f"({(p.get('paired_ai_vs_lhs') or {}).get('ai_higher_unstable_recall')})."
+            )
+    elif exp and exp.get("status") == "PARTIAL":
+        st.info(
+            f"Expansion is PARTIAL ({len((exp.get('summary') or {}).get('seeds') or [])} of "
+            f"{len(exp.get('planned_seeds') or [])} seeds). Frozen n = 8 is still the primary live study."
+        )
+    else:
+        st.caption(
+            "Optional extra live seeds are written to `artifacts/cfd_expansion_s*` by `cswe live-expansion`. "
+            "The primary live study remains the frozen n = 8."
+        )
+    if gsv and gsv.get("status") == "COMPLETE":
+        st.caption(
+            "g-slice mesh check: two analog-unstable intervals on every tested mesh = "
+            f"{gsv.get('two_intervals_on_every_tested_mesh')}. `g_sweep.json` was not rewritten."
+        )
+        gsv_fig = ROOT / "artifacts" / "figures" / "g_sweep_mesh_verification.png"
+        if gsv_fig.exists():
+            st.image(str(gsv_fig), use_container_width=True)
+    elif gsv and gsv.get("status") == "PENDING":
+        st.caption("g-slice mesh verification is PENDING (OpenFOAM was not available when requested).")
+
     st.markdown(
-        '<p class="demo-take">G. Final takeaway — AI does not replace the simulator. '
+        '<p class="demo-take">H. Final takeaway — AI does not replace the simulator. '
         "It decides which expensive scientific experiment should be performed next.</p>",
         unsafe_allow_html=True,
     )
@@ -633,6 +685,7 @@ are geometry analogs, not flight hardware.
 - A fixed-low-swirl OpenFOAM g-slice has two separated unstable *intervals*, not a mapped 5-D pocket.
 - Live seed 14 independently found unstable 5-D samples at both low and high g; that motivated the later slice.
 - Across eight matched live CFD campaigns, AI has higher unstable recall in 7/8 and higher F1 in 7/8. Mean precision is a near-tie. Seed 35 is the reversal and is kept.
+- A later 16-seed live expansion (AI vs LHS vs Random) is additional post-development evidence. It was not used to retune. The frozen n=8 study remains the primary live CFD claim.
 - Near-boundary growth-rate MAE E_σ,boundary is a mean tie. The claim is rare-regime recovery, not dominance on every metric.
 - The high-g unstable interval is not universal within the analog; it disappears at ω + 10% and at V_crit = 0.035.
 
